@@ -10,12 +10,10 @@ export default async function EditProductPage({ params }: Props) {
     cats: { _id: string; name: string; slug: string }[],
     subs: { _id: string; name: string; slug: string; categoryId: string }[];
   try {
-    const [prodRows, catRows, subRows] = await Promise.all([
-      sql`SELECT * FROM products WHERE id = ${id}`,
-      sql`SELECT id, name, slug FROM categories ORDER BY sort_order`,
-      sql`SELECT id, name, slug, category_id FROM subcategories ORDER BY sort_order`,
-    ]);
+    const prodRows = await sql`SELECT * FROM products WHERE id = ${id}`;
     if (!prodRows[0]) notFound();
+    const catRows = await sql`SELECT id, name, slug FROM categories ORDER BY sort_order`;
+    const subRows = await sql`SELECT id, name, slug, category_id FROM subcategories ORDER BY sort_order`;
     product = prodRows[0];
     cats = catRows.map(c => ({ _id: c.id as string, name: c.name as string, slug: c.slug as string }));
     subs = subRows.map(s => ({

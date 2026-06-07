@@ -3,10 +3,8 @@ import ProductForm from '../ProductForm';
 
 async function getData() {
   try {
-    const [catRows, subRows] = await Promise.all([
-      sql`SELECT id, name, slug FROM categories ORDER BY sort_order`,
-      sql`SELECT id, name, slug, category_id FROM subcategories ORDER BY sort_order`,
-    ]);
+    const catRows = await sql`SELECT id, name, slug FROM categories ORDER BY sort_order`;
+    const subRows = await sql`SELECT id, name, slug, category_id FROM subcategories ORDER BY sort_order`;
     return {
       cats: catRows.map(c => ({ _id: c.id as string, name: c.name as string, slug: c.slug as string })),
       subs: subRows.map(s => ({

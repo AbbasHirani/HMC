@@ -8,11 +8,9 @@ export default async function EditCategoryPage({ params }: Props) {
   const { id } = await params;
   let cat: Record<string, unknown>, subs: { _id: string; name: string; slug: string; order: number }[];
   try {
-    const [catRows, subRows] = await Promise.all([
-      sql`SELECT * FROM categories WHERE id = ${id}`,
-      sql`SELECT * FROM subcategories WHERE category_id = ${id} ORDER BY sort_order`,
-    ]);
+    const catRows = await sql`SELECT * FROM categories WHERE id = ${id}`;
     if (!catRows[0]) notFound();
+    const subRows = await sql`SELECT * FROM subcategories WHERE category_id = ${id} ORDER BY sort_order`;
     cat = catRows[0];
     subs = subRows.map(s => ({
       _id: s.id as string,

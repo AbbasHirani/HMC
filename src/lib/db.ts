@@ -1,11 +1,11 @@
-import { neon } from '@neondatabase/serverless';
+import { neon, NeonQueryFunction } from '@neondatabase/serverless';
 
 declare global {
   // eslint-disable-next-line no-var
-  var _neonSql: ReturnType<typeof neon> | undefined;
+  var _neonSql: NeonQueryFunction<false, false> | undefined;
 }
 
-function getSql() {
+function getSql(): NeonQueryFunction<false, false> {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error('DATABASE_URL environment variable is not set');
 

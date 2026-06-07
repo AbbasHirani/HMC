@@ -1,0 +1,251 @@
+import Link from 'next/link';
+import type { Metadata } from 'next';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { IconPhone, IconWA, IconCheck, IconShield, IconWrench, IconCalendar, IconTruck, IconDrop, IconFilter, IconSpray, IconGauge } from '@/components/Icons';
+import { CONTACT, WA } from '@/lib/data';
+
+export const metadata: Metadata = {
+  title: 'Services & About — Hirani Marketing Combines',
+  description: 'Pump repair, water filter servicing, compressor repair and hydraulic maintenance. 17+ years serving Chennai. Drop in at our Parrys shop.',
+};
+
+const SVCS = [
+  {
+    Icon: IconDrop,
+    name: 'Pump Repair & Reconditioning',
+    desc: 'Full inspection, diagnosis, and reconditioning for all types of pumps — domestic, submersible, centrifugal, chemical and industrial.',
+    covers: [
+      'Disassembly, cleaning and full inspection',
+      'Bearing, shaft and impeller replacement',
+      'Mechanical seal replacement',
+      'Winding and motor checks',
+      'Performance and pressure testing after repair',
+      'Available for domestic, industrial and chemical pumps',
+    ],
+  },
+  {
+    Icon: IconFilter,
+    name: 'Water Filter Repair & Maintenance',
+    desc: 'Servicing and component replacement for RO, UV, softener and industrial filtration systems — in the field or at our workshop.',
+    covers: [
+      'RO membrane, pump and cartridge replacement',
+      'UV lamp and quartz sleeve replacement',
+      'Softener resin refresh and salt top-up',
+      'System pressure and flow-rate measurement',
+      'Water quality check after service',
+      'Domestic, commercial and industrial systems',
+    ],
+  },
+  {
+    Icon: IconSpray,
+    name: 'Air Compressor Repair',
+    desc: 'Overhaul and maintenance service for air compressors across Chennai — piston, belt-drive and screw types.',
+    covers: [
+      'Compressor head and valve overhaul',
+      'Piston ring and gasket replacement',
+      'Belt, filter and oil service',
+      'Safety valve testing and pressure calibration',
+      'Electrical and motor checks',
+      'Workshop or on-site service available',
+    ],
+  },
+  {
+    Icon: IconGauge,
+    name: 'Hydraulic System Maintenance',
+    desc: 'Maintenance and servicing of hydraulic power packs, cylinders and systems for industrial and workshop applications.',
+    covers: [
+      'Hydraulic fluid sampling and analysis',
+      'Seal and O-ring replacement in cylinders',
+      'Directional valve servicing',
+      'Hose and fitting inspection and replacement',
+      'Pressure and flow testing',
+      'System flush and refill',
+    ],
+  },
+];
+
+const WHY = [
+  { Icon: IconCalendar, title: '17+ years in the trade', body: 'Supplying and servicing pumps and water equipment across Tamil Nadu since 2008.' },
+  { Icon: IconShield,   title: 'No work without a quote', body: 'We inspect, diagnose and quote before touching your equipment — no hidden costs.' },
+  { Icon: IconCheck,    title: 'Genuine parts only', body: 'All replacement components are genuine and sourced from authorised distributors.' },
+  { Icon: IconTruck,    title: 'Fast turnaround', body: 'Most repairs are diagnosed and quoted same-day; standard jobs completed within 48–72 hours.' },
+];
+
+export default function ServicesPage() {
+  return (
+    <>
+      <Header active="services" />
+
+      {/* HERO */}
+      <section className="svc-hero">
+        <div className="container">
+          <div className="inner">
+            <nav className="crumb">
+              <Link href="/">Home</Link><span>/</span><b>Services &amp; About</b>
+            </nav>
+            <h1>Repair, reconditioning &amp; the people behind it</h1>
+            <p>
+              We don&rsquo;t just supply equipment — we keep it running. Workshop repair and maintenance for pumps, water filters, air compressors and hydraulic systems, backed by 17+ years in the trade.
+            </p>
+            <div className="pills">
+              <span className="pill">Pump repair &amp; reconditioning</span>
+              <span className="pill">Filter servicing</span>
+              <span className="pill">Compressor repair</span>
+              <span className="pill">Hydraulic maintenance</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ABOUT */}
+      <section className="section" id="about" style={{ background: 'var(--paper)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+        <div className="container">
+          <div className="about-grid">
+            <div className="about-text">
+              <span className="eyebrow">Who we are</span>
+              <h2 style={{ fontSize: 'clamp(28px,3.2vw,40px)', marginTop: 14 }}>
+                Chennai&rsquo;s trusted hardware &amp; water-systems supplier since 2008
+              </h2>
+              <p style={{ color: 'var(--slate)', fontSize: 16, lineHeight: 1.7, marginTop: 16 }}>
+                Hirani Marketing Combines supplies and services water pumps, RO &amp; filtration systems, fountains, pressure washers and industrial equipment to homes, businesses and plants across Tamil Nadu. Every product we supply, we can also service — matched to the correct specification, genuinely branded, and backed by our own repair and reconditioning team.
+              </p>
+              <div className="at-list">
+                {[
+                  { Icon: IconCheck,  title: 'Supplied to specification',  sub: 'We match every enquiry to the correct capacity, material and application — no guesswork.' },
+                  { Icon: IconShield, title: 'Genuine brands, every time',  sub: 'Kent, Aquaguard, CRI, Kirloskar, Grundfos, Crompton and more — authorised supply only.' },
+                  { Icon: IconWrench, title: 'In-house repair team',        sub: 'Our own technicians handle inspection, reconditioning and testing — no outsourcing.' },
+                ].map((item, i) => (
+                  <div className="at-item" key={i}>
+                    <span className="at-ic"><item.Icon /></span>
+                    <div><b>{item.title}</b><span>{item.sub}</span></div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
+                <a className="btn btn-navy" href={CONTACT.phoneHref}>
+                  <IconPhone />{CONTACT.phone}
+                </a>
+                <Link className="btn btn-ghost" href="/catalogue">Browse products</Link>
+              </div>
+            </div>
+
+            <div className="about-img">
+              <div className="ph" data-label="Workshop / storefront — Hirani Marketing Combines, Parrys Chennai" />
+              <div className="stat-card">
+                <b>17<em>+</em></b>
+                <span>Years in the trade</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SERVICES */}
+      <section className="section" id="services">
+        <div className="container">
+          <div className="sec-head">
+            <span className="eyebrow">What we service</span>
+            <h2>Repair &amp; reconditioning services</h2>
+            <p>Bring in your equipment or call us — we inspect, diagnose, recondition and test before return.</p>
+          </div>
+          <div style={{ marginTop: 48 }}>
+            {SVCS.map((svc, i) => (
+              <div className="svc-block" key={i}>
+                <div className="svc-block-l">
+                  <span className="sib-ic"><svc.Icon /></span>
+                  <div>
+                    <h3 dangerouslySetInnerHTML={{ __html: svc.name }} />
+                    <p>{svc.desc}</p>
+                  </div>
+                </div>
+                <div className="svc-block-r">
+                  <h4>What we cover</h4>
+                  <div className="cover-list">
+                    {svc.covers.map((c, j) => (
+                      <div className="cover-item" key={j}>
+                        <span className="ci"><IconCheck /></span>
+                        <span>{c}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <a
+                    className="enquire"
+                    href={WA + encodeURIComponent(svc.name)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <IconWA />Enquire about this service <IconPhone />
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PROCESS */}
+      <section className="section" style={{ background: 'var(--paper)', borderTop: '1px solid var(--line)' }}>
+        <div className="container">
+          <div className="sec-head center">
+            <span className="eyebrow">How it works</span>
+            <h2>Four steps from call to collection</h2>
+          </div>
+          <div className="steps" style={{ marginTop: 50 }}>
+            {[
+              { n: 1, done: true,  title: 'Contact us',               body: 'Call or WhatsApp — describe the problem, equipment type and location.' },
+              { n: 2, done: true,  title: 'Inspection & diagnosis',    body: 'Our technician inspects, identifies the fault and quotes the repair cost before any work begins.' },
+              { n: 3, done: true,  title: 'Repair & reconditioning',   body: 'Parts replaced, cleaned and reconditioned using genuine components in our workshop.' },
+              { n: 4, done: false, title: 'Test & return',             body: 'Full performance test before handover — pressure, flow and electrical checks as applicable.' },
+            ].map(step => (
+              <div className={`step${step.done ? ' done' : ''}`} key={step.n}>
+                <div className="step-num">{step.n}</div>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* WHY HIRANI */}
+      <section className="section">
+        <div className="container">
+          <div className="sec-head center">
+            <span className="eyebrow">Why Hirani</span>
+            <h2>Four reasons buyers come back</h2>
+          </div>
+          <div className="why-grid" style={{ marginTop: 44 }}>
+            {WHY.map((w, i) => (
+              <div className="why-card" key={i}>
+                <span className="wc-ic"><w.Icon /></span>
+                <h3>{w.title}</h3>
+                <p>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="section" style={{ paddingTop: 0 }}>
+        <div className="container">
+          <div className="cta-band">
+            <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 30, flexWrap: 'wrap' }}>
+              <div>
+                <h2>Equipment needs attention? Call us.</h2>
+                <p>We respond the same day — inspection, diagnosis and quote before any work begins.</p>
+              </div>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <a className="btn btn-primary btn-lg" href={CONTACT.phoneHref}><IconPhone />Call now</a>
+                <a className="btn btn-ghost-light btn-lg" href={WA} target="_blank" rel="noopener noreferrer"><IconWA />WhatsApp us</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </>
+  );
+}

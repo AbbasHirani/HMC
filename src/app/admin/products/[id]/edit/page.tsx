@@ -1,0 +1,58 @@
+import { notFound } from 'next/navigation';
+import { sql } from '@/lib/db';
+import ProductForm from '../../ProductForm';
+
+interface Props { params: Promise<{ id: string }> }
+
+export default async function EditProductPage({ params }: Props) {
+  const { id } = await params;
+  let product: Record<string, unknown>,
+    cats: { _id: string; name: string; slug: string }[],
+    subs: { _id: string; name: string; slug: string; categoryId: string }[];
+  try {
+    const [prodRows, catRows, subRows] = await Promise.all([
+      sql`SELECT * FROM products WHERE id = ${id}`,
+      sql`SELECT id, name, slug FROM categories ORDER BY sort_order`,
+      sql`SELECT id, name, slug, category_id FROM subcategories ORDER BY sort_order`,
+    ]);
+    if (!prodRows[0]) notFound();
+    product = prodRows[0];
+    cats = catRows.map(c => ({ _id: c.id as string, name: c.name as string, slug: c.slug as string }));
+    subs = subRows.map(s => ({
+      _id: s.id as string,
+      name: s.name as string,
+      slug: s.slug as string,
+      categoryId: s.category_id as string,
+    }));
+  } catch { notFound(); }
+
+  return (
+    <>
+      <div className="adm-topbar"><h1>Edit Product</h1></div>
+      <div className="adm-content">
+        <div className="adm-ph">
+          <h2>Edit: {product!.name as string}</h2>
+          <a href="/admin/products" className="btn-adm btn-adm-ghost">← Back</a>
+        </div>
+        <ProductForm
+          mode="edit"
+          id={id}
+          cats={cats!}
+          allSubs={subs!}
+          initial={{
+            name: product!.name as string,
+            slug: product!.slug as string,
+            categoryId: product!.category_id as string,
+            subcategoryId: product!.subcategory_id as string,
+            desc: (product!.description as string) ?? '',
+            price: product!.price != null ? String(product!.price) : '',
+            tag: (product!.tag as string) ?? '',
+            featured: (product!.featured as boolean) ?? false,
+            specs: (product!.specs as Record<string, string>) ?? {},
+            images: (product!.images as Array<{ url: string; publicId: string }>) ?? [],
+          }}
+        />
+      </div>
+    </>
+  );
+}

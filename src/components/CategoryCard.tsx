@@ -11,7 +11,7 @@ export default function CategoryCard({ cat }: { cat: Category }) {
       <div className="cat6-previews">
         {cat.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={cat.imageUrl} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={cat.imageUrl} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff', padding: '12px' }} />
         ) : (
           <>
             <div className="ph" data-label={cat.name} />

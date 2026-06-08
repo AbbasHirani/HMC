@@ -39,6 +39,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       featured = ${body.featured ?? false},
       images = ${JSON.stringify(body.images ?? [])}::jsonb,
       specs = ${JSON.stringify(body.specs ?? {})}::jsonb,
+      brand = ${body.brand ?? null},
       updated_at = NOW()
     WHERE id = ${id}
   `;
@@ -47,6 +48,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
   revalidatePath('/');
   revalidatePath('/catalogue');
   revalidatePath(`/product/${body.slug}`);
+  if (body.brand) revalidatePath(`/brand/${body.brand.toLowerCase()}`);
   if (existing[0]?.slug && existing[0].slug !== body.slug) {
     revalidatePath(`/product/${existing[0].slug}`);
   }

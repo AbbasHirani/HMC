@@ -146,12 +146,79 @@ export default async function HomePage() {
                 <Link className="btn btn-ghost" href="/catalogue">See the catalogue</Link>
               </div>
             </div>
-            <div className="ph" data-label="Workshop / storefront photo" style={{ height: 330 }} />
+            <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 20px 60px rgba(20,20,63,.13)' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/shop.jpg" alt="Hirani Marketing Combines — Parrys store" style={{ width: '100%', height: 420, objectFit: 'cover', objectPosition: 'center', display: 'block' }} />
+            </div>
           </div>
           <p style={{ fontFamily: 'var(--font-head)', fontWeight: 700, color: 'var(--muted)', fontSize: 12, letterSpacing: '.14em', textTransform: 'uppercase', margin: '54px 0 18px', textAlign: 'center' }}>
             Trusted brands we carry
           </p>
           <BrandsStrip />
+        </div>
+      </section>
+
+      {/* FIND US */}
+      <section className="section" style={{ background: '#fff', borderTop: '1px solid var(--line)' }}>
+        <div className="container">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 56, alignItems: 'center' }}>
+            {/* Map */}
+            <div style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid var(--line)', height: 380, boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
+              <iframe
+                src="https://maps.google.com/maps?q=Hirani+Marketing+Combines+Parrys+Chennai&output=embed&hl=en"
+                width="100%"
+                height="380"
+                style={{ border: 0, display: 'block' }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Hirani Marketing Combines location"
+              />
+            </div>
+
+            {/* Details */}
+            <div>
+              <span className="eyebrow">Visit our shop</span>
+              <h2 style={{ fontSize: 'clamp(24px,3vw,34px)', marginTop: 12 }}>Find us here</h2>
+              <p style={{ color: 'var(--slate)', fontSize: 15.5, lineHeight: 1.75, marginTop: 14 }}>
+                Drop by our Parrys store for pumps, water systems, and expert advice — or bring your equipment in for repair and servicing.
+              </p>
+
+              <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: 20, marginTop: 2 }}>📍</span>
+                  <div>
+                    <b style={{ display: 'block', fontSize: 14, color: 'var(--navy)', marginBottom: 2 }}>Address</b>
+                    <span style={{ color: 'var(--slate)', fontSize: 15 }}>Old No.133 / New No.279, Thambu Chetty St,<br />opposite TNEB office, Parrys, George Town,<br />Chennai – 600001</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: 20, marginTop: 2 }}>📞</span>
+                  <div>
+                    <b style={{ display: 'block', fontSize: 14, color: 'var(--navy)', marginBottom: 2 }}>Phone</b>
+                    <a href={CONTACT.phoneHref} style={{ color: 'var(--slate)', fontSize: 15, textDecoration: 'none' }}>{CONTACT.phone}</a>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: 20, marginTop: 2 }}>✉️</span>
+                  <div>
+                    <b style={{ display: 'block', fontSize: 14, color: 'var(--navy)', marginBottom: 2 }}>Email</b>
+                    <a href={`mailto:${CONTACT.email}`} style={{ color: 'var(--slate)', fontSize: 15, textDecoration: 'none' }}>{CONTACT.email}</a>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
+                <a
+                  className="btn btn-primary"
+                  href="https://share.google/KeoILUOJjoljr4Pby"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >View on Google Maps</a>
+                <a className="btn btn-ghost" href={CONTACT.phoneHref}><IconPhone />Call us</a>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

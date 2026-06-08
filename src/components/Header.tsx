@@ -12,15 +12,11 @@ export default function Header({ active }: Props) {
     <header className="site-header">
       <div className="container">
         <nav className="nav">
-          <Link href="/" className="brand">
-            <span className="brand-chip">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo-mark.png" alt="HMC" />
-            </span>
-            <span className="brand-name">
-              <b>Hirani Marketing</b>
-              <span>Combines</span>
-            </span>
+          <Link href="/" className="brand" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-mark.png" alt="HMC mark" style={{ height: 44, width: 44, objectFit: 'contain', flexShrink: 0 }} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-wordmark.png" alt="Hirani Marketing Combines" className="logo-wordmark" style={{ height: 34, width: 'auto', objectFit: 'contain' }} />
           </Link>
 
           <div className="nav-links">

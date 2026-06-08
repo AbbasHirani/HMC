@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { CONTACT, WA } from '@/lib/data';
 import { getCategories } from '@/lib/queries';
-import { IconPhone, IconWA } from './Icons';
+import { IconPhone, IconWA, IconEnvelope, IconMapPin } from './Icons';
 
 export default async function Footer() {
   const categories = await getCategories().catch(() => []);
@@ -52,22 +52,35 @@ export default async function Footer() {
             <div className="foot-col foot-contact">
               <h4>Contact us</h4>
               <div className="foot-addr">
-                <a href={CONTACT.phoneHref}>{CONTACT.phone}</a>
-                <small>Mon &ndash; Sat, 9 am &ndash; 6 pm</small>
+                <div className="foot-addr-ic"><IconPhone /></div>
+                <div className="foot-addr-content">
+                  <a href={CONTACT.phoneHref}>{CONTACT.phone}</a>
+                  <small>Mon &ndash; Sat, 9 am &ndash; 6 pm</small>
+                </div>
               </div>
               <div className="foot-addr">
-                <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
-                <small>Sales enquiries</small>
+                <div className="foot-addr-ic"><IconEnvelope /></div>
+                <div className="foot-addr-content">
+                  <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+                  <a href={`mailto:${CONTACT.emailAlt}`}>{CONTACT.emailAlt}</a>
+                  <small>Sales enquiries</small>
+                </div>
               </div>
               <div className="foot-addr">
-                <a href={WA} target="_blank" rel="noopener noreferrer">WhatsApp enquiry</a>
-                <small>Quick response</small>
+                <div className="foot-addr-ic"><IconWA /></div>
+                <div className="foot-addr-content">
+                  <a href={WA} target="_blank" rel="noopener noreferrer">WhatsApp enquiry</a>
+                  <small>Quick response</small>
+                </div>
               </div>
               <div className="foot-addr">
-                <a href="https://maps.google.com/?q=Parrys,Chennai,Tamil+Nadu" target="_blank" rel="noopener noreferrer">
-                  {CONTACT.address}
-                </a>
-                <small>Drop in for workshop service</small>
+                <div className="foot-addr-ic"><IconMapPin /></div>
+                <div className="foot-addr-content">
+                  <a href="https://maps.google.com/?q=Parrys,Chennai,Tamil+Nadu" target="_blank" rel="noopener noreferrer">
+                    {CONTACT.address}
+                  </a>
+                  <small>Drop in for workshop service</small>
+                </div>
               </div>
             </div>
           </div>

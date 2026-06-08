@@ -25,6 +25,8 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           <a href="/admin" className={pathname === '/admin' ? 'active' : ''}>Dashboard</a>
           <a href="/admin/categories" className={active('/admin/categories')}>Categories</a>
           <a href="/admin/products" className={active('/admin/products')}>Products</a>
+          <a href="/admin/brands" className={active('/admin/brands')}>Brands</a>
+          <a href="/admin/repair-jobs" className={active('/admin/repair-jobs')}>Repair Jobs</a>
           <div className="sep" />
           <a href="/" target="_blank" rel="noopener noreferrer">View site ↗</a>
         </nav>

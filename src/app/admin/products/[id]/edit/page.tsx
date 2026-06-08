@@ -8,12 +8,14 @@ export default async function EditProductPage({ params }: Props) {
   const { id } = await params;
   let product: Record<string, unknown>,
     cats: { _id: string; name: string; slug: string }[],
-    subs: { _id: string; name: string; slug: string; categoryId: string }[];
+    subs: { _id: string; name: string; slug: string; categoryId: string }[],
+    brands: { _id: string; name: string; slug: string; logoUrl: string | null }[];
   try {
     const prodRows = await sql`SELECT * FROM products WHERE id = ${id}`;
     if (!prodRows[0]) notFound();
     const catRows = await sql`SELECT id, name, slug FROM categories ORDER BY sort_order`;
     const subRows = await sql`SELECT id, name, slug, category_id FROM subcategories ORDER BY sort_order`;
+    const brandRows = await sql`SELECT id, name, slug, logo_url FROM brands ORDER BY sort_order, name`;
     product = prodRows[0];
     cats = catRows.map(c => ({ _id: c.id as string, name: c.name as string, slug: c.slug as string }));
     subs = subRows.map(s => ({
@@ -21,6 +23,12 @@ export default async function EditProductPage({ params }: Props) {
       name: s.name as string,
       slug: s.slug as string,
       categoryId: s.category_id as string,
+    }));
+    brands = brandRows.map(b => ({
+      _id: b.id as string,
+      name: b.name as string,
+      slug: b.slug as string,
+      logoUrl: (b.logo_url as string | null) ?? null,
     }));
   } catch { notFound(); }
 
@@ -37,6 +45,7 @@ export default async function EditProductPage({ params }: Props) {
           id={id}
           cats={cats!}
           allSubs={subs!}
+          brands={brands!}
           initial={{
             name: product!.name as string,
             slug: product!.slug as string,
@@ -46,6 +55,7 @@ export default async function EditProductPage({ params }: Props) {
             price: product!.price != null ? String(product!.price) : '',
             tag: (product!.tag as string) ?? '',
             featured: (product!.featured as boolean) ?? false,
+            brand: (product!.brand as string) ?? '',
             specs: (product!.specs as Record<string, string>) ?? {},
             images: (product!.images as Array<{ url: string; publicId: string }>) ?? [],
           }}

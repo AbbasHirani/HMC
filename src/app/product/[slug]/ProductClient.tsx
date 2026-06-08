@@ -5,6 +5,7 @@ import type { Product } from '@/lib/data';
 import { WA, CONTACT } from '@/lib/data';
 import ProductCard from '@/components/ProductCard';
 import QuoteModal from '@/components/QuoteModal';
+import ImageZoom from './ImageZoom';
 import { IconPhone, IconWA, IconWrench, IconCheck, IconTruck, IconArrow } from '@/components/Icons';
 
 const THUMB_LABELS = ['View 1', 'View 2', 'Detail', 'In use'];
@@ -43,13 +44,18 @@ export default function ProductClient({ product: p, related = [] }: Props) {
 
           <div className="pd">
             <div className="pd-media">
-              <div className="main">
-                {mainImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={mainImage} alt={p.name} style={{ width: '100%', height: 440, objectFit: 'contain', background: '#f9fafb' }} />
-                ) : (
-                  <div className="ph" data-label={p.name} style={{ height: 440, borderRadius: 0 }} />
-                )}
+              <div className="main" style={{ position: 'relative' }}>
+                {mainImage
+                  ? <ImageZoom
+                      src={mainImage}
+                      alt={p.name}
+                      height="100%"
+                      allImages={p.images ?? []}
+                      activeIndex={activeThumb}
+                      onIndexChange={setActiveThumb}
+                    />
+                  : <div className="ph" data-label={p.name} style={{ height: '100%', borderRadius: 0 }} />
+                }
                 <span className="img-count">{activeThumb + 1} / {thumbs.length}</span>
               </div>
               <div className="thumbs">
@@ -57,7 +63,7 @@ export default function ProductClient({ product: p, related = [] }: Props) {
                   <div key={i} className={`thumb-ph${i === activeThumb ? ' active' : ''}`} onClick={() => setActiveThumb(i)}>
                     {img.url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={img.url} alt={`View ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={img.url} alt={`View ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }} />
                     ) : (
                       <div className="ph" data-label={THUMB_LABELS[i] ?? `View ${i + 1}`} style={{ height: '100%', borderRadius: 0 }} />
                     )}
@@ -70,9 +76,13 @@ export default function ProductClient({ product: p, related = [] }: Props) {
               {p.tag && (
                 <span className={`pd-badge ${p.tag.toLowerCase().includes('popular') ? 'popular' : 'seller'}`}>{p.tag}</span>
               )}
-              <div className="pd-avail"><i />Available to order</div>
-              <Link className="cat-link" href={`/catalogue?cat=${p.cat}&sub=${p.sub}`}>{p.subName} · {cn}</Link>
+
               <h1>{p.name}</h1>
+              {p.brand && (
+                <p style={{ fontSize: 13.5, color: 'var(--slate)', marginTop: 6, fontWeight: 500 }}>
+                  by <a href={`/brand/${p.brand}`} style={{ color: 'var(--navy)', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3 }}>{p.brandName ?? p.brand}</a>
+                </p>
+              )}
 
               <div className="pd-price-box">
                 <div className="pd-price-row">
@@ -91,8 +101,71 @@ export default function ProductClient({ product: p, related = [] }: Props) {
                 <button className="btn btn-ghost btn-lg" onClick={() => setShowModal(true)}>Get exact quote</button>
               </div>
 
+              <a
+                href={`/api/products/${p.slug}/pdf`}
+                download
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  marginTop: 12, padding: '9px 18px',
+                  border: '1.5px solid var(--line)', borderRadius: 10,
+                  fontSize: 13.5, fontWeight: 600, color: 'var(--navy)',
+                  textDecoration: 'none', background: 'var(--paper)',
+                  transition: 'border-color .18s, background .18s',
+                  width: 'fit-content',
+                }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--navy)'; el.style.background = '#fff'; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = 'var(--line)'; el.style.background = 'var(--paper)'; }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download product sheet (PDF)
+              </a>
+
               <div className="pd-sec-title">About this product</div>
-              <p style={{ color: 'var(--slate)', fontSize: 15, lineHeight: 1.7, marginTop: 14 }}>{p.desc}</p>
+              <p style={{ color: 'var(--slate)', fontSize: 15.5, lineHeight: 1.8, marginTop: 14, letterSpacing: '-0.005em' }}>{p.desc}</p>
+
+              {p.brand && (
+                <a
+                  href={`/brand/${p.brand}`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 20,
+                    marginTop: 22, padding: '18px 22px',
+                    border: '1.5px solid var(--line)',
+                    borderRadius: 14,
+                    background: 'var(--paper)',
+                    textDecoration: 'none',
+                    transition: 'border-color .18s, box-shadow .18s',
+                  }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.borderColor = 'var(--navy)';
+                    el.style.boxShadow = '0 4px 18px rgba(20,20,63,.09)';
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.borderColor = 'var(--line)';
+                    el.style.boxShadow = 'none';
+                  }}
+                >
+                  {p.brandLogo && (
+                    <div style={{
+                      width: 88, height: 56, flexShrink: 0,
+                      background: '#fff', borderRadius: 10,
+                      border: '1px solid var(--line)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      padding: 10,
+                    }}>
+                      <img src={p.brandLogo} alt={p.brandName ?? p.brand} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 4 }}>Brand</span>
+                    <span style={{ display: 'block', fontSize: 16, fontWeight: 800, color: 'var(--navy)', fontFamily: 'var(--font-head)' }}>{p.brandName ?? p.brand}</span>
+                    <span style={{ display: 'block', fontSize: 12.5, color: 'var(--orange)', fontWeight: 600, marginTop: 3 }}>View all {p.brandName ?? p.brand} products →</span>
+                  </div>
+                </a>
+              )}
 
               <div className="pd-sec-title">Key specifications</div>
               <table className="spec-table">
@@ -148,7 +221,7 @@ export default function ProductClient({ product: p, related = [] }: Props) {
 
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="container">
-          <div className="cta-band">
+          <div className="cta-band" style={{ marginTop: related.length > 0 ? 0 : 40 }}>
             <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 30, flexWrap: 'wrap' }}>
               <div>
                 <h2>Not sure this is the right spec?</h2>

@@ -10,6 +10,7 @@ function slugify(s: string) {
 
 interface Cat { _id: string; name: string; slug: string; }
 interface Sub { _id: string; name: string; slug: string; categoryId: string; }
+interface BrandOpt { _id: string; name: string; slug: string; logoUrl?: string | null; }
 interface ImgEntry { url: string; publicId: string; }
 interface SpecRow { key: string; value: string; }
 
@@ -22,15 +23,17 @@ interface Props {
   id?: string;
   cats: Cat[];
   allSubs: Sub[];
+  brands?: BrandOpt[];
   initial?: {
     name: string; slug: string; categoryId: string; subcategoryId: string;
     desc: string; price: string; tag: string; featured: boolean;
+    brand: string;
     specs: Record<string, string>;
     images: ImgEntry[];
   };
 }
 
-export default function ProductForm({ mode, id, cats, allSubs, initial }: Props) {
+export default function ProductForm({ mode, id, cats, allSubs, brands = [], initial }: Props) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -41,6 +44,7 @@ export default function ProductForm({ mode, id, cats, allSubs, initial }: Props)
   const [desc, setDesc] = useState(initial?.desc ?? '');
   const [price, setPrice] = useState(initial?.price ?? '');
   const [tag, setTag] = useState(initial?.tag ?? '');
+  const [brand, setBrand] = useState(initial?.brand ?? '');
   const [featured, setFeatured] = useState(initial?.featured ?? false);
   const [images, setImages] = useState<ImgState[]>(
     initial?.images?.map(img => ({ type: 'existing', url: img.url, publicId: img.publicId })) ?? []
@@ -138,7 +142,7 @@ export default function ProductForm({ mode, id, cats, allSubs, initial }: Props)
       categoryId: catId, categorySlug: selectedCat.slug, categoryName: selectedCat.name,
       subcategoryId: subId, subcategorySlug: selectedSub.slug, subcategoryName: selectedSub.name,
       desc, price: price ? Number(price) : null,
-      tag: tag || null, featured, images: finalImages, specs: specsRecord,
+      tag: tag || null, featured, brand: brand || null, images: finalImages, specs: specsRecord,
     };
 
     const url = mode === 'new' ? '/api/products' : `/api/products/${id}`;
@@ -196,6 +200,34 @@ export default function ProductForm({ mode, id, cats, allSubs, initial }: Props)
               }
             </select>
             <span className="hint">Cloudinary folder: HMC/products/{cats.find(c => c._id === catId)?.slug ?? '…'}/{allSubs.find(s => s._id === subId)?.slug ?? '…'}/</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Brand */}
+      <div className="adm-form-section">
+        <h3>Brand</h3>
+        <div className="form-row">
+          <div className="form-field">
+            <label>Brand <span className="opt">(optional)</span></label>
+            {brands.length === 0 ? (
+              <div style={{ padding: '10px 14px', background: '#fff3cd', border: '1px solid #ffc107', borderRadius: 8, fontSize: 13 }}>
+                No brands added yet. <a href="/admin/brands/new" target="_blank" style={{ color: 'var(--navy)', fontWeight: 600 }}>Add brands first</a>, then come back.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <select value={brand} onChange={e => setBrand(e.target.value)}>
+                  <option value="">— No brand / unbranded —</option>
+                  {brands.map(b => <option key={b._id} value={b.slug}>{b.name}</option>)}
+                </select>
+                {brand && brands.find(b => b.slug === brand)?.logoUrl && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+                    <img src={brands.find(b => b.slug === brand)!.logoUrl!} alt={brand} style={{ height: 28, objectFit: 'contain' }} />
+                    <span style={{ fontSize: 13, color: 'var(--slate)' }}>{brands.find(b => b.slug === brand)?.name}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

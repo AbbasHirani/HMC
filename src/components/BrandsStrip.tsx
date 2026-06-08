@@ -1,10 +1,20 @@
-import { BRANDS } from '@/lib/data';
+import { getBrands } from '@/lib/queries';
+import { BRANDS as STATIC_BRANDS } from '@/lib/data';
 
-export default function BrandsStrip() {
+export default async function BrandsStrip() {
+  const dbBrands = await getBrands().catch(() => []);
+  const brands = dbBrands.length > 0
+    ? dbBrands
+    : STATIC_BRANDS.map(b => ({ _id: b.slug, name: b.name, slug: b.slug, logoUrl: null, logoPublicId: null, order: 0 }));
+
   return (
     <div className="brands">
-      {BRANDS.map(b => (
-        <span className="brand-pill" key={b}>{b}</span>
+      {brands.map(b => (
+        <a className="brand-pill" key={b.slug} href={`/brand/${b.slug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, textDecoration: 'none' }}>
+          {b.logoUrl
+            ? <img src={b.logoUrl} alt={b.name} style={{ height: 20, objectFit: 'contain' }} />
+            : b.name}
+        </a>
       ))}
     </div>
   );

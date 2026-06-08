@@ -6,6 +6,7 @@ import ProductCard from '@/components/ProductCard';
 import { IconSearch } from '@/components/Icons';
 import { WA } from '@/lib/data';
 import type { Category, FlatSubCategory, Product } from '@/lib/data';
+import { BRANDS } from '@/lib/data';
 
 interface Props {
   categories: Category[];
@@ -18,20 +19,26 @@ export default function CatalogueClient({ categories, products: allProducts }: P
 
   const [cat, setCat] = useState<string | null>(searchParams.get('cat'));
   const [sub, setSub] = useState<string | null>(searchParams.get('sub'));
+  const [brand, setBrand] = useState<string | null>(searchParams.get('brand'));
   const [q, setQ] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (cat) params.set('cat', cat);
     if (sub) params.set('sub', sub);
+    if (brand) params.set('brand', brand);
     router.replace('/catalogue' + (params.toString() ? '?' + params.toString() : ''), { scroll: false });
-  }, [cat, sub, router]);
+  }, [cat, sub, brand, router]);
 
   const catObj = cat ? categories.find(c => c.slug === cat) : null;
   const subs: FlatSubCategory[] = catObj?.subs ?? [];
   const subObj = sub ? subs.find(s => s.slug === sub) : null;
 
-  let products = allProducts.filter(p => (!cat || p.cat === cat) && (!sub || p.sub === sub));
+  let products = allProducts.filter(p =>
+    (!cat || p.cat === cat) &&
+    (!sub || p.sub === sub) &&
+    (!brand || p.brand?.toLowerCase() === brand.toLowerCase())
+  );
   if (q.trim()) {
     const qLow = q.toLowerCase();
     products = products.filter(p => (p.name + ' ' + p.desc + ' ' + p.subName).toLowerCase().includes(qLow));
@@ -104,6 +111,27 @@ export default function CatalogueClient({ categories, products: allProducts }: P
                   ))}
                 </div>
               )}
+
+              {(() => {
+                const brandsInUse = BRANDS.filter(b => allProducts.some(p => p.brand?.toLowerCase() === b.slug));
+                return brandsInUse.length > 0 ? (
+                  <div className="fgroup">
+                    <h4>Brand</h4>
+                    <button className={`filter-link${!brand ? ' on' : ''}`} onClick={() => setBrand(null)}>
+                      All brands <span>{allProducts.length}</span>
+                    </button>
+                    {brandsInUse.map(b => (
+                      <button
+                        key={b.slug}
+                        className={`filter-link${brand === b.slug ? ' on' : ''}`}
+                        onClick={() => setBrand(b.slug)}
+                      >
+                        {b.name} <span>{allProducts.filter(p => p.brand?.toLowerCase() === b.slug).length}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
 
               <a className="btn btn-primary btn-sm" href={WA} target="_blank" rel="noopener noreferrer" style={{ width: '100%', justifyContent: 'center' }}>
                 Enquire on WhatsApp

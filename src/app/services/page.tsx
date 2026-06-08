@@ -4,6 +4,8 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { IconPhone, IconWA, IconCheck, IconShield, IconWrench, IconCalendar, IconTruck, IconDrop, IconFilter, IconSpray, IconGauge } from '@/components/Icons';
 import { CONTACT, WA } from '@/lib/data';
+import { sql } from '@/lib/db';
+import RepairJobsCarousel from '@/components/RepairJobsCarousel';
 
 export const metadata: Metadata = {
   title: 'Services & About — Hirani Marketing Combines',
@@ -52,15 +54,17 @@ const SVCS = [
   },
   {
     Icon: IconGauge,
-    name: 'Hydraulic System Maintenance',
-    desc: 'Maintenance and servicing of hydraulic power packs, cylinders and systems for industrial and workshop applications.',
+    name: 'Hydro Pressure Test Pump Repair & Servicing',
+    desc: 'Repair and servicing of manual and motorised hydro pressure test pumps — high-pressure plunger pumps used for pipeline testing, fire system commissioning, vessel pressure testing and industrial leak detection.',
     covers: [
-      'Hydraulic fluid sampling and analysis',
-      'Seal and O-ring replacement in cylinders',
-      'Directional valve servicing',
-      'Hose and fitting inspection and replacement',
-      'Pressure and flow testing',
-      'System flush and refill',
+      'Manual hydro test pump repair & reconditioning',
+      'Motorised high-pressure plunger pump servicing',
+      'Pipeline pressure testing pump overhaul',
+      'Fire system hydro test pump repair',
+      'Plunger, seal and valve replacement',
+      'Pressure gauge calibration & fitting',
+      'Hose and fitting inspection & replacement',
+      'Full performance test after every repair',
     ],
   },
 ];
@@ -72,7 +76,19 @@ const WHY = [
   { Icon: IconTruck,    title: 'Fast turnaround', body: 'Most repairs are diagnosed and quoted same-day; standard jobs completed within 48–72 hours.' },
 ];
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  let repairJobs: { id: string; title: string; description: string | null; tag: string | null; imageUrl: string | null }[] = [];
+  try {
+    const rows = await sql`SELECT id, title, description, tag, image_url FROM repair_jobs ORDER BY sort_order, created_at DESC`;
+    repairJobs = rows.map(r => ({
+      id: r.id as string,
+      title: r.title as string,
+      description: (r.description as string | null) ?? null,
+      tag: (r.tag as string | null) ?? null,
+      imageUrl: (r.image_url as string | null) ?? null,
+    }));
+  } catch { /* table may not exist yet */ }
+
   return (
     <>
       <Header active="services" />
@@ -131,7 +147,8 @@ export default function ServicesPage() {
             </div>
 
             <div className="about-img">
-              <div className="ph" data-label="Workshop / storefront — Hirani Marketing Combines, Parrys Chennai" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/shop.jpg" alt="Hirani Marketing Combines — Parrys storefront" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', borderRadius: 'inherit' }} />
               <div className="stat-card">
                 <b>17<em>+</em></b>
                 <span>Years in the trade</span>
@@ -207,6 +224,24 @@ export default function ServicesPage() {
           </div>
         </div>
       </section>
+
+      {/* REPAIR WORK SHOWCASE */}
+      {repairJobs.length > 0 && (
+        <section className="section" style={{ background: 'var(--paper)', borderTop: '1px solid var(--line)' }}>
+          <div className="container">
+            <div className="sec-head center">
+              <span className="eyebrow">Our work</span>
+              <h2>Recent repair &amp; reconditioning jobs</h2>
+              <p style={{ color: 'var(--slate)', maxWidth: 520, margin: '10px auto 0' }}>
+                A look at equipment we&rsquo;ve repaired, reconditioned and returned to service for our customers.
+              </p>
+            </div>
+            <div style={{ marginTop: 44, padding: '0 28px' }}>
+              <RepairJobsCarousel jobs={repairJobs} />
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* WHY HIRANI */}
       <section className="section">

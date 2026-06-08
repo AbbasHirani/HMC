@@ -1,6 +1,6 @@
 // Server-only DB query functions — do NOT import in 'use client' components
 import { sql } from './db';
-import type { Category, FlatSubCategory, Product } from './data';
+import type { Brand, Category, FlatSubCategory, Product } from './data';
 
 export async function getCategories(): Promise<Category[]> {
   const [cats, subs] = await Promise.all([
@@ -36,34 +36,55 @@ export async function getCategories(): Promise<Category[]> {
   });
 }
 
+export async function getBrands(): Promise<Brand[]> {
+  const rows = await sql`SELECT * FROM brands ORDER BY sort_order, name`;
+  return rows.map(r => ({
+    _id: r.id as string,
+    name: r.name as string,
+    slug: r.slug as string,
+    logoUrl: (r.logo_url as string | null) ?? null,
+    logoPublicId: (r.logo_public_id as string | null) ?? null,
+    order: (r.sort_order as number) ?? 0,
+  }));
+}
+
 export async function getProducts(opts?: {
   categorySlug?: string;
   subcategorySlug?: string;
+  brandSlug?: string;
   featured?: boolean;
 }): Promise<Product[]> {
   const catSlug = opts?.categorySlug;
   const subSlug = opts?.subcategorySlug;
+  const brandSlug = opts?.brandSlug;
   const featured = opts?.featured;
 
   let rows;
-  if (catSlug && subSlug) {
-    rows = await sql`SELECT * FROM products WHERE category_slug = ${catSlug} AND subcategory_slug = ${subSlug} ORDER BY created_at DESC`;
+  if (brandSlug) {
+    rows = await sql`SELECT p.*, b.logo_url AS brand_logo_url, b.name AS brand_display_name FROM products p LEFT JOIN brands b ON b.slug = LOWER(p.brand) WHERE LOWER(p.brand) = ${brandSlug} ORDER BY p.created_at DESC`;
+  } else if (catSlug && subSlug) {
+    rows = await sql`SELECT p.*, b.logo_url AS brand_logo_url, b.name AS brand_display_name FROM products p LEFT JOIN brands b ON b.slug = LOWER(p.brand) WHERE p.category_slug = ${catSlug} AND p.subcategory_slug = ${subSlug} ORDER BY p.created_at DESC`;
   } else if (catSlug && featured) {
-    rows = await sql`SELECT * FROM products WHERE category_slug = ${catSlug} AND featured = true ORDER BY created_at DESC`;
+    rows = await sql`SELECT p.*, b.logo_url AS brand_logo_url, b.name AS brand_display_name FROM products p LEFT JOIN brands b ON b.slug = LOWER(p.brand) WHERE p.category_slug = ${catSlug} AND p.featured = true ORDER BY p.created_at DESC`;
   } else if (catSlug) {
-    rows = await sql`SELECT * FROM products WHERE category_slug = ${catSlug} ORDER BY created_at DESC`;
+    rows = await sql`SELECT p.*, b.logo_url AS brand_logo_url, b.name AS brand_display_name FROM products p LEFT JOIN brands b ON b.slug = LOWER(p.brand) WHERE p.category_slug = ${catSlug} ORDER BY p.created_at DESC`;
   } else if (subSlug) {
-    rows = await sql`SELECT * FROM products WHERE subcategory_slug = ${subSlug} ORDER BY created_at DESC`;
+    rows = await sql`SELECT p.*, b.logo_url AS brand_logo_url, b.name AS brand_display_name FROM products p LEFT JOIN brands b ON b.slug = LOWER(p.brand) WHERE p.subcategory_slug = ${subSlug} ORDER BY p.created_at DESC`;
   } else if (featured) {
-    rows = await sql`SELECT * FROM products WHERE featured = true ORDER BY created_at DESC`;
+    rows = await sql`SELECT p.*, b.logo_url AS brand_logo_url, b.name AS brand_display_name FROM products p LEFT JOIN brands b ON b.slug = LOWER(p.brand) WHERE p.featured = true ORDER BY p.created_at DESC`;
   } else {
-    rows = await sql`SELECT * FROM products ORDER BY created_at DESC`;
+    rows = await sql`SELECT p.*, b.logo_url AS brand_logo_url, b.name AS brand_display_name FROM products p LEFT JOIN brands b ON b.slug = LOWER(p.brand) ORDER BY p.created_at DESC`;
   }
   return rows.map(toProduct);
 }
 
 export async function findProductBySlug(slug: string): Promise<Product | undefined> {
-  const rows = await sql`SELECT * FROM products WHERE slug = ${slug} LIMIT 1`;
+  const rows = await sql`
+    SELECT p.*, b.logo_url AS brand_logo_url, b.name AS brand_display_name
+    FROM products p
+    LEFT JOIN brands b ON b.slug = LOWER(p.brand)
+    WHERE p.slug = ${slug} LIMIT 1
+  `;
   return rows[0] ? toProduct(rows[0]) : undefined;
 }
 
@@ -88,5 +109,8 @@ function toProduct(row: Record<string, unknown>): Product {
     featured: (row.featured as boolean) ?? false,
     images: (row.images as Array<{ url: string; publicId: string }>) ?? [],
     specs: (row.specs as Record<string, string>) ?? {},
+    brand: (row.brand as string | null) ?? null,
+    brandName: (row.brand_display_name as string | null) ?? null,
+    brandLogo: (row.brand_logo_url as string | null) ?? null,
   };
 }

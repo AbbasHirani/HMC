@@ -1,15 +1,27 @@
 // Static constants + TypeScript types — safe to import in client components
 
 export const CONTACT = {
-  phone: '+91 98XXX XXXXX',
-  phoneHref: 'tel:+9198XXXXXXXX',
-  whatsapp: '919XXXXXXXXX',
-  email: 'sales@hiranimarketing.in',
-  address: 'Parrys, Chennai, Tamil Nadu',
+  phone: '+91 98401 59762',
+  phoneHref: 'tel:+919840159762',
+  whatsapp: '919840159762',
+  email: 'hiranimarketingcombines@gmail.com',
+  emailAlt: 'hirani.marketing@yahoo.in',
+  address: 'Old No.133 / New No.279, Thambu Chetty St, opposite TNEB office, Parrys, George Town, Chennai – 600001',
   since: '2008',
 };
 
-export const BRANDS = ['Kent', 'Aquaguard', 'CRI', 'Kirloskar', 'Grundfos', 'Crompton'];
+export const BRANDS: { name: string; slug: string }[] = [
+  { name: 'Kent',      slug: 'kent' },
+  { name: 'Aquaguard', slug: 'aquaguard' },
+  { name: 'CRI',       slug: 'cri' },
+  { name: 'Kirloskar', slug: 'kirloskar' },
+  { name: 'Grundfos',  slug: 'grundfos' },
+  { name: 'Crompton',  slug: 'crompton' },
+  { name: 'Texmo',     slug: 'texmo' },
+  { name: 'Shakti',    slug: 'shakti' },
+  { name: 'Wilo',      slug: 'wilo' },
+  { name: 'Pentair',   slug: 'pentair' },
+];
 
 export const WA_BASE = `https://wa.me/${CONTACT.whatsapp}?text=`;
 export const WA = WA_BASE + encodeURIComponent("Hi Hirani Marketing Combines, I'd like an enquiry about ");
@@ -64,4 +76,16 @@ export interface Product {
   featured: boolean;
   images: Array<{ url: string; publicId: string }>;
   specs: Record<string, string>;
+  brand?: string | null;
+  brandName?: string | null;
+  brandLogo?: string | null;
+}
+
+export interface Brand {
+  _id: string;
+  name: string;
+  slug: string;
+  logoUrl?: string | null;
+  logoPublicId?: string | null;
+  order: number;
 }

@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       category_id, subcategory_id,
       category_slug, subcategory_slug,
       category_name, subcategory_name,
-      price, tag, featured, images, specs
+      price, tag, featured, images, specs, brand
     ) VALUES (
       ${body.slug}, ${body.name}, ${body.desc ?? ''},
       ${body.categoryId}, ${body.subcategoryId},
@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
       ${body.price ?? null}, ${body.tag ?? null},
       ${body.featured ?? false},
       ${JSON.stringify(body.images ?? [])}::jsonb,
-      ${JSON.stringify(body.specs ?? {})}::jsonb
+      ${JSON.stringify(body.specs ?? {})}::jsonb,
+      ${body.brand ?? null}
     )
     RETURNING *
   `;
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
   revalidatePath('/');
   revalidatePath('/catalogue');
   revalidatePath(`/product/${body.slug}`);
+  if (body.brand) revalidatePath(`/brand/${body.brand.toLowerCase()}`);
 
   return NextResponse.json({ ...r, _id: r.id }, { status: 201 });
 }

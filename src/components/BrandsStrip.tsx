@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { getBrands } from '@/lib/queries';
 import { BRANDS as STATIC_BRANDS } from '@/lib/data';
 
@@ -12,7 +13,7 @@ export default async function BrandsStrip() {
       {brands.map(b => (
         <a className="brand-pill" key={b.slug} href={`/brand/${b.slug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, textDecoration: 'none' }}>
           {b.logoUrl
-            ? <img src={b.logoUrl} alt={b.name} style={{ height: 20, objectFit: 'contain' }} />
+            ? <Image src={b.logoUrl} alt={b.name} width={80} height={20} style={{ objectFit: 'contain' }} />
             : b.name}
         </a>
       ))}

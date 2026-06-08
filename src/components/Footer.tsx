@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { CONTACT, WA } from '@/lib/data';
 import { getCategories } from '@/lib/queries';
 import { IconPhone, IconWA, IconEnvelope, IconMapPin } from './Icons';
@@ -16,8 +17,7 @@ export default async function Footer() {
             <div className="foot-col foot-about">
               <div className="foot-brand">
                 <span className="brand-chip">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/logo-mark.png" alt="HMC" />
+                  <Image src="/logo-mark.png" alt="HMC" width={32} height={32} />
                 </span>
                 <b>Hirani Marketing Combines</b>
               </div>

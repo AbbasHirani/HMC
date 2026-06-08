@@ -1,4 +1,6 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TrustBar from '@/components/TrustBar';
@@ -10,6 +12,18 @@ import ShowcaseCarousel from '@/components/ShowcaseCarousel';
 import { IconCheck, IconWA, IconPhone, IconWrench } from '@/components/Icons';
 import { SERVICES, CONTACT, WA } from '@/lib/data';
 import { getCategories, getProducts } from '@/lib/queries';
+
+export const metadata: Metadata = {
+  title: 'Water Pumps, RO Systems & Industrial Supply in Chennai',
+  description:
+    "Chennai's pump & water-systems specialist since 2008. Water pumps, RO & filtration, fountains, pressure washers and industrial equipment — supplied to spec with workshop repair at our Parrys shop.",
+  openGraph: {
+    title: 'Hirani Marketing Combines — Pumps & Water Systems, Chennai',
+    description: "Chennai's trusted pump supplier since 2008. 70+ products, workshop repair at Parrys.",
+    url: '/',
+    type: 'website',
+  },
+};
 
 export const revalidate = 60;
 
@@ -146,9 +160,8 @@ export default async function HomePage() {
                 <Link className="btn btn-ghost" href="/catalogue">See the catalogue</Link>
               </div>
             </div>
-            <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 20px 60px rgba(20,20,63,.13)' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/shop.jpg" alt="Hirani Marketing Combines — Parrys store" style={{ width: '100%', height: 420, objectFit: 'cover', objectPosition: 'center', display: 'block' }} />
+            <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 20px 60px rgba(20,20,63,.13)', position: 'relative', height: 420 }}>
+              <Image src="/shop.jpg" alt="Hirani Marketing Combines — Parrys store" fill style={{ objectFit: 'cover', objectPosition: 'center' }} sizes="(max-width: 768px) 100vw, 50vw" />
             </div>
           </div>
           <p style={{ fontFamily: 'var(--font-head)', fontWeight: 700, color: 'var(--muted)', fontSize: 12, letterSpacing: '.14em', textTransform: 'uppercase', margin: '54px 0 18px', textAlign: 'center' }}>

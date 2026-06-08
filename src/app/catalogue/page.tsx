@@ -9,8 +9,8 @@ import { getCategories, getProducts } from '@/lib/queries';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Products — Hirani Marketing Combines',
-  description: 'Browse the full catalogue of water pumps, RO systems, fountains, pressure washers, hydraulic equipment and spare parts.',
+  title: 'Water Pumps, RO Systems & Industrial Equipment in Chennai',
+  description: 'Shop water pumps, RO & filtration systems, fountains, pressure washers, air compressors and hydraulic equipment in Chennai. 70+ products from Kent, CRI, Grundfos, Kirloskar and more. Workshop repair at Parrys.',
 };
 
 export default async function CataloguePage() {

@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { CONTACT, WA } from '@/lib/data';
 import { IconWA, IconPhone } from './Icons';
 
@@ -13,10 +14,8 @@ export default function Header({ active }: Props) {
       <div className="container">
         <nav className="nav">
           <Link href="/" className="brand" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-mark.png" alt="HMC mark" style={{ height: 44, width: 44, objectFit: 'contain', flexShrink: 0 }} />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-wordmark.png" alt="Hirani Marketing Combines" className="logo-wordmark" style={{ height: 34, width: 'auto', objectFit: 'contain' }} />
+            <Image src="/logo-mark.png" alt="HMC mark" width={44} height={44} style={{ objectFit: 'contain', flexShrink: 0 }} priority />
+            <Image src="/logo-wordmark.png" alt="Hirani Marketing Combines" width={136} height={34} className="logo-wordmark" style={{ objectFit: 'contain' }} priority />
           </Link>
 
           <div className="nav-links">

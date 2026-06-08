@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Category } from '@/lib/data';
 import { CatIcon, IconArrow } from './Icons';
 
@@ -8,10 +9,15 @@ export default function CategoryCard({ cat }: { cat: Category }) {
 
   return (
     <Link className="cat6" href={`/catalogue?cat=${cat.slug}`}>
-      <div className="cat6-previews">
+      <div className="cat6-previews" style={{ position: 'relative' }}>
         {cat.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={cat.imageUrl} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#fff', padding: '12px' }} />
+          <Image
+            src={cat.imageUrl}
+            alt={cat.name}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+            style={{ objectFit: 'contain', background: '#fff', padding: '12px' }}
+          />
         ) : (
           <>
             <div className="ph" data-label={cat.name} />

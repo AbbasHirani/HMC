@@ -67,6 +67,9 @@ export default function ImageZoom({ src, alt, height = '100%', allImages = [], a
         <img
           src={src}
           alt={alt}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          fetchPriority={"high" as any}
+          loading="eager"
           style={{
             width: '100%',
             height: '100%',

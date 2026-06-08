@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CTABand from '@/components/CTABand';
@@ -55,7 +56,7 @@ export default async function BrandsPage() {
                 }}
               >
                 {b.logoUrl
-                  ? <img src={b.logoUrl} alt={b.name} style={{ height: 48, maxWidth: 120, objectFit: 'contain' }} />
+                  ? <Image src={b.logoUrl} alt={b.name} width={120} height={48} style={{ objectFit: 'contain' }} />
                   : <span style={{ fontSize: 24, fontFamily: 'var(--font-head)', fontWeight: 800, color: 'var(--navy)', letterSpacing: '-0.02em' }}>{b.name}</span>
                 }
                 <span style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 600 }}>

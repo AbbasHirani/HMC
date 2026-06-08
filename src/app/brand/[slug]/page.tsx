@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CTABand from '@/components/CTABand';
 import ProductCard from '@/components/ProductCard';
+import Image from 'next/image';
 import { getBrands, getProducts } from '@/lib/queries';
 import Link from 'next/link';
 
@@ -48,7 +49,7 @@ export default async function BrandPage({ params }: Props) {
             <b>{brand.name}</b>
           </nav>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 14 }}>
-            {brand.logoUrl && <img src={brand.logoUrl} alt={brand.name} style={{ height: 48, objectFit: 'contain' }} />}
+            {brand.logoUrl && <Image src={brand.logoUrl} alt={brand.name} width={120} height={48} style={{ objectFit: 'contain' }} />}
             <h1 style={{ fontSize: 'clamp(28px,3.4vw,40px)' }}>{brand.name}</h1>
           </div>
           <p style={{ color: 'var(--slate)', fontSize: 16, marginTop: 10, maxWidth: 600 }}>

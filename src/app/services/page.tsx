@@ -211,7 +211,7 @@ export default async function ServicesPage() {
             </div>
 
             <div className="about-img" style={{ position: 'relative' }}>
-              <Image src="/shop.jpg" alt="Hirani Marketing Combines — Parrys storefront" fill style={{ objectFit: 'cover', objectPosition: 'center', borderRadius: 'inherit' }} sizes="(max-width: 768px) 100vw, 50vw" />
+              <Image src="/shop.jpg" alt="Hirani Marketing Combines — Parrys storefront" width={0} height={0} sizes="100vw" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 16, boxShadow: '0 20px 60px rgba(20,20,63,.13)' }} />
               <div className="stat-card">
                 <b>17<em>+</em></b>
                 <span>Years in the trade</span>

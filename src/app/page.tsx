@@ -133,7 +133,7 @@ export default async function HomePage() {
             <h2>Repair, reconditioning &amp; maintenance</h2>
             <p>We keep your equipment running — pumps, filters, compressors and hydraulic systems serviced by our own team.</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 18, marginTop: 40 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 18, marginTop: 40 }}>
             {SERVICES.map((s, i) => (
               <div className="svc-card" key={i}>
                 <span className="trust-ic"><IconWrench /></span>
@@ -174,21 +174,7 @@ export default async function HomePage() {
       {/* FIND US */}
       <section className="section" style={{ background: '#fff', borderTop: '1px solid var(--line)' }}>
         <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 56, alignItems: 'center' }}>
-            {/* Map */}
-            <div style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid var(--line)', height: 380, boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
-              <iframe
-                src="https://maps.google.com/maps?q=Hirani+Marketing+Combines+Parrys+Chennai&output=embed&hl=en"
-                width="100%"
-                height="380"
-                style={{ border: 0, display: 'block' }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Hirani Marketing Combines location"
-              />
-            </div>
-
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 40, alignItems: 'center' }}>
             {/* Details */}
             <div>
               <span className="eyebrow">Visit our shop</span>
@@ -230,6 +216,20 @@ export default async function HomePage() {
                 >View on Google Maps</a>
                 <a className="btn btn-ghost" href={CONTACT.phoneHref}><IconPhone />Call us</a>
               </div>
+            </div>
+
+            {/* Map */}
+            <div style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid var(--line)', height: 380, boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
+              <iframe
+                src="https://maps.google.com/maps?q=Hirani+Marketing+Combines+Parrys+Chennai&output=embed&hl=en"
+                width="100%"
+                height="380"
+                style={{ border: 0, display: 'block' }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Hirani Marketing Combines location"
+              />
             </div>
           </div>
         </div>

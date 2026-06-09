@@ -7,7 +7,7 @@ export default function ProductCard({ p, dark }: { p: Product; dark?: boolean })
   const mainImage = p.images?.[0]?.url;
   return (
     <Link className="prod-card" href={`/product/${p.slug}`}>
-      <div className="prod-thumb" style={{ position: 'relative' }}>
+      <div className="prod-thumb" style={{ position: 'relative', height: 184 }}>
         {mainImage ? (
           <Image
             src={mainImage}

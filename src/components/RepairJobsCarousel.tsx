@@ -51,7 +51,14 @@ export default function RepairJobsCarousel({ jobs }: { jobs: Job[] }) {
     dragStart.current = null;
   }
 
-  const visible = 3; // cards visible at once on desktop
+  const [visible, setVisible] = useState(3);
+  useEffect(() => {
+    const update = () => setVisible(window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
   // Build offset so active card is centred
   // We duplicate the array for seamless feel
   const displayJobs = count < visible ? [...jobs, ...jobs, ...jobs] : jobs;

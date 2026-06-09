@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
@@ -21,6 +22,8 @@ export default function CatalogueClient({ categories, products: allProducts }: P
   const [sub, setSub] = useState<string | null>(searchParams.get('sub'));
   const [brand, setBrand] = useState<string | null>(searchParams.get('brand'));
   const [q, setQ] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const activeFilterCount = [cat, sub, brand].filter(Boolean).length;
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -76,7 +79,7 @@ export default function CatalogueClient({ categories, products: allProducts }: P
       <section className="section" style={{ paddingTop: 40 }}>
         <div className="container">
           <div className="list-layout">
-            {/* FILTER RAIL */}
+            {/* FILTER RAIL — desktop sidebar */}
             <aside className="filter-rail">
               <div className="fgroup">
                 <h4>Categories</h4>
@@ -142,6 +145,10 @@ export default function CatalogueClient({ categories, products: allProducts }: P
             <div>
               <div className="list-toolbar">
                 <span className="lt-count"><b>{products.length}</b> products</span>
+                <button className="filter-toggle" onClick={() => setDrawerOpen(true)}>
+                  Filters
+                  {activeFilterCount > 0 && <span className="filter-badge" />}
+                </button>
                 <div className="searchbox">
                   <IconSearch />
                   <input type="text" placeholder="Search products…" value={q} onChange={e => setQ(e.target.value)} />
@@ -170,6 +177,84 @@ export default function CatalogueClient({ categories, products: allProducts }: P
           </div>
         </div>
       </section>
+
+      {/* MOBILE FILTER DRAWER */}
+      {drawerOpen && createPortal(
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setDrawerOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(10,10,30,0.5)', zIndex: 1000 }}
+          />
+          {/* Drawer */}
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1001,
+            background: '#fff', borderRadius: '20px 20px 0 0',
+            maxHeight: '82vh', display: 'flex', flexDirection: 'column',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
+            animation: 'drawerUp 0.28s cubic-bezier(0.4,0,0.2,1)',
+          }}>
+            {/* Handle */}
+            <div style={{ width: 40, height: 4, background: '#e2e8f0', borderRadius: 2, margin: '14px auto 0', flexShrink: 0 }} />
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 14px', borderBottom: '1px solid #e8eaf0', flexShrink: 0 }}>
+              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--navy)', fontFamily: 'var(--font-head)' }}>
+                Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
+              </span>
+              <button onClick={() => setDrawerOpen(false)} style={{ background: 'none', border: 'none', fontSize: 22, color: '#94a3b8', cursor: 'pointer', padding: '4px', lineHeight: 1 }}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ overflowY: 'auto', padding: '20px 20px 8px', flex: 1 }}>
+              <div style={{ borderBottom: '1px solid #e8eaf0', paddingBottom: 16, marginBottom: 16 }}>
+                <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10, fontFamily: 'var(--font-head)', fontWeight: 800 }}>Categories</div>
+                <button className={`filter-link${!cat ? ' on' : ''}`} onClick={() => { setCat(null); setSub(null); }}>All products <span>{allProducts.length}</span></button>
+                {categories.map(c => (
+                  <button key={c.slug} className={`filter-link${cat === c.slug ? ' on' : ''}`} onClick={() => { setCat(c.slug); setSub(null); }}>
+                    {c.name} <span>{catProdCount(c.slug)}</span>
+                  </button>
+                ))}
+              </div>
+              {cat && subs.length > 0 && (
+                <div style={{ borderBottom: '1px solid #e8eaf0', paddingBottom: 16, marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10, fontFamily: 'var(--font-head)', fontWeight: 800 }}>{catName(cat)} Types</div>
+                  <button className={`filter-link${!sub ? ' on' : ''}`} onClick={() => setSub(null)}>All {catName(cat)} <span>{catProdCount(cat)}</span></button>
+                  {subs.map(s => (
+                    <button key={s.slug} className={`filter-link${sub === s.slug ? ' on' : ''}`} onClick={() => setSub(s.slug)}>
+                      {s.name} <span>{subProdCount(cat, s.slug)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {(() => {
+                const brandsInUse = BRANDS.filter(b => allProducts.some(p => p.brand?.toLowerCase() === b.slug));
+                return brandsInUse.length > 0 ? (
+                  <div style={{ paddingBottom: 16, marginBottom: 16 }}>
+                    <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10, fontFamily: 'var(--font-head)', fontWeight: 800 }}>Brand</div>
+                    <button className={`filter-link${!brand ? ' on' : ''}`} onClick={() => setBrand(null)}>All brands <span>{allProducts.length}</span></button>
+                    {brandsInUse.map(b => (
+                      <button key={b.slug} className={`filter-link${brand === b.slug ? ' on' : ''}`} onClick={() => setBrand(b.slug)}>
+                        {b.name} <span>{allProducts.filter(p => p.brand?.toLowerCase() === b.slug).length}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
+            </div>
+            {/* Footer */}
+            <div style={{ padding: '16px 20px', borderTop: '1px solid #e8eaf0', display: 'flex', gap: 12, flexShrink: 0 }}>
+              <button
+                onClick={() => { setCat(null); setSub(null); setBrand(null); }}
+                style={{ flex: 1, background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 8, padding: 13, fontSize: 14, fontWeight: 700, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit' }}
+              >Clear all</button>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                style={{ flex: 2, background: 'var(--navy)', border: 'none', borderRadius: 8, padding: 13, fontSize: 14, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}
+              >Show {products.length} products</button>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
     </>
   );
 }

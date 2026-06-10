@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { sql } from '@/lib/db';
+import MigrateBtn from './MigrateBtn';
 
 async function getStats() {
   try {
@@ -48,6 +49,8 @@ export default async function AdminDashboard() {
             Manage products
           </Link>
         </div>
+
+        <MigrateBtn />
 
         {stats.prods === 0 && (
           <div style={{ marginTop: 32, padding: 24, background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10, maxWidth: 500 }}>

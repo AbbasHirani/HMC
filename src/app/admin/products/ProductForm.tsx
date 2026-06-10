@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 const TAGS = ['', 'Best seller', 'Popular'];
@@ -11,12 +11,14 @@ function slugify(s: string) {
 interface Cat { _id: string; name: string; slug: string; }
 interface Sub { _id: string; name: string; slug: string; categoryId: string; }
 interface BrandOpt { _id: string; name: string; slug: string; logoUrl?: string | null; }
-interface ImgEntry { url: string; publicId: string; }
+interface UseCaseOpt { _id: string; name: string; slug: string; }
+interface ImgEntry { url: string; publicId: string; alt?: string; }
 interface SpecRow { key: string; value: string; }
+interface SeoData { title?: string; description?: string; keywords?: string; }
 
 type ImgState =
-  | { type: 'existing'; url: string; publicId: string }
-  | { type: 'new'; file: File; previewUrl: string };
+  | { type: 'existing'; url: string; publicId: string; alt: string }
+  | { type: 'new'; file: File; previewUrl: string; alt: string };
 
 interface Props {
   mode: 'new' | 'edit';
@@ -24,30 +26,36 @@ interface Props {
   cats: Cat[];
   allSubs: Sub[];
   brands?: BrandOpt[];
+  useCases?: UseCaseOpt[];
   initial?: {
     name: string; slug: string; categoryId: string; subcategoryId: string;
     desc: string; price: string; tag: string; featured: boolean;
     brand: string;
     specs: Record<string, string>;
     images: ImgEntry[];
+    useCaseIds: string[];
+    seo?: SeoData;
   };
 }
 
-export default function ProductForm({ mode, id, cats, allSubs, brands = [], initial }: Props) {
+export default function ProductForm({ mode, id, cats, allSubs, brands = [], useCases = [], initial }: Props) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(initial?.name ?? '');
   const [slug, setSlug] = useState(initial?.slug ?? '');
-  const [catId, setCatId] = useState(initial?.categoryId ?? (cats[0]?._id ?? ''));
-  const [subId, setSubId] = useState(initial?.subcategoryId ?? '');
+  const initCatId = initial?.categoryId ?? (cats[0]?._id ?? '');
+  const [catId, setCatId] = useState(initCatId);
+  const [subId, setSubId] = useState(
+    initial?.subcategoryId ?? (allSubs.find(s => s.categoryId === initCatId)?._id ?? '')
+  );
   const [desc, setDesc] = useState(initial?.desc ?? '');
   const [price, setPrice] = useState(initial?.price ?? '');
   const [tag, setTag] = useState(initial?.tag ?? '');
   const [brand, setBrand] = useState(initial?.brand ?? '');
   const [featured, setFeatured] = useState(initial?.featured ?? false);
   const [images, setImages] = useState<ImgState[]>(
-    initial?.images?.map(img => ({ type: 'existing', url: img.url, publicId: img.publicId })) ?? []
+    initial?.images?.map(img => ({ type: 'existing', url: img.url, publicId: img.publicId, alt: img.alt ?? '' })) ?? []
   );
   const [deletedPublicIds, setDeletedPublicIds] = useState<string[]>([]);
 
@@ -56,16 +64,51 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], init
     : [{ key: '', value: '' }];
   const [specs, setSpecs] = useState<SpecRow[]>(initSpecs);
 
+  const [selectedUseCases, setSelectedUseCases] = useState<string[]>(initial?.useCaseIds ?? []);
+
+  const [seoTitle, setSeoTitle] = useState(initial?.seo?.title ?? '');
+  const [seoDesc, setSeoDesc] = useState(initial?.seo?.description ?? '');
+  const [seoKeywords, setSeoKeywords] = useState(initial?.seo?.keywords ?? '');
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState('');
+
+  // ── Auto-generated SEO values (used when the override fields are left blank) ──
+  const brandName = brands.find(b => b.slug === brand)?.name ?? '';
+  const autoSeoTitle = name
+    ? (brandName ? `${name} by ${brandName} — Buy in Chennai` : `${name} — Buy in Chennai`)
+    : '';
+  const autoSeoDesc = desc
+    ? `${desc.slice(0, 140)}. Available at Hirani Marketing Combines, Parrys, Chennai.`
+    : (name ? `Buy ${name} in Chennai at Hirani Marketing Combines. Genuine product, expert advice, workshop servicing available.` : '');
+  const autoSeoKeywords = [
+    name, brandName,
+    allSubs.find(s => s._id === subId)?.name,
+    cats.find(c => c._id === catId)?.name,
+    ...useCases.filter(uc => selectedUseCases.includes(uc._id)).map(uc => uc.name),
+    'Chennai', 'Hirani Marketing Combines',
+  ].filter(Boolean).join(', ');
+  const autoAlt = (i: number) =>
+    name
+      ? (i === 0
+          ? (brandName ? `${name} by ${brandName}` : name)
+          : `${name} — view ${i + 1}`)
+      : `Product image ${i + 1}`;
+
+  const effTitle = seoTitle.trim() || autoSeoTitle;
+  const effDesc = seoDesc.trim() || autoSeoDesc;
 
   const subs = allSubs.filter(s => s.categoryId === catId);
 
-  useEffect(() => {
-    if (subs.length > 0 && !subs.find(s => s._id === subId)) {
-      setSubId(subs[0]._id);
+  function onCatChange(newCatId: string) {
+    setCatId(newCatId);
+    const newSubs = allSubs.filter(s => s.categoryId === newCatId);
+    if (!newSubs.find(s => s._id === subId)) {
+      setSubId(newSubs[0]?._id ?? '');
     }
-  }, [catId]);
+  }
 
   function onNameChange(v: string) {
     setName(v);
@@ -76,7 +119,8 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], init
     const newImgs = Array.from(files).map(file => ({
       type: 'new' as const,
       file,
-      previewUrl: URL.createObjectURL(file)
+      previewUrl: URL.createObjectURL(file),
+      alt: '',
     }));
     setImages(prev => [...prev, ...newImgs]);
   }
@@ -99,6 +143,54 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], init
       newImages.unshift(moved);
       return newImages;
     });
+  }
+
+  function updateAlt(idx: number, alt: string) {
+    setImages(prev => prev.map((img, i) => i === idx ? { ...img, alt } : img));
+  }
+
+  async function generateSeoWithAi() {
+    if (!name.trim()) { setAiError('Fill in the product name first.'); return; }
+    setAiBusy(true); setAiError('');
+    try {
+      const res = await fetch('/api/admin/seo-suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          brand: brandName || undefined,
+          category: cats.find(c => c._id === catId)?.name,
+          subcategory: allSubs.find(s => s._id === subId)?.name,
+          desc,
+          price: price ? Number(price) : null,
+          specs: Object.fromEntries(specs.filter(s => s.key.trim()).map(s => [s.key.trim(), s.value.trim()])),
+          useCases: useCases.filter(uc => selectedUseCases.includes(uc._id)).map(uc => uc.name),
+          imageCount: images.length,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setAiError(data.error ?? 'AI generation failed.'); return; }
+      setSeoTitle(data.title ?? '');
+      setSeoDesc(data.description ?? '');
+      setSeoKeywords(data.keywords ?? '');
+      if (Array.isArray(data.imageAlts) && data.imageAlts.length) {
+        setImages(prev => prev.map((img, i) => ({ ...img, alt: data.imageAlts[i] ?? img.alt })));
+      }
+    } catch {
+      setAiError('Could not reach the AI service.');
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
+  const hasSeoOverrides = Boolean(seoTitle.trim() || seoDesc.trim() || seoKeywords.trim() || images.some(img => img.alt.trim()));
+
+  function resetSeoToAuto() {
+    setSeoTitle('');
+    setSeoDesc('');
+    setSeoKeywords('');
+    setImages(prev => prev.map(img => ({ ...img, alt: '' })));
+    setAiError('');
   }
 
   function addSpec() { setSpecs(prev => [...prev, { key: '', value: '' }]); }
@@ -124,8 +216,9 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], init
     const folder = `products/${selectedCat.slug}/${selectedSub.slug}`;
     const finalImages: ImgEntry[] = [];
     for (const img of images) {
+      const alt = img.alt.trim() || undefined;
       if (img.type === 'existing') {
-        finalImages.push({ url: img.url, publicId: img.publicId });
+        finalImages.push({ url: img.url, publicId: img.publicId, alt });
       } else {
         const fd = new FormData();
         fd.append('file', img.file);
@@ -133,7 +226,7 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], init
         fd.append('publicId', slugify(name || 'product') + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7));
         const res = await fetch('/api/upload', { method: 'POST', body: fd });
         const data = await res.json();
-        if (data.url) finalImages.push({ url: data.url, publicId: data.publicId });
+        if (data.url) finalImages.push({ url: data.url, publicId: data.publicId, alt });
       }
     }
 
@@ -143,6 +236,12 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], init
       subcategoryId: subId, subcategorySlug: selectedSub.slug, subcategoryName: selectedSub.name,
       desc, price: price ? Number(price) : null,
       tag: tag || null, featured, brand: brand || null, images: finalImages, specs: specsRecord,
+      useCaseIds: selectedUseCases,
+      seo: {
+        title: seoTitle.trim() || undefined,
+        description: seoDesc.trim() || undefined,
+        keywords: seoKeywords.trim() || undefined,
+      },
     };
 
     const url = mode === 'new' ? '/api/products' : `/api/products/${id}`;
@@ -187,7 +286,7 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], init
         <div className="form-row">
           <div className="form-field">
             <label>Category</label>
-            <select value={catId} onChange={e => setCatId(e.target.value)}>
+            <select value={catId} onChange={e => onCatChange(e.target.value)}>
               {cats.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
             </select>
           </div>
@@ -232,12 +331,57 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], init
         </div>
       </div>
 
+      {/* Use Cases */}
+      <div className="adm-form-section">
+        <h3>Use Cases <span style={{ fontWeight: 400, fontSize: 11, color: '#9ca3af', textTransform: 'none' }}>(optional — tick all that apply)</span></h3>
+        {useCases.length === 0 ? (
+          <div style={{ padding: '10px 14px', background: '#f3f4f6', borderRadius: 8, fontSize: 13, color: '#6b7280' }}>
+            No use cases added yet.{' '}
+            <a href="/admin/use-cases" target="_blank" style={{ color: 'var(--navy)', fontWeight: 600 }}>Add use cases</a>
+            {' '}first, then come back.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+            {useCases.map(uc => {
+              const checked = selectedUseCases.includes(uc._id);
+              return (
+                <label
+                  key={uc._id}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer',
+                    padding: '6px 14px', borderRadius: 999,
+                    background: checked ? 'var(--navy)' : '#f3f4f6',
+                    color: checked ? '#fff' : '#374151',
+                    fontWeight: checked ? 700 : 500, fontSize: 13,
+                    border: `2px solid ${checked ? 'var(--navy)' : 'transparent'}`,
+                    transition: 'all .15s',
+                    userSelect: 'none',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    style={{ display: 'none' }}
+                    onChange={e =>
+                      setSelectedUseCases(prev =>
+                        e.target.checked ? [...prev, uc._id] : prev.filter(i => i !== uc._id)
+                      )
+                    }
+                  />
+                  {uc.name}
+                </label>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Pricing & tag */}
       <div className="adm-form-section">
         <h3>Pricing & visibility</h3>
         <div className="form-row triple">
           <div className="form-field">
-            <label>Price (₹) <span className="opt">leave blank = "On request"</span></label>
+            <label>Price (₹) <span className="opt">leave blank = &ldquo;On request&rdquo;</span></label>
             <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="5800" min={0} />
           </div>
           <div className="form-field">
@@ -292,28 +436,130 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], init
         <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => e.target.files && handleFileSelect(e.target.files)} />
 
         {images.length > 0 && (
-          <div className="img-previews">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {images.map((img, i) => (
-              <div key={i} className="img-preview">
-                <img src={img.type === 'existing' ? img.url : img.previewUrl} alt={`Image ${i + 1}`} />
-                {i === 0 ? (
-                  <span className="img-main-badge">MAIN</span>
-                ) : (
-                  <button 
-                    type="button" 
-                    onClick={() => makeMain(i)}
-                    style={{ position: 'absolute', bottom: '6px', left: '6px', background: 'rgba(30,29,92,.8)', color: '#fff', fontSize: '9.5px', fontWeight: 800, padding: '3px 6px', borderRadius: '4px', letterSpacing: '.05em', textTransform: 'uppercase', cursor: 'pointer', border: 'none', transition: '.15s' }}
-                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--navy)'}
-                    onMouseOut={(e) => e.currentTarget.style.background = 'rgba(30,29,92,.8)'}
-                  >
-                    Set Main
-                  </button>
-                )}
-                <button className="img-del" type="button" onClick={() => removeImage(i)}>×</button>
+              <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '10px 12px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10 }}>
+                <div className="img-preview" style={{ flexShrink: 0 }}>
+                  <img src={img.type === 'existing' ? img.url : img.previewUrl} alt={`Image ${i + 1}`} />
+                  {i === 0 ? (
+                    <span className="img-main-badge">MAIN</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => makeMain(i)}
+                      style={{ position: 'absolute', bottom: '6px', left: '6px', background: 'rgba(30,29,92,.8)', color: '#fff', fontSize: '9.5px', fontWeight: 800, padding: '3px 6px', borderRadius: '4px', letterSpacing: '.05em', textTransform: 'uppercase', cursor: 'pointer', border: 'none', transition: '.15s' }}
+                      onMouseOver={(e) => e.currentTarget.style.background = 'var(--navy)'}
+                      onMouseOut={(e) => e.currentTarget.style.background = 'rgba(30,29,92,.8)'}
+                    >
+                      Set Main
+                    </button>
+                  )}
+                  <button className="img-del" type="button" onClick={() => removeImage(i)}>×</button>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 5 }}>
+                    Alt text (SEO) {!img.alt.trim() && <span style={{ color: '#16a34a', textTransform: 'none', fontWeight: 600 }}>· auto</span>}
+                  </label>
+                  <input
+                    value={img.alt}
+                    onChange={e => updateAlt(i, e.target.value)}
+                    placeholder={autoAlt(i)}
+                    style={{ width: '100%' }}
+                  />
+                  <span className="hint">Describes the image for Google &amp; screen readers. Blank = auto-generated.</span>
+                </div>
               </div>
             ))}
           </div>
         )}
+      </div>
+
+      {/* SEO */}
+      <div className="adm-form-section">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 4 }}>
+          <h3 style={{ margin: 0 }}>SEO <span style={{ fontWeight: 400, fontSize: 11, color: '#9ca3af', textTransform: 'none' }}>(auto-generated — override any field if you want)</span></h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {hasSeoOverrides && (
+              <button
+                type="button"
+                onClick={resetSeoToAuto}
+                disabled={aiBusy}
+                title="Clear all SEO overrides and image alt texts — everything goes back to auto-generated"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '8px 14px', borderRadius: 9,
+                  background: '#fff', color: '#6b7280',
+                  border: '1.5px solid #e5e7eb', cursor: 'pointer',
+                  fontSize: 13, fontWeight: 600,
+                  transition: 'border-color .15s, color .15s',
+                }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = '#dc2626'; e.currentTarget.style.color = '#dc2626'; }}
+                onMouseOut={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.color = '#6b7280'; }}
+              >
+                ↺ Reset to auto
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={generateSeoWithAi}
+              disabled={aiBusy}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                padding: '8px 16px', borderRadius: 9,
+                background: aiBusy ? '#9ca3af' : 'linear-gradient(135deg, #1E1D5C, #4338ca)',
+                color: '#fff', border: 'none', cursor: aiBusy ? 'wait' : 'pointer',
+                fontSize: 13, fontWeight: 700,
+                boxShadow: aiBusy ? 'none' : '0 2px 10px rgba(67,56,202,.3)',
+                transition: 'opacity .15s',
+              }}
+            >
+              <span style={{ fontSize: 15 }}>✨</span>
+              {aiBusy ? 'Generating…' : 'Generate with AI'}
+            </button>
+          </div>
+        </div>
+        <p style={{ margin: '0 0 16px', fontSize: 12, color: '#6b7280' }}>
+          AI reads the product name, brand, specs &amp; use cases and writes Google-optimised title, description, keywords and image alt texts. Review and tweak before saving.
+        </p>
+        {aiError && <div className="adm-err" style={{ marginBottom: 14 }}>{aiError}</div>}
+
+        {/* Google preview */}
+        <div style={{ padding: '14px 18px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 18, maxWidth: 600 }}>
+          <p style={{ margin: '0 0 8px', fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: '#9ca3af' }}>Google preview</p>
+          <p style={{ margin: 0, fontSize: 12, color: '#1a7f3c' }}>hiranimarketing.vercel.app › product › {slug || 'slug'}</p>
+          <p style={{ margin: '2px 0 0', fontSize: 17, color: '#1a0dab', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {effTitle || 'Product title appears here'}
+          </p>
+          <p style={{ margin: '3px 0 0', fontSize: 13, color: '#4d5156', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {effDesc || 'Meta description appears here.'}
+          </p>
+        </div>
+
+        <div className="form-row single">
+          <div className="form-field">
+            <label>
+              Meta title {!seoTitle.trim() && <span style={{ color: '#16a34a', fontWeight: 600, textTransform: 'none' }}>· auto</span>}
+              <span className="opt" style={{ float: 'right', color: effTitle.length > 65 ? '#dc2626' : '#9ca3af' }}>{effTitle.length}/65</span>
+            </label>
+            <input value={seoTitle} onChange={e => setSeoTitle(e.target.value)} placeholder={autoSeoTitle || 'Auto-generated from product name + brand'} />
+          </div>
+        </div>
+        <div className="form-row single">
+          <div className="form-field">
+            <label>
+              Meta description {!seoDesc.trim() && <span style={{ color: '#16a34a', fontWeight: 600, textTransform: 'none' }}>· auto</span>}
+              <span className="opt" style={{ float: 'right', color: effDesc.length > 320 ? '#dc2626' : '#9ca3af' }}>{effDesc.length}/320</span>
+            </label>
+            <textarea value={seoDesc} onChange={e => setSeoDesc(e.target.value)} placeholder={autoSeoDesc || 'Auto-generated from the product description'} rows={3} />
+          </div>
+        </div>
+        <div className="form-row single">
+          <div className="form-field">
+            <label>Keywords {!seoKeywords.trim() && <span style={{ color: '#16a34a', fontWeight: 600, textTransform: 'none' }}>· auto</span>}</label>
+            <input value={seoKeywords} onChange={e => setSeoKeywords(e.target.value)} placeholder={autoSeoKeywords || 'comma, separated, keywords'} />
+            <span className="hint">Comma-separated. Blank = auto from name, brand, category &amp; use cases.</span>
+          </div>
+        </div>
       </div>
 
       {/* Actions */}

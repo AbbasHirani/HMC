@@ -7,6 +7,9 @@ import { IconPhone, IconWA, IconCheck, IconShield, IconWrench, IconCalendar, Ico
 import { CONTACT, WA } from '@/lib/data';
 import { sql } from '@/lib/db';
 import RepairJobsCarousel from '@/components/RepairJobsCarousel';
+import { jsonLd } from '@/lib/jsonLd';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Pump Repair, Filter Servicing & Hydro Test Pump Repair in Chennai',
@@ -153,8 +156,8 @@ export default async function ServicesPage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(howToSchema) }} />
       <Header active="services" />
 
       {/* HERO */}
@@ -235,7 +238,7 @@ export default async function ServicesPage() {
                 <div className="svc-block-l">
                   <span className="sib-ic"><svc.Icon /></span>
                   <div>
-                    <h3 dangerouslySetInnerHTML={{ __html: svc.name }} />
+                    <h3>{svc.name}</h3>
                     <p>{svc.desc}</p>
                   </div>
                 </div>

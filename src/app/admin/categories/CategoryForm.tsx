@@ -167,7 +167,7 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
         </div>
         <div className="form-row single">
           <div className="form-field">
-            <label>Foot text <span className="opt">(appears at bottom of category card, e.g. "12 types")</span></label>
+            <label>Foot text <span className="opt">(appears at bottom of category card, e.g. &ldquo;12 types&rdquo;)</span></label>
             <input value={footText} onChange={e => setFootText(e.target.value)} placeholder="12 types" />
           </div>
         </div>

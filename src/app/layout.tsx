@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import ChatAssistant from '@/components/ChatAssistant';
+import { jsonLd } from '@/lib/jsonLd';
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
 
@@ -61,10 +63,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/logo-mark.png" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(localBusinessSchema) }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <ChatAssistant />
+      </body>
     </html>
   );
 }

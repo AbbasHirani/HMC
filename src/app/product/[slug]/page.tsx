@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductClient from './ProductClient';
 import { findProductBySlug, getAllProductSlugs, getProducts } from '@/lib/queries';
+import { jsonLd } from '@/lib/jsonLd';
 
 export const revalidate = 60;
 
@@ -23,21 +24,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await findProductBySlug(slug).catch(() => undefined);
   if (!p) return { title: 'Product Not Found' };
 
-  const title = p.brandName
+  // Admin SEO overrides win; otherwise fall back to auto-generated values.
+  const autoTitle = p.brandName
     ? `${p.name} by ${p.brandName} — Buy in Chennai`
     : `${p.name} — Buy in Chennai`;
+  const autoDesc = p.desc
+    ? `${p.desc.slice(0, 140)}. Available at Hirani Marketing Combines, Parrys, Chennai.`
+    : `Buy ${p.name} in Chennai at Hirani Marketing Combines. Genuine product, expert advice, workshop servicing available.`;
+  const autoKeywords = [
+    p.name, p.brandName, p.subName, p.catName,
+    ...(p.useCases ?? []),
+    'Chennai', 'Hirani Marketing Combines',
+  ].filter((k): k is string => Boolean(k));
+
+  const title = p.seo?.title || autoTitle;
+  const description = p.seo?.description || autoDesc;
+  const keywords = p.seo?.keywords
+    ? p.seo.keywords.split(',').map(k => k.trim()).filter(Boolean)
+    : autoKeywords;
 
   return {
     title,
-    description: p.desc
-      ? `${p.desc.slice(0, 140)}. Available at Hirani Marketing Combines, Parrys, Chennai.`
-      : `Buy ${p.name} in Chennai at Hirani Marketing Combines. Genuine product, expert advice, workshop servicing available.`,
+    description,
+    keywords,
+    alternates: { canonical: `/product/${slug}` },
     openGraph: {
       title,
-      description: p.desc?.slice(0, 200),
+      description,
       url: `/product/${slug}`,
       type: 'website',
-      images: p.images?.[0]?.url ? [{ url: p.images[0].url, alt: p.name }] : undefined,
+      images: p.images?.[0]?.url
+        ? [{ url: p.images[0].url, alt: p.images[0].alt || p.name }]
+        : undefined,
     },
   };
 }
@@ -86,8 +104,8 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(productSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <Header active="products" />
       <ProductClient product={product} related={related} />
       <Footer />

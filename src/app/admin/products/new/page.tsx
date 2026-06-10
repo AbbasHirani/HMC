@@ -3,29 +3,29 @@ import ProductForm from '../ProductForm';
 
 async function getData() {
   try {
-    const catRows = await sql`SELECT id, name, slug FROM categories ORDER BY sort_order`;
-    const subRows = await sql`SELECT id, name, slug, category_id FROM subcategories ORDER BY sort_order`;
-    const brandRows = await sql`SELECT id, name, slug, logo_url FROM brands ORDER BY sort_order, name`;
+    const [catRows, subRows, brandRows, ucRows] = await Promise.all([
+      sql`SELECT id, name, slug FROM categories ORDER BY sort_order`,
+      sql`SELECT id, name, slug, category_id FROM subcategories ORDER BY sort_order`,
+      sql`SELECT id, name, slug, logo_url FROM brands ORDER BY sort_order, name`,
+      sql`SELECT id, name, slug FROM use_cases ORDER BY name`,
+    ]);
     return {
       cats: catRows.map(c => ({ _id: c.id as string, name: c.name as string, slug: c.slug as string })),
       subs: subRows.map(s => ({
-        _id: s.id as string,
-        name: s.name as string,
-        slug: s.slug as string,
+        _id: s.id as string, name: s.name as string, slug: s.slug as string,
         categoryId: s.category_id as string,
       })),
       brands: brandRows.map(b => ({
-        _id: b.id as string,
-        name: b.name as string,
-        slug: b.slug as string,
+        _id: b.id as string, name: b.name as string, slug: b.slug as string,
         logoUrl: (b.logo_url as string | null) ?? null,
       })),
+      useCases: ucRows.map(u => ({ _id: u.id as string, name: u.name as string, slug: u.slug as string })),
     };
-  } catch { return { cats: [], subs: [], brands: [] }; }
+  } catch { return { cats: [], subs: [], brands: [], useCases: [] }; }
 }
 
 export default async function NewProductPage() {
-  const { cats, subs, brands } = await getData();
+  const { cats, subs, brands, useCases } = await getData();
   return (
     <>
       <div className="adm-topbar"><h1>New Product</h1></div>
@@ -39,7 +39,7 @@ export default async function NewProductPage() {
             <b>No categories found.</b> <a href="/admin/categories/new">Add a category first</a> before adding products.
           </div>
         ) : (
-          <ProductForm mode="new" cats={cats} allSubs={subs} brands={brands} />
+          <ProductForm mode="new" cats={cats} allSubs={subs} brands={brands} useCases={useCases} />
         )}
       </div>
     </>

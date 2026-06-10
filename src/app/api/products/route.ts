@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { check, reqStr, optStr, optNum, optArrayMax } from '@/lib/validate';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -24,13 +25,27 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
+
+  const err = check(() => {
+    reqStr(body.slug, 'slug', 200);
+    reqStr(body.name, 'name', 300);
+    optStr(body.desc, 'desc', 10000);
+    optStr(body.tag, 'tag', 100);
+    optNum(body.price, 'price');
+    optArrayMax(body.images, 'images', 30);
+    optStr(body.seo?.title, 'seo.title', 200);
+    optStr(body.seo?.description, 'seo.description', 500);
+    optStr(body.seo?.keywords, 'seo.keywords', 1000);
+  });
+  if (err) return NextResponse.json({ error: err }, { status: 400 });
+
   const rows = await sql`
     INSERT INTO products (
       slug, name, description,
       category_id, subcategory_id,
       category_slug, subcategory_slug,
       category_name, subcategory_name,
-      price, tag, featured, images, specs, brand
+      price, tag, featured, images, specs, brand, seo
     ) VALUES (
       ${body.slug}, ${body.name}, ${body.desc ?? ''},
       ${body.categoryId}, ${body.subcategoryId},
@@ -40,11 +55,22 @@ export async function POST(req: NextRequest) {
       ${body.featured ?? false},
       ${JSON.stringify(body.images ?? [])}::jsonb,
       ${JSON.stringify(body.specs ?? {})}::jsonb,
-      ${body.brand ?? null}
+      ${body.brand ?? null},
+      ${JSON.stringify(body.seo ?? {})}::jsonb
     )
     RETURNING *
   `;
   const r = rows[0];
+
+  if (Array.isArray(body.useCaseIds) && body.useCaseIds.length) {
+    for (const ucId of body.useCaseIds as string[]) {
+      await sql`
+        INSERT INTO product_use_cases (product_id, use_case_id)
+        VALUES (${r.id}, ${ucId})
+        ON CONFLICT DO NOTHING
+      `;
+    }
+  }
 
   const { revalidatePath } = await import('next/cache');
   revalidatePath('/');

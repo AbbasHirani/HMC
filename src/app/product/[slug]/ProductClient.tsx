@@ -22,6 +22,10 @@ export default function ProductClient({ product: p, related = [] }: Props) {
   const [showModal, setShowModal] = useState(false);
 
   const mainImage = p.images?.[activeThumb]?.url ?? p.images?.[0]?.url;
+  // Admin-set alt text wins; otherwise auto-generate from product name.
+  const imgAlt = (i: number) =>
+    p.images?.[i]?.alt
+    || (i === 0 ? (p.brandName ? `${p.name} by ${p.brandName}` : p.name) : `${p.name} — view ${i + 1}`);
   const specRows = [
     ['Category', cn],
     ['Product type', p.subName],
@@ -48,7 +52,7 @@ export default function ProductClient({ product: p, related = [] }: Props) {
                 {mainImage
                   ? <ImageZoom
                       src={mainImage}
-                      alt={p.name}
+                      alt={imgAlt(activeThumb)}
                       height="100%"
                       allImages={p.images ?? []}
                       activeIndex={activeThumb}
@@ -63,7 +67,7 @@ export default function ProductClient({ product: p, related = [] }: Props) {
                   <div key={i} className={`thumb-ph${i === activeThumb ? ' active' : ''}`} onClick={() => setActiveThumb(i)}>
                     {img.url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={img.url} alt={`View ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }} />
+                      <img src={img.url} alt={imgAlt(i)} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }} />
                     ) : (
                       <div className="ph" data-label={THUMB_LABELS[i] ?? `View ${i + 1}`} style={{ height: '100%', borderRadius: 0 }} />
                     )}
@@ -173,6 +177,31 @@ export default function ProductClient({ product: p, related = [] }: Props) {
                   {specRows.map(([k, v]) => <tr key={k}><th>{k}</th><td>{v}</td></tr>)}
                 </tbody>
               </table>
+
+              {p.useCases && p.useCases.length > 0 && (
+                <>
+                  <div className="pd-sec-title">Common applications</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
+                    {p.useCases.map(uc => (
+                      <span
+                        key={uc}
+                        style={{
+                          display: 'inline-block',
+                          padding: '5px 14px',
+                          borderRadius: 999,
+                          background: 'rgba(20,20,63,.07)',
+                          color: 'var(--navy)',
+                          fontSize: 13,
+                          fontWeight: 600,
+                          border: '1px solid rgba(20,20,63,.12)',
+                        }}
+                      >
+                        {uc}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
 
               <div className="pd-why">
                 {[

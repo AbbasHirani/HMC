@@ -85,7 +85,16 @@ export async function findProductBySlug(slug: string): Promise<Product | undefin
     LEFT JOIN brands b ON b.slug = LOWER(p.brand)
     WHERE p.slug = ${slug} LIMIT 1
   `;
-  return rows[0] ? toProduct(rows[0]) : undefined;
+  if (!rows[0]) return undefined;
+  const product = toProduct(rows[0]);
+  const ucRows = await sql`
+    SELECT uc.name FROM use_cases uc
+    JOIN product_use_cases puc ON puc.use_case_id = uc.id
+    WHERE puc.product_id = ${product._id}
+    ORDER BY uc.name
+  `.catch(() => []);
+  product.useCases = ucRows.map(r => r.name as string);
+  return product;
 }
 
 export async function getAllProductSlugs(): Promise<string[]> {
@@ -107,10 +116,11 @@ function toProduct(row: Record<string, unknown>): Product {
     price: (row.price as number | null) ?? null,
     tag: (row.tag as string | null) ?? null,
     featured: (row.featured as boolean) ?? false,
-    images: (row.images as Array<{ url: string; publicId: string }>) ?? [],
+    images: (row.images as Array<{ url: string; publicId: string; alt?: string }>) ?? [],
     specs: (row.specs as Record<string, string>) ?? {},
     brand: (row.brand as string | null) ?? null,
     brandName: (row.brand_display_name as string | null) ?? null,
     brandLogo: (row.brand_logo_url as string | null) ?? null,
+    seo: (row.seo as { title?: string; description?: string; keywords?: string } | null) ?? {},
   };
 }

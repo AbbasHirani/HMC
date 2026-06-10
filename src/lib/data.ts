@@ -74,11 +74,19 @@ export interface Product {
   price: number | null;
   tag: string | null;
   featured: boolean;
-  images: Array<{ url: string; publicId: string }>;
+  images: Array<{ url: string; publicId: string; alt?: string }>;
   specs: Record<string, string>;
   brand?: string | null;
   brandName?: string | null;
   brandLogo?: string | null;
+  useCases?: string[];
+  seo?: ProductSeo;
+}
+
+export interface ProductSeo {
+  title?: string;
+  description?: string;
+  keywords?: string;
 }
 
 export interface Brand {

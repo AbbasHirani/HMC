@@ -170,6 +170,59 @@ export function IconEnvelope() {
   );
 }
 
+export function IconChat() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+    </svg>
+  );
+}
+
+export function IconSend() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13"/>
+      <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+    </svg>
+  );
+}
+
+// Robot mascot: HMC logo mark = head, white robot body below.
+// viewBox 24×36, container 36×54 (same 2:3 ratio).
+export function IconAssistant() {
+  return (
+    <svg viewBox="0 0 24 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="hc-hn">
+          <circle cx="12" cy="7" r="6" />
+        </clipPath>
+      </defs>
+      {/* Head — r=6, takes up ~33% of icon height */}
+      <circle cx="12" cy="7" r="7" fill="white" />
+      <image href="/logo-mark.png" x="6" y="1" width="12" height="12" clipPath="url(#hc-hn)" preserveAspectRatio="xMidYMid meet" />
+      {/* Neck */}
+      <rect x="10.5" y="13" width="3" height="2" fill="currentColor" rx="1" />
+      {/* Torso */}
+      <rect x="5" y="15" width="14" height="11" fill="currentColor" rx="2.5" />
+      {/* Arms */}
+      <rect x="0.5" y="15" width="4" height="9.5" fill="currentColor" rx="2" />
+      <rect x="19.5" y="15" width="4" height="9.5" fill="currentColor" rx="2" />
+      {/* Legs */}
+      <rect x="6.5" y="26" width="4.5" height="9" fill="currentColor" rx="2" />
+      <rect x="13" y="26" width="4.5" height="9" fill="currentColor" rx="2" />
+    </svg>
+  );
+}
+
+export function IconSparkle() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2l1.9 5.6a3 3 0 0 0 1.9 1.9L21.4 11l-5.6 1.9a3 3 0 0 0-1.9 1.9L12 20.4l-1.9-5.6a3 3 0 0 0-1.9-1.9L2.6 11l5.6-1.9a3 3 0 0 0 1.9-1.9L12 2z"/>
+      <path d="M19 3l.6 1.8a1.2 1.2 0 0 0 .8.8L22 6l-1.6.6a1.2 1.2 0 0 0-.8.8L19 9l-.6-1.6a1.2 1.2 0 0 0-.8-.8L16 6l1.6-.6a1.2 1.2 0 0 0 .8-.8L19 3z"/>
+    </svg>
+  );
+}
+
 const ICON_MAP: Record<string, () => React.ReactElement> = {
   drop: IconDrop,
   filter: IconFilter,

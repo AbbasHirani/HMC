@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { check, reqStr, optStr } from '@/lib/validate';
 
 export async function GET(req: NextRequest) {
   const catSlug = req.nextUrl.searchParams.get('categorySlug');
@@ -11,6 +12,14 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
+
+  const err = check(() => {
+    reqStr(body.slug, 'slug', 200);
+    reqStr(body.name, 'name', 200);
+    optStr(body.blurb, 'blurb', 2000);
+  });
+  if (err) return NextResponse.json({ error: err }, { status: 400 });
+
   // resolve category_slug from categoryId if needed
   let categorySlug = body.categorySlug as string | undefined;
   if (!categorySlug && body.categoryId) {

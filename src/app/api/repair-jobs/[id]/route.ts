@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
+import { deleteFromCloudinary } from '@/lib/cloudinary';
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,11 +16,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { title, description, tag, imageUrl, imagePublicId, order, deletedPublicId } = body;
 
   if (deletedPublicId) {
-    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/upload`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ publicId: deletedPublicId }),
-    });
+    await deleteFromCloudinary(deletedPublicId).catch(() => null);
   }
 
   const rows = await sql`
@@ -39,7 +36,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const rows = await sql`SELECT image_public_id FROM repair_jobs WHERE id = ${id} LIMIT 1`;
+  const publicId = rows[0]?.image_public_id as string | null;
+
   await sql`DELETE FROM repair_jobs WHERE id = ${id}`;
+
+  if (publicId) {
+    await deleteFromCloudinary(publicId).catch(() => null);
+  }
+
   revalidatePath('/services');
   return NextResponse.json({ ok: true });
 }

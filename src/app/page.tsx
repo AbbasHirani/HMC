@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   title: 'Water Pumps, RO Systems & Industrial Supply in Chennai',
   description:
     "Chennai's pump & water-systems specialist since 2008. Water pumps, RO & filtration, fountains, pressure washers and industrial equipment — supplied to spec with workshop repair at our Parrys shop.",
+  alternates: {
+    canonical: '/',
+    languages: { en: '/', ta: '/ta', 'x-default': '/' },
+  },
   openGraph: {
     title: 'Hirani Marketing Combines — Pumps & Water Systems, Chennai',
     description: "Chennai's trusted pump supplier since 2008. 70+ products, workshop repair at Parrys.",

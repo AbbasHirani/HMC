@@ -1,7 +1,37 @@
 // Server-only: builds & caches the product-catalog context that grounds the AI
 // assistant. Do NOT import in 'use client' components.
 import { getProducts, getCategories } from './queries';
+import { sql } from './db';
 import type { Product, Category } from './data';
+
+interface UseCaseInfo {
+  byProduct: Map<string, string[]>;          // product_id → use case names
+  index: Array<{ name: string; slug: string }>;
+}
+
+async function getUseCaseInfo(): Promise<UseCaseInfo> {
+  try {
+    const rows = await sql`
+      SELECT uc.name, uc.slug, puc.product_id
+      FROM use_cases uc
+      JOIN product_use_cases puc ON puc.use_case_id = uc.id
+    `;
+    const byProduct = new Map<string, string[]>();
+    const index = new Map<string, string>();
+    for (const r of rows) {
+      index.set(r.slug as string, r.name as string);
+      const list = byProduct.get(r.product_id as string) ?? [];
+      list.push(r.name as string);
+      byProduct.set(r.product_id as string, list);
+    }
+    return {
+      byProduct,
+      index: [...index.entries()].map(([slug, name]) => ({ slug, name })),
+    };
+  } catch {
+    return { byProduct: new Map(), index: [] };
+  }
+}
 
 interface CacheEntry { text: string; at: number }
 let cache: CacheEntry | null = null;
@@ -24,7 +54,7 @@ function trim(s: string | undefined, max: number): string {
   return clean.length > max ? clean.slice(0, max - 1).trimEnd() + '…' : clean;
 }
 
-function buildText(categories: Category[], products: Product[]): string {
+function buildText(categories: Category[], products: Product[], uc: UseCaseInfo): string {
   const lines: string[] = [];
 
   // Category overview so the model understands the shape of the catalogue
@@ -33,6 +63,17 @@ function buildText(categories: Category[], products: Product[]): string {
     for (const c of categories) {
       const subs = c.subs.map(s => s.name).join(', ');
       lines.push(`- ${c.name}${subs ? ` (types: ${subs})` : ''} — ${trim(c.teaser, 120)}`);
+    }
+    lines.push('');
+  }
+
+  // Use-case tags — lets the assistant recommend by application and link
+  // pre-filtered catalogue views.
+  if (uc.index.length) {
+    lines.push('## Use case index');
+    lines.push('(Each tag below can be linked as a filtered catalogue view: /catalogue?uc=<slug>)');
+    for (const u of uc.index) {
+      lines.push(`- ${u.name} (slug: ${u.slug})`);
     }
     lines.push('');
   }
@@ -64,6 +105,8 @@ function buildText(categories: Category[], products: Product[]): string {
       parts.push(`  (${meta.join(' | ')})`);
       const specs = specLine(p.specs);
       if (specs) parts.push(`  Specs: ${specs}`);
+      const tags = uc.byProduct.get(p._id);
+      if (tags?.length) parts.push(`  Use cases: ${tags.join(', ')}`);
       const desc = trim(p.desc, 220);
       if (desc) parts.push(`  About: ${desc}`);
       lines.push(parts.join('\n'));
@@ -76,11 +119,12 @@ function buildText(categories: Category[], products: Product[]): string {
 
 export async function getCatalogContext(): Promise<string> {
   if (cache && Date.now() - cache.at < TTL) return cache.text;
-  const [categories, products] = await Promise.all([
+  const [categories, products, ucInfo] = await Promise.all([
     getCategories().catch(() => [] as Category[]),
     getProducts().catch(() => [] as Product[]),
+    getUseCaseInfo(),
   ]);
-  const text = buildText(categories, products);
+  const text = buildText(categories, products, ucInfo);
   cache = { text, at: Date.now() };
   return text;
 }

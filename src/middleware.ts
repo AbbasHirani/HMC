@@ -5,9 +5,9 @@ import { hasValidAdminSession } from '@/lib/adminAuth';
 const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 // /api routes that authenticate themselves or are intentionally public.
-// (auth = login/logout, migrate = guarded by its own x-admin-secret header,
-//  chat = public assistant.)
-const API_PUBLIC = new Set(['/api/admin/auth', '/api/admin/migrate', '/api/chat']);
+// (auth = login/logout, migrate = checks the admin session itself,
+//  chat = public assistant, enquiries POST = public quote form, rate-limited.)
+const API_PUBLIC = new Set(['/api/admin/auth', '/api/admin/migrate', '/api/chat', '/api/enquiries']);
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

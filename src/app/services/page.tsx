@@ -14,6 +14,10 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Pump Repair, Filter Servicing & Hydro Test Pump Repair in Chennai',
   description: 'Pump repair & reconditioning, water filter servicing, compressor overhaul and hydro pressure test pump repair in Chennai. 17+ years in the trade. Drop in at our Parrys workshop.',
+  alternates: {
+    canonical: '/services',
+    languages: { en: '/services', ta: '/ta/services', 'x-default': '/services' },
+  },
 };
 
 const SVCS = [

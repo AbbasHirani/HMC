@@ -4,9 +4,31 @@ import { CONTACT, WA } from '@/lib/data';
 import { getCategories } from '@/lib/queries';
 import { IconPhone, IconWA, IconEnvelope, IconMapPin } from './Icons';
 
-export default async function Footer() {
+const T = {
+  en: {
+    blurb: (since: string) => <>Chennai&rsquo;s trusted supplier of water pumps, RO &amp; filtration systems, fountains and industrial equipment. Serving customers since {since}.</>,
+    callNow: 'Call now', products: 'Products', viewAll: 'View all products →',
+    company: 'Company', home: 'Home', services: 'Services', aboutUs: 'About us', allProducts: 'All products',
+    contact: 'Contact us', hours: 'Mon – Sat, 9 am – 6 pm', sales: 'Sales enquiries',
+    waEnquiry: 'WhatsApp enquiry', quick: 'Quick response', dropIn: 'Drop in for workshop service',
+    rights: 'All rights reserved.',
+    homeHref: '/', servicesHref: '/services',
+  },
+  ta: {
+    blurb: (since: string) => <>தண்ணீர் பம்புகள், RO &amp; வடிகட்டி அமைப்புகள், நீரூற்றுகள் மற்றும் தொழிற்சாலை உபகரணங்களுக்கு சென்னையின் நம்பகமான கடை. {since} முதல் சேவையில்.</>,
+    callNow: 'அழைக்கவும்', products: 'பொருட்கள்', viewAll: 'அனைத்து பொருட்களும் →',
+    company: 'நிறுவனம்', home: 'முகப்பு', services: 'சேவைகள்', aboutUs: 'எங்களை பற்றி', allProducts: 'அனைத்து பொருட்கள்',
+    contact: 'தொடர்பு கொள்ள', hours: 'திங்கள் – சனி, காலை 9 – மாலை 6', sales: 'விற்பனை விசாரணை',
+    waEnquiry: 'WhatsApp விசாரணை', quick: 'விரைவான பதில்', dropIn: 'பழுது சேவைக்கு கடைக்கு வாருங்கள்',
+    rights: 'அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.',
+    homeHref: '/ta', servicesHref: '/ta/services',
+  },
+};
+
+export default async function Footer({ lang = 'en' }: { lang?: 'en' | 'ta' }) {
   const categories = await getCategories().catch(() => []);
   const year = new Date().getFullYear();
+  const t = T[lang];
 
   return (
     <footer className="site-footer">
@@ -21,41 +43,39 @@ export default async function Footer() {
                 </span>
                 <b>Hirani Marketing Combines</b>
               </div>
-              <p>
-                Chennai&rsquo;s trusted supplier of water pumps, RO &amp; filtration systems, fountains and industrial equipment. Serving customers since {CONTACT.since}.
-              </p>
+              <p>{t.blurb(CONTACT.since)}</p>
               <div className="foot-cta">
-                <a className="btn btn-primary btn-sm" href={CONTACT.phoneHref}><IconPhone />Call now</a>
+                <a className="btn btn-primary btn-sm" href={CONTACT.phoneHref}><IconPhone />{t.callNow}</a>
                 <a className="btn btn-ghost-light btn-sm" href={WA} target="_blank" rel="noopener noreferrer"><IconWA />WhatsApp</a>
               </div>
             </div>
 
             {/* Col 2 — Products */}
             <div className="foot-col">
-              <h4>Products</h4>
+              <h4>{t.products}</h4>
               {categories.map(c => (
                 <Link key={c.slug} href={`/catalogue?cat=${c.slug}`}>{c.name}</Link>
               ))}
-              <Link href="/catalogue" className="foot-all">View all products &rarr;</Link>
+              <Link href="/catalogue" className="foot-all">{t.viewAll}</Link>
             </div>
 
             {/* Col 3 — Company */}
             <div className="foot-col">
-              <h4>Company</h4>
-              <Link href="/">Home</Link>
-              <Link href="/services">Services</Link>
-              <Link href="/services#about">About us</Link>
-              <Link href="/catalogue">All products</Link>
+              <h4>{t.company}</h4>
+              <Link href={t.homeHref}>{t.home}</Link>
+              <Link href={t.servicesHref}>{t.services}</Link>
+              <Link href={`${t.servicesHref}#about`}>{t.aboutUs}</Link>
+              <Link href="/catalogue">{t.allProducts}</Link>
             </div>
 
             {/* Col 4 — Contact */}
             <div className="foot-col foot-contact">
-              <h4>Contact us</h4>
+              <h4>{t.contact}</h4>
               <div className="foot-addr">
                 <div className="foot-addr-ic"><IconPhone /></div>
                 <div className="foot-addr-content">
                   <a href={CONTACT.phoneHref}>{CONTACT.phone}</a>
-                  <small>Mon &ndash; Sat, 9 am &ndash; 6 pm</small>
+                  <small>{t.hours}</small>
                 </div>
               </div>
               <div className="foot-addr">
@@ -63,14 +83,14 @@ export default async function Footer() {
                 <div className="foot-addr-content">
                   <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
                   <a href={`mailto:${CONTACT.emailAlt}`}>{CONTACT.emailAlt}</a>
-                  <small>Sales enquiries</small>
+                  <small>{t.sales}</small>
                 </div>
               </div>
               <div className="foot-addr">
                 <div className="foot-addr-ic"><IconWA /></div>
                 <div className="foot-addr-content">
-                  <a href={WA} target="_blank" rel="noopener noreferrer">WhatsApp enquiry</a>
-                  <small>Quick response</small>
+                  <a href={WA} target="_blank" rel="noopener noreferrer">{t.waEnquiry}</a>
+                  <small>{t.quick}</small>
                 </div>
               </div>
               <div className="foot-addr">
@@ -79,7 +99,7 @@ export default async function Footer() {
                   <a href="https://maps.google.com/?q=Parrys,Chennai,Tamil+Nadu" target="_blank" rel="noopener noreferrer">
                     {CONTACT.address}
                   </a>
-                  <small>Drop in for workshop service</small>
+                  <small>{t.dropIn}</small>
                 </div>
               </div>
             </div>
@@ -89,7 +109,7 @@ export default async function Footer() {
 
       <div className="foot-bottom">
         <div className="container">
-          <span>&copy; {year} Hirani Marketing Combines. All rights reserved.</span>
+          <span>&copy; {year} Hirani Marketing Combines. {t.rights}</span>
           <span className="foot-tags">Water Pumps &middot; RO &amp; Filtration &middot; Fountains &middot; Pressure Washers &middot; Hydraulics &middot; Spares</span>
         </div>
       </div>

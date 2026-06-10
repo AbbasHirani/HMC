@@ -10,11 +10,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const staticUrls: MetadataRoute.Sitemap = [
-    { url: `${SITE}/`,          priority: 1.0, changeFrequency: 'weekly'  },
-    { url: `${SITE}/catalogue`, priority: 0.9, changeFrequency: 'daily'   },
-    { url: `${SITE}/services`,  priority: 0.9, changeFrequency: 'monthly' },
-    { url: `${SITE}/brands`,    priority: 0.6, changeFrequency: 'monthly' },
-    { url: `${SITE}/llms.txt`,  priority: 0.3, changeFrequency: 'monthly' },
+    { url: `${SITE}/`,            priority: 1.0, changeFrequency: 'weekly'  },
+    { url: `${SITE}/catalogue`,   priority: 0.9, changeFrequency: 'daily'   },
+    { url: `${SITE}/services`,    priority: 0.9, changeFrequency: 'monthly' },
+    { url: `${SITE}/ta`,          priority: 0.9, changeFrequency: 'weekly'  },
+    { url: `${SITE}/ta/services`, priority: 0.8, changeFrequency: 'monthly' },
+    { url: `${SITE}/brands`,      priority: 0.6, changeFrequency: 'monthly' },
+    { url: `${SITE}/llms.txt`,    priority: 0.3, changeFrequency: 'monthly' },
   ];
 
   const productUrls: MetadataRoute.Sitemap = slugs.map(slug => ({

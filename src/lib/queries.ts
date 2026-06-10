@@ -97,6 +97,21 @@ export async function findProductBySlug(slug: string): Promise<Product | undefin
   return product;
 }
 
+/** Products ranked by how often customers enquired about them (quote forms + WhatsApp/call taps). */
+export async function getMostEnquiredProducts(excludeSlug: string, limit = 4): Promise<Product[]> {
+  const rows = await sql`
+    SELECT p.*, b.logo_url AS brand_logo_url, b.name AS brand_display_name, COUNT(e.id) AS enq_count
+    FROM enquiries e
+    JOIN products p ON p.slug = e.product_slug
+    LEFT JOIN brands b ON b.slug = LOWER(p.brand)
+    WHERE e.product_slug <> ${excludeSlug}
+    GROUP BY p.id, b.logo_url, b.name
+    ORDER BY enq_count DESC
+    LIMIT ${limit}
+  `.catch(() => []);
+  return rows.map(toProduct);
+}
+
 export async function getAllProductSlugs(): Promise<string[]> {
   const rows = await sql`SELECT slug FROM products`;
   return rows.map(r => r.slug as string);

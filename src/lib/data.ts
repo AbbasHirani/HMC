@@ -80,6 +80,7 @@ export interface Product {
   brandName?: string | null;
   brandLogo?: string | null;
   useCases?: string[];
+  ucSlugs?: string[];
   seo?: ProductSeo;
 }
 

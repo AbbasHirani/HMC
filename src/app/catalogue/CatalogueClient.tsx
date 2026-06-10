@@ -9,29 +9,34 @@ import { WA } from '@/lib/data';
 import type { Category, FlatSubCategory, Product } from '@/lib/data';
 import { BRANDS } from '@/lib/data';
 
+interface UseCaseOpt { slug: string; name: string; }
+
 interface Props {
   categories: Category[];
   products: Product[];
+  useCases?: UseCaseOpt[];
 }
 
-export default function CatalogueClient({ categories, products: allProducts }: Props) {
+export default function CatalogueClient({ categories, products: allProducts, useCases = [] }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const [cat, setCat] = useState<string | null>(searchParams.get('cat'));
   const [sub, setSub] = useState<string | null>(searchParams.get('sub'));
   const [brand, setBrand] = useState<string | null>(searchParams.get('brand'));
+  const [uc, setUc] = useState<string | null>(searchParams.get('uc'));
   const [q, setQ] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const activeFilterCount = [cat, sub, brand].filter(Boolean).length;
+  const activeFilterCount = [cat, sub, brand, uc].filter(Boolean).length;
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (cat) params.set('cat', cat);
     if (sub) params.set('sub', sub);
     if (brand) params.set('brand', brand);
+    if (uc) params.set('uc', uc);
     router.replace('/catalogue' + (params.toString() ? '?' + params.toString() : ''), { scroll: false });
-  }, [cat, sub, brand, router]);
+  }, [cat, sub, brand, uc, router]);
 
   const catObj = cat ? categories.find(c => c.slug === cat) : null;
   const subs: FlatSubCategory[] = catObj?.subs ?? [];
@@ -40,7 +45,8 @@ export default function CatalogueClient({ categories, products: allProducts }: P
   let products = allProducts.filter(p =>
     (!cat || p.cat === cat) &&
     (!sub || p.sub === sub) &&
-    (!brand || p.brand?.toLowerCase() === brand.toLowerCase())
+    (!brand || p.brand?.toLowerCase() === brand.toLowerCase()) &&
+    (!uc || p.ucSlugs?.includes(uc))
   );
   if (q.trim()) {
     const qLow = q.toLowerCase();
@@ -132,6 +138,35 @@ export default function CatalogueClient({ categories, products: allProducts }: P
                         {b.name} <span>{allProducts.filter(p => p.brand?.toLowerCase() === b.slug).length}</span>
                       </button>
                     ))}
+                  </div>
+                ) : null;
+              })()}
+
+              {(() => {
+                const ucsInUse = useCases.filter(u => allProducts.some(p => p.ucSlugs?.includes(u.slug)));
+                return ucsInUse.length > 0 ? (
+                  <div className="fgroup">
+                    <h4>Use case</h4>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {ucsInUse.map(u => {
+                        const on = uc === u.slug;
+                        return (
+                          <button
+                            key={u.slug}
+                            onClick={() => setUc(on ? null : u.slug)}
+                            style={{
+                              padding: '6px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                              cursor: 'pointer', transition: 'all .15s', fontFamily: 'inherit',
+                              background: on ? 'var(--navy)' : '#f1f5f9',
+                              color: on ? '#fff' : '#475569',
+                              border: `1.5px solid ${on ? 'var(--navy)' : 'transparent'}`,
+                            }}
+                          >
+                            {u.name} <span style={{ opacity: 0.65 }}>{allProducts.filter(p => p.ucSlugs?.includes(u.slug)).length}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 ) : null;
               })()}
@@ -228,7 +263,7 @@ export default function CatalogueClient({ categories, products: allProducts }: P
               {(() => {
                 const brandsInUse = BRANDS.filter(b => allProducts.some(p => p.brand?.toLowerCase() === b.slug));
                 return brandsInUse.length > 0 ? (
-                  <div style={{ paddingBottom: 16, marginBottom: 16 }}>
+                  <div style={{ borderBottom: '1px solid #e8eaf0', paddingBottom: 16, marginBottom: 16 }}>
                     <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10, fontFamily: 'var(--font-head)', fontWeight: 800 }}>Brand</div>
                     <button className={`filter-link${!brand ? ' on' : ''}`} onClick={() => setBrand(null)}>All brands <span>{allProducts.length}</span></button>
                     {brandsInUse.map(b => (
@@ -239,11 +274,39 @@ export default function CatalogueClient({ categories, products: allProducts }: P
                   </div>
                 ) : null;
               })()}
+              {(() => {
+                const ucsInUse = useCases.filter(u => allProducts.some(p => p.ucSlugs?.includes(u.slug)));
+                return ucsInUse.length > 0 ? (
+                  <div style={{ paddingBottom: 16, marginBottom: 16 }}>
+                    <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10, fontFamily: 'var(--font-head)', fontWeight: 800 }}>Use case</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {ucsInUse.map(u => {
+                        const on = uc === u.slug;
+                        return (
+                          <button
+                            key={u.slug}
+                            onClick={() => setUc(on ? null : u.slug)}
+                            style={{
+                              padding: '7px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+                              cursor: 'pointer', fontFamily: 'inherit',
+                              background: on ? 'var(--navy)' : '#f1f5f9',
+                              color: on ? '#fff' : '#475569',
+                              border: `1.5px solid ${on ? 'var(--navy)' : 'transparent'}`,
+                            }}
+                          >
+                            {u.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null;
+              })()}
             </div>
             {/* Footer */}
             <div style={{ padding: '16px 20px', borderTop: '1px solid #e8eaf0', display: 'flex', gap: 12, flexShrink: 0 }}>
               <button
-                onClick={() => { setCat(null); setSub(null); setBrand(null); }}
+                onClick={() => { setCat(null); setSub(null); setBrand(null); setUc(null); }}
                 style={{ flex: 1, background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 8, padding: 13, fontSize: 14, fontWeight: 700, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit' }}
               >Clear all</button>
               <button

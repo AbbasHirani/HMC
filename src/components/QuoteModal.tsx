@@ -5,16 +5,19 @@ import { IconDoc, IconClose, IconCheck } from './Icons';
 interface Props {
   productName: string;
   productCat: string;
+  productSlug?: string;
   onClose: () => void;
 }
 
-export default function QuoteModal({ productName, productCat, onClose }: Props) {
+export default function QuoteModal({ productName, productCat, productSlug, onClose }: Props) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [msg, setMsg] = useState('');
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [success, setSuccess] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
   const nameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -29,13 +32,38 @@ export default function QuoteModal({ productName, productCat, onClose }: Props) 
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  function submit() {
+  async function submit() {
     const errs: Record<string, boolean> = {};
     if (!name.trim()) errs.name = true;
     if (!email.trim() || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) errs.email = true;
     setErrors(errs);
     if (Object.keys(errs).length) return;
-    setSuccess(true);
+
+    setSending(true); setSendError('');
+    try {
+      const res = await fetch('/api/enquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productName, productSlug,
+          name: name.trim(),
+          phone: phone.trim() || undefined,
+          email: email.trim(),
+          message: msg.trim() || undefined,
+          source: 'quote',
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setSendError(j.error ?? 'Could not send — please try again or call us.');
+        return;
+      }
+      setSuccess(true);
+    } catch {
+      setSendError('Could not send — please check your connection or call us.');
+    } finally {
+      setSending(false);
+    }
   }
 
   function handleClose() {
@@ -88,7 +116,14 @@ export default function QuoteModal({ productName, productCat, onClose }: Props) 
               <textarea id="qMsg" placeholder="Describe your use case, capacity needed, site conditions…" value={msg} onChange={e => setMsg(e.target.value)} />
             </div>
 
-            <button className="btn btn-primary modal-submit" onClick={submit}>Send quote request</button>
+            {sendError && (
+              <div style={{ padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#b91c1c', fontSize: 13.5, marginBottom: 4 }}>
+                {sendError}
+              </div>
+            )}
+            <button className="btn btn-primary modal-submit" onClick={submit} disabled={sending}>
+              {sending ? 'Sending…' : 'Send quote request'}
+            </button>
           </div>
         ) : (
           <div className="modal-success">

@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductClient from './ProductClient';
-import { findProductBySlug, getAllProductSlugs, getProducts } from '@/lib/queries';
+import { findProductBySlug, getAllProductSlugs, getProducts, getMostEnquiredProducts } from '@/lib/queries';
 import { jsonLd } from '@/lib/jsonLd';
 
 export const revalidate = 60;
@@ -69,6 +69,12 @@ export default async function ProductPage({ params }: Props) {
     .then(all => all.filter(r => r.slug !== slug).slice(0, 4))
     .catch(() => []);
 
+  // Most-enquired products, excluding this one and anything already in "related".
+  const relatedSlugs = new Set(related.map(r => r.slug));
+  const popular = await getMostEnquiredProducts(slug, 8)
+    .then(list => list.filter(r => !relatedSlugs.has(r.slug)).slice(0, 4))
+    .catch(() => []);
+
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -107,7 +113,7 @@ export default async function ProductPage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(productSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <Header active="products" />
-      <ProductClient product={product} related={related} />
+      <ProductClient product={product} related={related} popular={popular} />
       <Footer />
     </>
   );

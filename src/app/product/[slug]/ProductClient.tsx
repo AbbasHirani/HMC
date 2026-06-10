@@ -1,10 +1,11 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { Product } from '@/lib/data';
 import { WA, CONTACT } from '@/lib/data';
 import ProductCard from '@/components/ProductCard';
 import QuoteModal from '@/components/QuoteModal';
+import RecentlyViewed from '@/components/RecentlyViewed';
 import ImageZoom from './ImageZoom';
 import { IconPhone, IconWA, IconWrench, IconCheck, IconTruck, IconArrow } from '@/components/Icons';
 
@@ -13,13 +14,36 @@ const THUMB_LABELS = ['View 1', 'View 2', 'Detail', 'In use'];
 interface Props {
   product: Product;
   related?: Product[];
+  popular?: Product[];
 }
 
-export default function ProductClient({ product: p, related = [] }: Props) {
+// Fire-and-forget click log so WhatsApp/Call taps show up in the admin inbox.
+function logClick(source: 'whatsapp' | 'call', p: Product) {
+  try {
+    fetch('/api/enquiries', {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productName: p.name, productSlug: p.slug, source }),
+    }).catch(() => null);
+  } catch { /* never block the navigation */ }
+}
+
+export default function ProductClient({ product: p, related = [], popular = [] }: Props) {
   const cn = p.catName || p.cat;
   const waLink = WA + encodeURIComponent(`${p.name} (${cn})`);
   const [activeThumb, setActiveThumb] = useState(0);
   const [showModal, setShowModal] = useState(false);
+
+  // Record this product in the visitor's "recently viewed" list (localStorage).
+  useEffect(() => {
+    try {
+      const entry = { slug: p.slug, name: p.name, image: p.images?.[0]?.url ?? null, price: p.price, ts: Date.now() };
+      const list: typeof entry[] = JSON.parse(localStorage.getItem('hmc_recent') ?? '[]');
+      const next = [entry, ...list.filter(e => e.slug !== p.slug)].slice(0, 8);
+      localStorage.setItem('hmc_recent', JSON.stringify(next));
+    } catch { /* localStorage unavailable */ }
+  }, [p.slug, p.name, p.price, p.images]);
 
   const mainImage = p.images?.[activeThumb]?.url ?? p.images?.[0]?.url;
   // Admin-set alt text wins; otherwise auto-generate from product name.
@@ -100,8 +124,8 @@ export default function ProductClient({ product: p, related = [] }: Props) {
               </div>
 
               <div className="pd-cta">
-                <a className="btn btn-primary btn-lg" href={CONTACT.phoneHref}><IconPhone />Call to order</a>
-                <a className="btn btn-wa btn-lg" href={waLink} target="_blank" rel="noopener noreferrer"><IconWA />Enquire on WhatsApp</a>
+                <a className="btn btn-primary btn-lg" href={CONTACT.phoneHref} onClick={() => logClick('call', p)}><IconPhone />Call to order</a>
+                <a className="btn btn-wa btn-lg" href={waLink} target="_blank" rel="noopener noreferrer" onClick={() => logClick('whatsapp', p)}><IconWA />Enquire on WhatsApp</a>
                 <button className="btn btn-ghost btn-lg" onClick={() => setShowModal(true)}>Get exact quote</button>
               </div>
 
@@ -248,6 +272,22 @@ export default function ProductClient({ product: p, related = [] }: Props) {
         </section>
       )}
 
+      {popular.length > 0 && (
+        <section className="section" style={{ paddingTop: related.length > 0 ? 0 : undefined }}>
+          <div className="container">
+            <div className="sec-head">
+              <span className="eyebrow">Popular right now</span>
+              <h2>People also enquired about</h2>
+            </div>
+            <div className="prod-grid" style={{ marginTop: 36 }}>
+              {popular.map(r => <ProductCard key={r.slug} p={r} />)}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <RecentlyViewed excludeSlug={p.slug} />
+
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="container">
           <div className="cta-band" style={{ marginTop: related.length > 0 ? 0 : 40 }}>
@@ -266,12 +306,12 @@ export default function ProductClient({ product: p, related = [] }: Props) {
       </section>
 
       <div className="pd-sticky">
-        <a className="btn btn-primary" href={CONTACT.phoneHref}><IconPhone />Call to order</a>
-        <a className="btn btn-wa" href={waLink} target="_blank" rel="noopener noreferrer"><IconWA />WhatsApp</a>
+        <a className="btn btn-primary" href={CONTACT.phoneHref} onClick={() => logClick('call', p)}><IconPhone />Call to order</a>
+        <a className="btn btn-wa" href={waLink} target="_blank" rel="noopener noreferrer" onClick={() => logClick('whatsapp', p)}><IconWA />WhatsApp</a>
       </div>
 
       {showModal && (
-        <QuoteModal productName={p.name} productCat={`${p.subName} · ${cn}`} onClose={() => setShowModal(false)} />
+        <QuoteModal productName={p.name} productCat={`${p.subName} · ${cn}`} productSlug={p.slug} onClose={() => setShowModal(false)} />
       )}
     </>
   );

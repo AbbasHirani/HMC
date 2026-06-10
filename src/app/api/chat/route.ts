@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { getCatalogContext } from '@/lib/chatContext';
 import { CONTACT } from '@/lib/data';
 import { rateLimit, clientIp } from '@/lib/rateLimit';
+import { sql } from '@/lib/db';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -22,6 +23,13 @@ function systemPrompt(catalog: string): string {
 
 Talk like an actual person behind the counter helping a walk-in customer — not like a chatbot or a help desk. You're easygoing, knowledgeable, and you get to the point.
 
+LANGUAGE — mirror the customer's script exactly:
+- If they write in Tamil SCRIPT (தமிழ் எழுத்து), you MUST reply in Tamil script too — natural spoken Chennai Tamil (e.g. "உங்களுக்கு எந்த மாதிரி பம்ப் வேணும்?"), never Tanglish, never formal textbook Tamil.
+- If they write Tanglish (Tamil words in English letters, e.g. "veetuku motor venum"), reply in Tanglish the same way.
+- Otherwise reply in English.
+- In every language: keep product names, brand names and links exactly as they appear in the catalog (English). Technical words like HP, motor, tank, borewell stay in English — that's how people actually talk.
+- If they switch language mid-chat, switch with them.
+
 HOW YOU TALK (this is the most important part):
 - Sound human. Short, natural sentences. Like you're chatting on WhatsApp, not writing an email.
 - NEVER open with filler like "I'd be happy to help!", "Great question!", "Sure thing!", "To make sure I point you in the right direction", or "Certainly!". Just answer or ask.
@@ -39,7 +47,15 @@ WHAT YOU CAN AND CAN'T SAY:
 
 NUDGING (do it naturally, not pushily):
 - When a product fits, name it and link it like [Product Name](/product/slug) using the Link from the catalogue, with a quick why.
+- Products carry use-case tags (see USE CASE INDEX in the catalog). When someone describes an application ("for my house", "for the farm"), recommend matching products and you can also link the filtered view like [all Home Use products](/catalogue?uc=home-use) using the slug from the index.
 - When it makes sense, point them to call ${CONTACT.phone}, WhatsApp (https://wa.me/${CONTACT.whatsapp}), or come by the Parrys shop (Mon–Sat, 9–6). Work it into the conversation, don't bolt it on.
+
+CALLBACK CAPTURE (your most useful move):
+- If the customer seems ready to buy, wants an exact price ("Price on request" items), needs something not in the catalog, or wants advice beyond chat — offer ONCE, naturally: the shop team can call them back; ask for their name and phone number.
+- Don't push. If they decline or ignore it, drop the subject.
+- Once they give you a real phone number, confirm warmly in your own words ("Done — the team will call you back, usually within shop hours") and then end that message with this hidden machine tag on its own final line, EXACTLY in this format:
+[[ENQUIRY:{"name":"<their name or empty>","phone":"<their number>","product":"<product discussed or empty>","slug":"<product slug if known, else empty>","note":"<one short line on what they need>"}]]
+- Rules for the tag: only emit it when the customer ACTUALLY typed a phone number in this conversation — never invent or guess one. Emit it at most once per conversation. Never mention the tag or that anything is being recorded; it is stripped before the customer sees your message.
 
 FORMAT:
 - Markdown is fine: **bold** sparingly, [text](/product/slug) for product links, "- " bullets only for comparing options.
@@ -132,12 +148,51 @@ export async function POST(req: NextRequest) {
   }
 
   // Re-stream Gemini's SSE as a plain text delta stream the client can append.
+  // A small stateful filter withholds the hidden [[ENQUIRY:{...}]] lead-capture
+  // tag from the visible stream; tags are parsed and saved to the enquiry inbox.
+  const TAG_START = '[[ENQUIRY:';
+  const TAG_MAX = 700; // give up holding if a "tag" never closes
+  const capturedTags: string[] = [];
+
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const reader = upstream.body!.getReader();
       const decoder = new TextDecoder();
       const encoder = new TextEncoder();
       let buffer = '';
+      let held = ''; // text withheld because it may be (part of) a tag
+
+      const flush = (s: string) => { if (s) controller.enqueue(encoder.encode(s)); };
+
+      // Pushes model text through the tag filter.
+      const emit = (text: string) => {
+        held += text;
+        for (;;) {
+          const idx = held.indexOf('[[');
+          if (idx === -1) {
+            // Flush all but a trailing '[' that could become '[[' next chunk.
+            const keep = held.endsWith('[') ? 1 : 0;
+            flush(held.slice(0, held.length - keep));
+            held = held.slice(held.length - keep);
+            return;
+          }
+          flush(held.slice(0, idx));
+          held = held.slice(idx);
+          const end = held.indexOf(']]');
+          if (end === -1) {
+            // Tag not closed yet — wait for more text, unless it's clearly junk.
+            if (held.length > TAG_MAX) { flush(held); held = ''; }
+            return;
+          }
+          const token = held.slice(0, end + 2);
+          held = held.slice(end + 2);
+          if (token.startsWith(TAG_START)) {
+            capturedTags.push(token.slice(TAG_START.length, -2));
+          } else {
+            flush(token); // some other [[..]] text — pass through
+          }
+        }
+      };
 
       try {
         while (true) {
@@ -159,7 +214,7 @@ export async function POST(req: NextRequest) {
               if (Array.isArray(parts)) {
                 for (const p of parts) {
                   if (typeof p?.text === 'string' && p.text) {
-                    controller.enqueue(encoder.encode(p.text));
+                    emit(p.text);
                   }
                 }
               }
@@ -168,9 +223,34 @@ export async function POST(req: NextRequest) {
             }
           }
         }
+        // Stream ended: anything still held that isn't a complete tag is real text.
+        if (held && !(held.startsWith(TAG_START) && held.endsWith(']]'))) flush(held.trimEnd());
       } catch (err) {
         console.error('Stream relay error', err);
       } finally {
+        // Save captured leads before closing so serverless doesn't cut us off.
+        for (const raw of capturedTags) {
+          try {
+            const lead = JSON.parse(raw);
+            const phone = String(lead.phone ?? '').trim();
+            // Require something that plausibly is a phone number.
+            if (phone.replace(/\D/g, '').length >= 7) {
+              await sql`
+                INSERT INTO enquiries (product_name, product_slug, name, phone, message, source)
+                VALUES (
+                  ${String(lead.product ?? '').slice(0, 300) || null},
+                  ${String(lead.slug ?? '').slice(0, 200) || null},
+                  ${String(lead.name ?? '').slice(0, 200) || null},
+                  ${phone.slice(0, 50)},
+                  ${String(lead.note ?? '').slice(0, 1000) || null},
+                  'chat'
+                )
+              `;
+            }
+          } catch (err) {
+            console.error('Chat lead capture failed', err);
+          }
+        }
         controller.close();
       }
     },

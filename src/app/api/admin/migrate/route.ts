@@ -47,6 +47,20 @@ export async function POST(req: NextRequest) {
       PRIMARY KEY (product_id, use_case_id)
     )
   `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS enquiries (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      product_name TEXT,
+      product_slug TEXT,
+      name TEXT,
+      phone TEXT,
+      email TEXT,
+      message TEXT,
+      source TEXT NOT NULL DEFAULT 'quote',
+      status TEXT NOT NULL DEFAULT 'new',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
 
   return NextResponse.json({ ok: true, message: 'Migration complete' });
 }

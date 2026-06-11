@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { cdn } from '@/lib/img';
 
 interface Job {
   id: string;
@@ -110,7 +111,7 @@ export default function RepairJobsCarousel({ jobs }: { jobs: Job[] }) {
                 {j.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={j.imageUrl}
+                    src={cdn(j.imageUrl)}
                     alt={j.title}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease', transform: isActive ? 'scale(1.04)' : 'scale(1)' }}
                     draggable={false}

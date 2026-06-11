@@ -18,8 +18,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const brand = brands.find(b => b.slug === slug);
   if (!brand) return {};
   return {
-    title: `${brand.name} Products — Hirani Marketing Combines`,
+    title: `${brand.name} Pumps & Water Systems in Chennai`,
     description: `Browse all ${brand.name} pumps, water systems and equipment at Hirani Marketing Combines, Chennai.`,
+    alternates: { canonical: `/brand/${slug}` },
   };
 }
 

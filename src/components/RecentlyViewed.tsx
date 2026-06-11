@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { cdn } from '@/lib/img';
 
 interface RecentEntry {
   slug: string;
@@ -47,7 +48,7 @@ export default function RecentlyViewed({ excludeSlug }: { excludeSlug?: string }
               <div style={{ height: 130, background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10 }}>
                 {item.image
                   // eslint-disable-next-line @next/next/no-img-element
-                  ? <img src={item.image} alt={item.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} loading="lazy" />
+                  ? <img src={cdn(item.image)} alt={item.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} loading="lazy" />
                   : <span style={{ fontSize: 12, color: 'var(--muted)' }}>{item.name}</span>}
               </div>
               <div style={{ padding: '12px 14px' }}>

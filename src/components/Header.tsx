@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { CONTACT, WA } from '@/lib/data';
@@ -22,12 +23,14 @@ const TOGGLE_MAP: Record<string, { en: string; ta: string }> = {
 };
 
 export default function Header({ active, lang = 'en' }: Props) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const t = NAV[lang];
   const isTa = lang === 'ta';
   const home = isTa ? '/ta' : '/';
   const services = isTa ? '/ta/services' : '/services';
   const toggle = TOGGLE_MAP[active ?? 'home'] ?? TOGGLE_MAP.home;
   const toggleHref = isTa ? toggle.en : toggle.ta;
+  const close = () => setMenuOpen(false);
 
   return (
     <header className="site-header">
@@ -69,12 +72,52 @@ export default function Header({ active, lang = 'en' }: Props) {
               <IconWA />
               WhatsApp
             </a>
-            <button className="menu-toggle" aria-label="Menu">
-              <IconPhone />
+            <button
+              className="menu-toggle"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen(o => !o)}
+            >
+              {menuOpen ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                  <line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                  <line x1="4" y1="7" x2="20" y2="7" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="17" x2="20" y2="17" />
+                </svg>
+              )}
             </button>
           </div>
         </nav>
       </div>
+
+      {menuOpen && (
+        <>
+          <div className="mobile-menu-backdrop" onClick={close} />
+          <div className="mobile-menu">
+            <Link href={home} className={active === 'home' ? 'active' : ''} onClick={close}>{t.home}</Link>
+            <Link href="/catalogue" className={active === 'products' ? 'active' : ''} onClick={close}>{t.products}</Link>
+            <Link href={`${home}#categories`} onClick={close}>{t.categories}</Link>
+            <Link href={services} className={active === 'services' ? 'active' : ''} onClick={close}>{t.services}</Link>
+            <Link href={`${services}#about`} onClick={close}>{t.about}</Link>
+            <Link href={toggleHref} onClick={close} style={{ color: 'var(--orange)', fontWeight: 700 }}>
+              {isTa ? 'English' : 'தமிழ்'}
+            </Link>
+            <a
+              href={CONTACT.phoneHref}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                marginTop: 14, padding: '13px', borderRadius: 10,
+                background: 'var(--navy)', color: '#fff', fontWeight: 700, fontSize: 15,
+                textDecoration: 'none', border: 'none',
+              }}
+            >
+              <IconPhone />{CONTACT.phone}
+            </a>
+          </div>
+        </>
+      )}
     </header>
   );
 }

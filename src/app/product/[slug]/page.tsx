@@ -44,7 +44,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : autoKeywords;
 
   return {
-    title,
+    // Absolute: skip the "| Hirani Marketing Combines" template so carefully
+    // sized SEO titles aren't pushed past Google's ~65-char display limit.
+    title: { absolute: title },
     description,
     keywords,
     alternates: { canonical: `/product/${slug}` },

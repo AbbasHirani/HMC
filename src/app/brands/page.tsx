@@ -9,8 +9,9 @@ import { getBrands, getProducts } from '@/lib/queries';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Brands — Hirani Marketing Combines',
+  title: 'Pump & Water System Brands We Carry in Chennai',
   description: 'Browse products by brand — Kent, Aquaguard, Grundfos, Kirloskar, CRI, Crompton and more at Hirani Marketing Combines, Chennai.',
+  alternates: { canonical: '/brands' },
 };
 
 export default async function BrandsPage() {

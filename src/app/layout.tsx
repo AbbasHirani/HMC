@@ -52,7 +52,10 @@ const localBusinessSchema = {
   description:
     "Chennai's trusted supplier of water pumps, RO & filtration systems, fountains, pressure washers and industrial equipment. Workshop repair & reconditioning at Parrys.",
   hasMap: 'https://maps.google.com/?q=Hirani+Marketing+Combines+Parrys+Chennai',
-  sameAs: [],
+  sameAs: [
+    'https://share.google/sOaPiynM2Hl88l3Zn',
+    'https://www.instagram.com/hiranimarketingcombines/',
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

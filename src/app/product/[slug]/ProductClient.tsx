@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { Product } from '@/lib/data';
 import { WA, CONTACT } from '@/lib/data';
+import { cdn } from '@/lib/img';
 import ProductCard from '@/components/ProductCard';
 import QuoteModal from '@/components/QuoteModal';
 import RecentlyViewed from '@/components/RecentlyViewed';
@@ -45,7 +46,9 @@ export default function ProductClient({ product: p, related = [], popular = [] }
     } catch { /* localStorage unavailable */ }
   }, [p.slug, p.name, p.price, p.images]);
 
-  const mainImage = p.images?.[activeThumb]?.url ?? p.images?.[0]?.url;
+  // Optimized Cloudinary delivery (WebP/AVIF + auto quality) for all gallery images.
+  const imgs = (p.images ?? []).map(img => ({ ...img, url: cdn(img.url) }));
+  const mainImage = imgs[activeThumb]?.url ?? imgs[0]?.url;
   // Admin-set alt text wins; otherwise auto-generate from product name.
   const imgAlt = (i: number) =>
     p.images?.[i]?.alt
@@ -55,8 +58,8 @@ export default function ProductClient({ product: p, related = [], popular = [] }
     ['Product type', p.subName],
     ...Object.entries(p.specs ?? {}),
   ];
-  const thumbs = p.images?.length
-    ? p.images
+  const thumbs = imgs.length
+    ? imgs
     : THUMB_LABELS.map(() => ({ url: '', publicId: '' }));
 
   return (
@@ -78,7 +81,7 @@ export default function ProductClient({ product: p, related = [], popular = [] }
                       src={mainImage}
                       alt={imgAlt(activeThumb)}
                       height="100%"
-                      allImages={p.images ?? []}
+                      allImages={imgs}
                       activeIndex={activeThumb}
                       onIndexChange={setActiveThumb}
                     />
@@ -184,7 +187,7 @@ export default function ProductClient({ product: p, related = [], popular = [] }
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       padding: 10,
                     }}>
-                      <img src={p.brandLogo} alt={p.brandName ?? p.brand} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                      <img src={cdn(p.brandLogo)} alt={p.brandName ?? p.brand} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                     </div>
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>

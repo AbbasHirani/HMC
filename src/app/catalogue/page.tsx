@@ -37,6 +37,9 @@ async function getUseCaseFilters() {
 export const metadata: Metadata = {
   title: 'Water Pumps, RO Systems & Industrial Equipment in Chennai',
   description: 'Shop water pumps, RO & filtration systems, fountains, pressure washers, air compressors and hydraulic equipment in Chennai. 70+ products from Kent, CRI, Grundfos, Kirloskar and more. Workshop repair at Parrys.',
+  // All filtered views (?cat=, ?sub=, ?brand=, ?uc=) serve this same page —
+  // consolidate them onto the clean URL.
+  alternates: { canonical: '/catalogue' },
 };
 
 export default async function CataloguePage() {

@@ -92,7 +92,7 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
 
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
     const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
-    const initialCrop = centerCrop({ unit: '%', width: 90, height: 90, x: 5, y: 5 } as Crop, width, height);
+    const initialCrop = centerCrop({ unit: '%', width: 90, height: 90, x: 5, y: 5 }, width, height);
     setCrop(initialCrop);
   }
 

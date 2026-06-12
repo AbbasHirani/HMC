@@ -1,6 +1,9 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { compressImageFile } from '@/lib/imageCompress';
+import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 const TAGS = ['', 'Best seller', 'Popular'];
 
@@ -17,8 +20,18 @@ interface SpecRow { key: string; value: string; }
 interface SeoData { title?: string; description?: string; keywords?: string; }
 
 type ImgState =
-  | { type: 'existing'; url: string; publicId: string; alt: string }
-  | { type: 'new'; file: File; previewUrl: string; alt: string };
+  | { id?: string; type: 'existing'; url: string; publicId: string; alt: string }
+  | {
+      id: string;
+      type: 'new';
+      file: File;
+      previewUrl: string;
+      alt: string;
+      originalSize: number;
+      compressed?: { file: File; previewUrl: string; size: number };
+      compressing?: boolean;
+      uploadProgress?: number;
+    };
 
 interface Props {
   mode: 'new' | 'edit';
@@ -55,9 +68,89 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
   const [brand, setBrand] = useState(initial?.brand ?? '');
   const [featured, setFeatured] = useState(initial?.featured ?? false);
   const [images, setImages] = useState<ImgState[]>(
-    initial?.images?.map(img => ({ type: 'existing', url: img.url, publicId: img.publicId, alt: img.alt ?? '' })) ?? []
+    initial?.images?.map(img => ({ id: img.publicId, type: 'existing', url: img.url, publicId: img.publicId, alt: img.alt ?? '' })) ?? []
   );
   const [deletedPublicIds, setDeletedPublicIds] = useState<string[]>([]);
+
+  // Compression settings (adjustable in UI)
+  const [compressMaxWidth, setCompressMaxWidth] = useState<number>(1600);
+  const [compressQuality, setCompressQuality] = useState<number>(0.78);
+  const [convertToWebp, setConvertToWebp] = useState<boolean>(true);
+
+  // Cropper State
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
+  const [cropImgSrc, setCropImgSrc] = useState('');
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+
+  useEffect(() => {
+    if (cropQueue.length > 0 && !cropImgSrc) {
+      setCropImgSrc(URL.createObjectURL(cropQueue[0]));
+    }
+  }, [cropQueue, cropImgSrc]);
+
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
+    const initialCrop = centerCrop({ unit: '%', width: 90, height: 90, x: 5, y: 5 } as Crop, width, height);
+    setCrop(initialCrop);
+  }
+
+  function handleCropSave() {
+    if (!completedCrop || !imgRef.current) return;
+    const canvas = document.createElement('canvas');
+    const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
+    const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
+    canvas.width = completedCrop.width * scaleX;
+    canvas.height = completedCrop.height * scaleY;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(
+      imgRef.current,
+      completedCrop.x * scaleX, completedCrop.y * scaleY,
+      completedCrop.width * scaleX, completedCrop.height * scaleY,
+      0, 0, canvas.width, canvas.height
+    );
+
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      const file = new File([blob], cropQueue[0].name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
+      processNewImageFile(file);
+      URL.revokeObjectURL(cropImgSrc);
+      setCropImgSrc('');
+      setCropQueue(prev => prev.slice(1));
+    }, 'image/webp');
+  }
+
+  function handleCropCancel() {
+    URL.revokeObjectURL(cropImgSrc);
+    setCropImgSrc('');
+    setCropQueue(prev => prev.slice(1));
+  }
+
+  function processNewImageFile(file: File) {
+    const tmpId = generateTmpId();
+    const newImg = {
+      id: tmpId, type: 'new' as const, file,
+      previewUrl: URL.createObjectURL(file), alt: '',
+      originalSize: file.size, compressing: true, uploadProgress: 0,
+    };
+    setImages(prev => [...prev, newImg]);
+
+    (async () => {
+      try {
+        const compressed = await compressImageFile(file, { maxWidth: compressMaxWidth, quality: compressQuality, convertToWebp });
+        const compressedPreview = URL.createObjectURL(compressed);
+        setImages(prev => prev.map(it => it.id === tmpId ? { ...(it as any), compressed: { file: compressed, previewUrl: compressedPreview, size: compressed.size }, compressing: false } : it));
+      } catch {
+        setImages(prev => prev.map(it => it.id === tmpId ? { ...(it as any), compressing: false } : it));
+      }
+    })();
+  }
+
+  function generateTmpId() {
+    return 'tmp-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+  }
 
   const initSpecs: SpecRow[] = initial?.specs
     ? Object.entries(initial.specs).map(([key, value]) => ({ key, value }))
@@ -116,21 +209,19 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
   }
 
   function handleFileSelect(files: FileList) {
-    const newImgs = Array.from(files).map(file => ({
-      type: 'new' as const,
-      file,
-      previewUrl: URL.createObjectURL(file),
-      alt: '',
-    }));
-    setImages(prev => [...prev, ...newImgs]);
+    if (files && files.length > 0) {
+      setCropQueue(prev => [...prev, ...Array.from(files)]);
+    }
   }
 
   function removeImage(idx: number) {
-    const img = images[idx];
-    if (img.type === 'existing') {
-      setDeletedPublicIds(prev => [...prev, img.publicId]);
+    const img = images[idx] as ImgState;
+    if ((img as any).type === 'existing') {
+      setDeletedPublicIds(prev => [...prev, (img as any).publicId]);
     } else {
-      URL.revokeObjectURL(img.previewUrl);
+      const ni = img as Extract<ImgState, { type: 'new' }>;
+      if (ni.previewUrl) URL.revokeObjectURL(ni.previewUrl);
+      if (ni.compressed?.previewUrl) URL.revokeObjectURL(ni.compressed.previewUrl);
     }
     setImages(prev => prev.filter((_, i) => i !== idx));
   }
@@ -212,21 +303,53 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
       await fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ publicId: pid }) });
     }
 
-    // 2. Process uploads
+    // 2. Process uploads (with per-image progress)
     const folder = `products/${selectedCat.slug}/${selectedSub.slug}`;
     const finalImages: ImgEntry[] = [];
-    for (const img of images) {
-      const alt = img.alt.trim() || undefined;
-      if (img.type === 'existing') {
-        finalImages.push({ url: img.url, publicId: img.publicId, alt });
-      } else {
+
+    async function uploadWithProgress(file: Blob | File, folderPath: string, publicId: string, onProgress: (p: number) => void) {
+      return new Promise<any>((resolve, reject) => {
         const fd = new FormData();
-        fd.append('file', img.file);
-        fd.append('folder', folder);
-        fd.append('publicId', slugify(name || 'product') + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7));
-        const res = await fetch('/api/upload', { method: 'POST', body: fd });
-        const data = await res.json();
-        if (data.url) finalImages.push({ url: data.url, publicId: data.publicId, alt });
+        const f = file instanceof File ? file : new File([file], `${publicId}.webp`, { type: (file as any).type || 'image/webp' });
+        fd.append('file', f, f.name);
+        fd.append('folder', folderPath);
+        fd.append('publicId', publicId);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/upload');
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+        };
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try { resolve(JSON.parse(xhr.responseText)); } catch (err) { reject(err); }
+          } else {
+            reject(new Error(`Upload failed ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(fd);
+      });
+    }
+
+    for (const img of images) {
+      const alt = (img as any).alt?.trim() || undefined;
+      if ((img as any).type === 'existing') {
+        finalImages.push({ url: (img as any).url, publicId: (img as any).publicId, alt });
+      } else {
+        const publicId = slugify(name || 'product') + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+        const compressedFile = (img as any).compressed?.file as File | undefined;
+        const fileToUpload = compressedFile ?? (img as any).file;
+        try {
+          const result = await uploadWithProgress(fileToUpload, folder, publicId, (p) => {
+            setImages(prev => prev.map(it => it.id === (img as any).id ? { ...(it as any), uploadProgress: p } : it));
+          });
+          if (result?.url) finalImages.push({ url: result.url, publicId: result.publicId, alt });
+        } catch (err) {
+          setError('Image upload failed.');
+          setSaving(false);
+          return;
+        }
       }
     }
 
@@ -435,41 +558,108 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
         </div>
         <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => e.target.files && handleFileSelect(e.target.files)} />
 
+        {/* Compression controls */}
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', margin: '8px 0 12px' }}>
+          <label style={{ fontSize: 13 }}>
+            Max width
+            <input type="number" value={compressMaxWidth} onChange={e => setCompressMaxWidth(Number(e.target.value) || 0)} style={{ marginLeft: 8, width: 96 }} />
+          </label>
+          <label style={{ fontSize: 13 }}>
+            Quality
+            <input type="range" min={0.4} max={0.95} step={0.01} value={compressQuality} onChange={e => setCompressQuality(Number(e.target.value))} style={{ marginLeft: 8 }} />
+            <span style={{ marginLeft: 6 }}>{Math.round(compressQuality * 100)}%</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+            <input type="checkbox" checked={convertToWebp} onChange={e => setConvertToWebp(e.target.checked)} /> Convert to WebP
+          </label>
+          <button
+            type="button"
+            onClick={async () => {
+              // Recompress all pending new images with current settings
+              const pending = images.filter((it: any) => it.type === 'new');
+              for (const it of pending) {
+                    try {
+                      setImages(prev => prev.map(p => p.id === (it as any).id ? { ...(p as any), compressing: true } : p));
+                      const compressed = await compressImageFile((it as any).file, { maxWidth: compressMaxWidth, quality: compressQuality, convertToWebp });
+                      const preview = URL.createObjectURL(compressed);
+                      setImages(prev => prev.map(p => p.id === (it as any).id ? { ...(p as any), compressed: { file: compressed, previewUrl: preview, size: compressed.size }, compressing: false } : p));
+                    } catch {
+                      setImages(prev => prev.map(p => p.id === (it as any).id ? { ...(p as any), compressing: false } : p));
+                    }
+                  }
+            }}
+            className="btn-adm btn-adm-ghost"
+          >Recompress</button>
+        </div>
+
         {images.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {images.map((img, i) => (
-              <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '10px 12px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10 }}>
-                <div className="img-preview" style={{ flexShrink: 0 }}>
-                  <img src={img.type === 'existing' ? img.url : img.previewUrl} alt={`Image ${i + 1}`} />
-                  {i === 0 ? (
-                    <span className="img-main-badge">MAIN</span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => makeMain(i)}
-                      style={{ position: 'absolute', bottom: '6px', left: '6px', background: 'rgba(30,29,92,.8)', color: '#fff', fontSize: '9.5px', fontWeight: 800, padding: '3px 6px', borderRadius: '4px', letterSpacing: '.05em', textTransform: 'uppercase', cursor: 'pointer', border: 'none', transition: '.15s' }}
-                      onMouseOver={(e) => e.currentTarget.style.background = 'var(--navy)'}
-                      onMouseOut={(e) => e.currentTarget.style.background = 'rgba(30,29,92,.8)'}
-                    >
-                      Set Main
-                    </button>
-                  )}
-                  <button className="img-del" type="button" onClick={() => removeImage(i)}>×</button>
+            {images.map((img, i) => {
+              const isExisting = (img as any).type === 'existing';
+              const previewSrc = isExisting ? (img as any).url : ((img as any).compressed?.previewUrl ?? (img as any).previewUrl);
+              const originalSize = (img as any).originalSize as number | undefined;
+              const compressedSize = (img as any).compressed?.size as number | undefined;
+              const compressing = (img as any).compressing as boolean | undefined;
+              const uploadProgress = (img as any).uploadProgress as number | undefined;
+
+              function fmtBytes(b?: number) {
+                if (!b && b !== 0) return '';
+                if (b < 1024) return b + ' B';
+                if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+                return (b / (1024 * 1024)).toFixed(2) + ' MB';
+              }
+
+              return (
+                <div key={img.id ?? i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '10px 12px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10 }}>
+                  <div className="img-preview" style={{ flexShrink: 0, position: 'relative' }}>
+                    <img src={previewSrc} alt={`Image ${i + 1}`} style={{ width: 140, height: 100, objectFit: 'cover' }} />
+                    {i === 0 ? (
+                      <span className="img-main-badge">MAIN</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => makeMain(i)}
+                        style={{ position: 'absolute', bottom: '6px', left: '6px', background: 'rgba(30,29,92,.8)', color: '#fff', fontSize: '9.5px', fontWeight: 800, padding: '3px 6px', borderRadius: '4px', letterSpacing: '.05em', textTransform: 'uppercase', cursor: 'pointer', border: 'none', transition: '.15s' }}
+                        onMouseOver={(e) => e.currentTarget.style.background = 'var(--navy)'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(30,29,92,.8)'}
+                      >
+                        Set Main
+                      </button>
+                    )}
+                    <button className="img-del" type="button" onClick={() => removeImage(i)} style={{ position: 'absolute', top: 6, right: 6 }}>×</button>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 5 }}>
+                      Alt text (SEO) {!((img as any).alt || '').trim() && <span style={{ color: '#16a34a', textTransform: 'none', fontWeight: 600 }}>· auto</span>}
+                    </label>
+                    <input
+                      value={(img as any).alt}
+                      onChange={e => updateAlt(i, e.target.value)}
+                      placeholder={autoAlt(i)}
+                      style={{ width: '100%' }}
+                    />
+                    <div style={{ marginTop: 8, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                      {!isExisting && (
+                        <>
+                          <div style={{ fontSize: 12, color: '#6b7280' }}>
+                            Orig: {fmtBytes(originalSize)}
+                          </div>
+                          <div style={{ fontSize: 12, color: '#6b7280' }}>
+                            {compressing ? 'Compressing…' : (compressedSize ? `Now: ${fmtBytes(compressedSize)}` : '')}
+                          </div>
+                        </>
+                      )}
+                      {uploadProgress ? (
+                        <div style={{ width: 160, background: '#fff', border: '1px solid #e5e7eb', height: 8, borderRadius: 6, overflow: 'hidden' }}>
+                          <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'linear-gradient(90deg,#1E1D5C,#4338ca)' }} />
+                        </div>
+                      ) : null}
+                      <span className="hint">Describes the image for Google &amp; screen readers. Blank = auto-generated.</span>
+                    </div>
+                  </div>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 5 }}>
-                    Alt text (SEO) {!img.alt.trim() && <span style={{ color: '#16a34a', textTransform: 'none', fontWeight: 600 }}>· auto</span>}
-                  </label>
-                  <input
-                    value={img.alt}
-                    onChange={e => updateAlt(i, e.target.value)}
-                    placeholder={autoAlt(i)}
-                    style={{ width: '100%' }}
-                  />
-                  <span className="hint">Describes the image for Google &amp; screen readers. Blank = auto-generated.</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -569,6 +759,35 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
         </button>
         <a href="/admin/products" className="btn-adm btn-adm-ghost">Cancel</a>
       </div>
+      {/* Cropper Modal */}
+      {cropImgSrc && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, maxWidth: '90vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <h3 style={{ margin: 0, fontSize: 18 }}>Crop Image (Free-form)</h3>
+            <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>Draw a box tightly around the product. It doesn't have to be a square! The website will automatically fit whatever shape you crop perfectly into the grid.</p>
+            <div style={{ overflow: 'auto', flex: 1, display: 'flex', justifyContent: 'center', background: '#f3f4f6', borderRadius: 8 }}>
+              <ReactCrop
+                crop={crop}
+                onChange={(_, percentCrop) => setCrop(percentCrop)}
+                onComplete={(c) => setCompletedCrop(c)}
+                minWidth={100}
+              >
+                <img
+                  ref={imgRef}
+                  alt="Crop preview"
+                  src={cropImgSrc}
+                  onLoad={onImageLoad}
+                  style={{ maxHeight: '60vh', width: 'auto', display: 'block' }}
+                />
+              </ReactCrop>
+            </div>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 8 }}>
+              <button type="button" onClick={handleCropCancel} className="btn-adm btn-adm-ghost">Cancel</button>
+              <button type="button" onClick={handleCropSave} className="btn-adm btn-adm-orange">Crop & Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

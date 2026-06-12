@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
 import type { Product } from '@/lib/data';
 import { IconArrow } from './Icons';
 
@@ -29,7 +30,7 @@ export default function ProductCard({ p, dark }: { p: Product; dark?: boolean })
             border: '1px solid var(--line)',
           }}>
             {p.brandLogo
-              ? <Image src={p.brandLogo} alt={p.brandName ?? p.brand ?? ''} width={44} height={14} style={{ objectFit: 'contain' }} />
+              ? <img src={p.brandLogo} alt={p.brandName ?? p.brand ?? ''} style={{ height: 22, width: 'auto', maxWidth: 70, objectFit: 'contain', display: 'block' }} />
               : <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--navy)', letterSpacing: '.04em', textTransform: 'uppercase' }}>{p.brandName ?? p.brand}</span>
             }
           </div>
@@ -37,7 +38,10 @@ export default function ProductCard({ p, dark }: { p: Product; dark?: boolean })
       </div>
       <div className="prod-body">
         <h3>{p.name}</h3>
-        <p className="pc-spec">{p.desc || p.spec}</p>
+        <div className="pc-spec">
+          {(p.desc || p.spec || '').replace(/[*#_\[\]`]/g, '').substring(0, 80)}
+          {(p.desc || p.spec || '').length > 80 ? '...' : ''}
+        </div>
         <div className="pc-foot">
           {p.price ? (
             <div className="pc-price">

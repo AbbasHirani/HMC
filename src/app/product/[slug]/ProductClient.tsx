@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { Product } from '@/lib/data';
 import { WA, CONTACT } from '@/lib/data';
 import { cdn } from '@/lib/img';
+import ReactMarkdown from 'react-markdown';
 import ProductCard from '@/components/ProductCard';
 import QuoteModal from '@/components/QuoteModal';
 import RecentlyViewed from '@/components/RecentlyViewed';
@@ -154,7 +155,9 @@ export default function ProductClient({ product: p, related = [], popular = [] }
               </a>
 
               <div className="pd-sec-title">About this product</div>
-              <p style={{ color: 'var(--slate)', fontSize: 15.5, lineHeight: 1.8, marginTop: 14, letterSpacing: '-0.005em' }}>{p.desc}</p>
+              <div className="prod-desc-md">
+                <ReactMarkdown>{p.desc}</ReactMarkdown>
+              </div>
 
               {p.brand && (
                 <a

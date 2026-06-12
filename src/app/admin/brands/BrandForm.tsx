@@ -1,6 +1,8 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -35,10 +37,60 @@ export default function BrandForm({ mode, id, initial }: Props) {
     if (mode === 'new') setSlug(slugify(v));
   }
 
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
+  const [cropImgSrc, setCropImgSrc] = useState('');
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+
+  useEffect(() => {
+    if (cropQueue.length > 0 && !cropImgSrc) {
+      setCropImgSrc(URL.createObjectURL(cropQueue[0]));
+    }
+  }, [cropQueue, cropImgSrc]);
+
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
+    const initialCrop = centerCrop({ unit: '%', width: 90, height: 90, x: 5, y: 5 } as Crop, width, height);
+    setCrop(initialCrop);
+  }
+
+  function handleCropSave() {
+    if (!completedCrop || !imgRef.current) return;
+    const canvas = document.createElement('canvas');
+    const scaleX = imgRef.current.naturalWidth / imgRef.current.width;
+    const scaleY = imgRef.current.naturalHeight / imgRef.current.height;
+    canvas.width = completedCrop.width * scaleX;
+    canvas.height = completedCrop.height * scaleY;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(
+      imgRef.current,
+      completedCrop.x * scaleX, completedCrop.y * scaleY,
+      completedCrop.width * scaleX, completedCrop.height * scaleY,
+      0, 0, canvas.width, canvas.height
+    );
+
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      const file = new File([blob], cropQueue[0].name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' });
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+      URL.revokeObjectURL(cropImgSrc);
+      setCropImgSrc('');
+      setCropQueue(prev => prev.slice(1));
+    }, 'image/webp');
+  }
+
+  function handleCropCancel() {
+    URL.revokeObjectURL(cropImgSrc);
+    setCropImgSrc('');
+    setCropQueue(prev => prev.slice(1));
+  }
+
   function handleFile(file: File) {
-    if (logoPreview) URL.revokeObjectURL(logoPreview);
-    setLogoFile(file);
-    setLogoPreview(URL.createObjectURL(file));
+    setCropQueue([file]);
   }
 
   function removeLogo() {
@@ -136,6 +188,36 @@ export default function BrandForm({ mode, id, initial }: Props) {
         </button>
         <a href="/admin/brands" className="btn-adm btn-adm-ghost">Cancel</a>
       </div>
+
+      {/* Cropper Modal */}
+      {cropImgSrc && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, maxWidth: '90vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <h3 style={{ margin: 0, fontSize: 18 }}>Crop Brand Logo</h3>
+            <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>Crop out any extra transparent space around the logo so it fits perfectly in the product cards.</p>
+            <div style={{ overflow: 'auto', flex: 1, display: 'flex', justifyContent: 'center', background: '#e5e7eb', borderRadius: 8, padding: 20 }}>
+              <ReactCrop
+                crop={crop}
+                onChange={(_, percentCrop) => setCrop(percentCrop)}
+                onComplete={(c) => setCompletedCrop(c)}
+                minWidth={20}
+              >
+                <img
+                  ref={imgRef}
+                  alt="Crop preview"
+                  src={cropImgSrc}
+                  onLoad={onImageLoad}
+                  style={{ maxHeight: '50vh', width: 'auto', display: 'block', background: '#fff' }}
+                />
+              </ReactCrop>
+            </div>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 8 }}>
+              <button type="button" onClick={handleCropCancel} className="btn-adm btn-adm-ghost">Cancel</button>
+              <button type="button" onClick={handleCropSave} className="btn-adm btn-adm-orange">Crop & Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

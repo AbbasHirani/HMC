@@ -135,6 +135,9 @@
   .adm-nav a.active { border-left-color: transparent; border-bottom-color: var(--orange); }
   .adm-nav .sep { display: none; }
   .adm-logout { width: auto; border-top: none; border-left: 1px solid rgba(255,255,255,.1); }
+  .adm-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .adm-table { min-width: 760px; }
+  .adm-table .actions { flex-wrap: wrap; }
   .form-row, .form-row.triple { grid-template-columns: 1fr; }
   .adm-topbar { padding: 0 20px; }
   .adm-content { padding: 20px; }

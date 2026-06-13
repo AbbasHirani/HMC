@@ -48,7 +48,7 @@ export default async function TamilHomePage() {
   ]);
 
   const featured = allProducts.filter(p => p.featured).slice(0, 8);
-  const displayProducts = featured.length >= 4 ? featured : allProducts.slice(0, 8);
+  const displayProducts = featured;
 
   return (
     <>
@@ -132,8 +132,8 @@ export default async function TamilHomePage() {
               <Link className="btn btn-ghost-light" href="/catalogue">அனைத்தும்</Link>
             </div>
             <div className="prod-grid" style={{ marginTop: 38 }}>
-              {displayProducts.map(p => (
-                <ProductCard key={p.slug} p={p} dark />
+              {displayProducts.map((p, index) => (
+                <ProductCard key={p.slug} p={p} dark priority={index < 4} />
               ))}
             </div>
           </div>

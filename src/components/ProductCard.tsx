@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import type { Product } from '@/lib/data';
 import { IconArrow } from './Icons';
 
-export default function ProductCard({ p, dark }: { p: Product; dark?: boolean }) {
+export default function ProductCard({ p, dark, priority }: { p: Product; dark?: boolean; priority?: boolean }) {
   const mainImage = p.images?.[0]?.url;
   return (
     <Link className="prod-card" href={`/product/${p.slug}`}>
@@ -16,6 +16,7 @@ export default function ProductCard({ p, dark }: { p: Product; dark?: boolean })
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             style={{ objectFit: 'contain', background: '#fff', padding: '10px' }}
+            priority={priority}
           />
         ) : (
           <div className={`ph${dark ? ' ph-dark' : ''}`} data-label={p.name} style={{ height: 184, borderRadius: 0, borderBottom: '1px solid var(--line)' }} />
@@ -30,7 +31,11 @@ export default function ProductCard({ p, dark }: { p: Product; dark?: boolean })
             border: '1px solid var(--line)',
           }}>
             {p.brandLogo
-              ? <img src={p.brandLogo} alt={p.brandName ?? p.brand ?? ''} style={{ height: 22, width: 'auto', maxWidth: 70, objectFit: 'contain', display: 'block' }} />
+              ? (
+                <div style={{ height: 22, maxWidth: 70, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src={p.brandLogo} alt={p.brandName ?? p.brand ?? ''} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', display: 'block' }} />
+                </div>
+              )
               : <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--navy)', letterSpacing: '.04em', textTransform: 'uppercase' }}>{p.brandName ?? p.brand}</span>
             }
           </div>

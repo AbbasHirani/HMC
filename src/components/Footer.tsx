@@ -39,7 +39,7 @@ export default async function Footer({ lang = 'en' }: { lang?: 'en' | 'ta' }) {
             <div className="foot-col foot-about">
               <div className="foot-brand">
                 <span className="brand-chip">
-                  <Image src="/logo-mark.png" alt="HMC" width={32} height={32} />
+                  <Image src="/logo-mark.png" alt="HMC" width={32} height={32} style={{ height: 'auto' }} />
                 </span>
                 <b>Hirani Marketing Combines</b>
               </div>

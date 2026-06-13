@@ -2,24 +2,43 @@
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-const SLIDES = [
-  { cat: 'Water Pumps',        name: 'Pressure Booster Pumps',   sub: 'Consistent pressure for buildings & pipelines',     priceLabel: 'Starting from', price: '₹5,800',   link: '/catalogue?cat=water-pumps' },
-  { cat: 'Water Filters & RO', name: 'Domestic RO Purifier',      sub: 'Safe, purified drinking water for homes & offices', priceLabel: 'Pricing',       price: 'On request', link: '/catalogue?cat=water-filters' },
-  { cat: 'Fountains',          name: 'Submersible Fountain Pump', sub: 'Smooth, energy-efficient water feature pump',       priceLabel: 'From',          price: '₹800',      link: '/catalogue?cat=fountains' },
-  { cat: 'Pressure Washers',   name: 'Electric Pressure Washer',  sub: 'Domestic & commercial high-pressure cleaning',      priceLabel: 'Starting from', price: '₹5,800',   link: '/catalogue?cat=pressure-washers' },
-  { cat: 'Hydraulic Equipment',name: 'Hydraulic Power Pack',      sub: 'Custom power units for industrial systems',         priceLabel: 'Pricing',       price: 'On request', link: '/catalogue?cat=hydraulic' },
-  { cat: 'Seals & Spare Parts',name: 'Mechanical Seals',          sub: 'Leak-free seals for pumps & rotating equipment',   priceLabel: 'Quick availability', price: 'On request', link: '/catalogue?cat=spares' },
+import Image from 'next/image';
+import type { Category } from '@/lib/data';
+
+const FALLBACK_SLIDES = [
+  { cat: 'Water Pumps',        name: 'Pressure Booster Pumps',   sub: 'Consistent pressure for buildings & pipelines',     priceLabel: 'Starting from', price: '₹5,800',   link: '/catalogue?cat=water-pumps', image: '' },
+  { cat: 'Water Filters & RO', name: 'Domestic RO Purifier',      sub: 'Safe, purified drinking water for homes & offices', priceLabel: 'Pricing',       price: 'On request', link: '/catalogue?cat=water-filters', image: '' },
+  { cat: 'Fountains',          name: 'Submersible Fountain Pump', sub: 'Smooth, energy-efficient water feature pump',       priceLabel: 'From',          price: '₹800',      link: '/catalogue?cat=fountains', image: '' },
+  { cat: 'Pressure Washers',   name: 'Electric Pressure Washer',  sub: 'Domestic & commercial high-pressure cleaning',      priceLabel: 'Starting from', price: '₹5,800',   link: '/catalogue?cat=pressure-washers', image: '' },
+  { cat: 'Hydraulic Equipment',name: 'Hydraulic Power Pack',      sub: 'Custom power units for industrial systems',         priceLabel: 'Pricing',       price: 'On request', link: '/catalogue?cat=hydraulic', image: '' },
+  { cat: 'Seals & Spare Parts',name: 'Mechanical Seals',          sub: 'Leak-free seals for pumps & rotating equipment',   priceLabel: 'Quick availability', price: 'On request', link: '/catalogue?cat=spares', image: '' },
 ];
 
 const INTERVAL = 3800;
 
-export default function ShowcaseCarousel() {
+interface Props {
+  categories?: Category[];
+}
+
+export default function ShowcaseCarousel({ categories }: Props) {
   const [cur, setCur] = useState(0);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const rafRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
+
+  const slides = categories && categories.length > 0 
+    ? categories.map(c => ({
+        cat: c.name,
+        name: c.name,
+        sub: c.teaser || 'Explore our comprehensive range',
+        priceLabel: 'Available',
+        price: 'Explore',
+        link: `/catalogue?cat=${c.slug}`,
+        image: c.imageUrl
+      }))
+    : FALLBACK_SLIDES;
 
   const goTo = useCallback((n: number) => {
     setCur(n);
@@ -39,10 +58,10 @@ export default function ShowcaseCarousel() {
     };
     rafRef.current = requestAnimationFrame(tick);
     timerRef.current = setInterval(() => {
-      setCur(c => (c + 1) % SLIDES.length);
+      setCur(c => (c + 1) % slides.length);
       startTimeRef.current = performance.now();
     }, INTERVAL);
-  }, []);
+  }, [slides.length]);
 
   useEffect(() => {
     if (!paused) startTimer();
@@ -52,7 +71,8 @@ export default function ShowcaseCarousel() {
     };
   }, [paused, startTimer]);
 
-  const slide = SLIDES[cur];
+  const slide = slides[cur] || slides[0];
+  if (!slide) return null;
 
   return (
     <div className="showcase" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
@@ -62,14 +82,20 @@ export default function ShowcaseCarousel() {
       </div>
 
       <div className="sc-slides">
-        {SLIDES.map((s, i) => (
+        {slides.map((s, i) => (
           <Link key={i} className={`sc-slide${i === cur ? ' active' : ''}`} href={s.link}>
-            <div className="ph" data-label={s.cat} style={{ height: '100%', borderRadius: 0, borderBottom: '1px solid var(--line)' }} />
+            {s.image ? (
+              <div style={{ position: 'relative', width: '100%', height: '100%', borderBottom: '1px solid var(--line)', backgroundColor: '#fff' }}>
+                <Image src={s.image} alt={s.name} fill style={{ objectFit: 'contain', padding: '32px' }} sizes="(max-width: 680px) 100vw, 50vw" priority={i === 0} />
+              </div>
+            ) : (
+              <div className="ph" data-label={s.cat} style={{ height: '100%', borderRadius: 0, borderBottom: '1px solid var(--line)' }} />
+            )}
           </Link>
         ))}
 
         <div className="sc-dots">
-          {SLIDES.map((_, i) => (
+          {slides.map((_, i) => (
             <button
               key={i}
               className={`sc-dot${i === cur ? ' on' : ''}`}

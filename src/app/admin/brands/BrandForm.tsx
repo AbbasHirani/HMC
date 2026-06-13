@@ -80,7 +80,7 @@ export default function BrandForm({ mode, id, initial }: Props) {
       URL.revokeObjectURL(cropImgSrc);
       setCropImgSrc('');
       setCropQueue(prev => prev.slice(1));
-    }, 'image/webp');
+    }, 'image/webp', 0.95);
   }
 
   function handleCropCancel() {

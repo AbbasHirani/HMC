@@ -70,8 +70,8 @@ export default function ProductClient({ product: p, related = [], popular = [] }
           <nav className="crumb">
             <Link href="/">Home</Link><span>/</span>
             <Link href="/catalogue">Products</Link><span>/</span>
-            <Link href={`/catalogue?cat=${p.cat}`}>{cn}</Link><span>/</span>
-            <b>{p.name}</b>
+            <Link href={`/catalogue?cat=${p.cat}`}>{cn}</Link><span className="crumb-last">/</span>
+            <b className="crumb-last">{p.name}</b>
           </nav>
 
           <div className="pd">
@@ -233,6 +233,20 @@ export default function ProductClient({ product: p, related = [], popular = [] }
                 </>
               )}
 
+              <div className="pd-sticky">
+                {p.price ? (
+                  <>
+                    <a className="btn btn-primary" href={CONTACT.phoneHref} onClick={() => logClick('call', p)}><IconPhone />Call to order</a>
+                    <a className="btn btn-wa" href={waLink} target="_blank" rel="noopener noreferrer" onClick={() => logClick('whatsapp', p)}><IconWA />WhatsApp</a>
+                  </>
+                ) : (
+                  <>
+                    <button className="btn btn-primary" onClick={() => setShowModal(true)}>Get exact quote</button>
+                    <a className="btn btn-wa" href={waLink} target="_blank" rel="noopener noreferrer" onClick={() => logClick('whatsapp', p)}><IconWA />WhatsApp</a>
+                  </>
+                )}
+              </div>
+
               <div className="pd-why">
                 {[
                   { icon: <IconCheck />, title: 'Genuine brands only', sub: 'We stock Kent, Grundfos, Kirloskar & other trusted names.' },
@@ -311,10 +325,7 @@ export default function ProductClient({ product: p, related = [], popular = [] }
         </div>
       </section>
 
-      <div className="pd-sticky">
-        <a className="btn btn-primary" href={CONTACT.phoneHref} onClick={() => logClick('call', p)}><IconPhone />Call to order</a>
-        <a className="btn btn-wa" href={waLink} target="_blank" rel="noopener noreferrer" onClick={() => logClick('whatsapp', p)}><IconWA />WhatsApp</a>
-      </div>
+      <div style={{ height: 16, display: 'block' }} className="mobile-only-spacer" />
 
       {showModal && (
         <QuoteModal productName={p.name} productCat={`${p.subName} · ${cn}`} productSlug={p.slug} onClose={() => setShowModal(false)} />

@@ -73,8 +73,8 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
   const [deletedPublicIds, setDeletedPublicIds] = useState<string[]>([]);
 
   // Compression settings (adjustable in UI)
-  const [compressMaxWidth, setCompressMaxWidth] = useState<number>(1600);
-  const [compressQuality, setCompressQuality] = useState<number>(0.78);
+  const [compressMaxWidth, setCompressMaxWidth] = useState<number>(2048);
+  const [compressQuality, setCompressQuality] = useState<number>(0.98);
   const [convertToWebp, setConvertToWebp] = useState<boolean>(true);
 
   // Cropper State
@@ -119,7 +119,7 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
       URL.revokeObjectURL(cropImgSrc);
       setCropImgSrc('');
       setCropQueue(prev => prev.slice(1));
-    }, 'image/webp');
+    }, 'image/webp', 1.0);
   }
 
   function handleCropCancel() {
@@ -167,6 +167,8 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
   const [error, setError] = useState('');
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState('');
+  const [descAiBusy, setDescAiBusy] = useState(false);
+  const [descAiError, setDescAiError] = useState('');
 
   // ── Auto-generated SEO values (used when the override fields are left blank) ──
   const brandName = brands.find(b => b.slug === brand)?.name ?? '';
@@ -244,6 +246,24 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
     if (!name.trim()) { setAiError('Fill in the product name first.'); return; }
     setAiBusy(true); setAiError('');
     try {
+      const imagesPayload = await Promise.all(images.map(async (img) => {
+        if ((img as any).type === 'existing') {
+          return { type: 'url', data: (img as any).url };
+        } else {
+          const ni = img as Extract<ImgState, { type: 'new' }>;
+          return new Promise<{ type: 'base64', mime: string, data: string }>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const res = reader.result as string;
+              resolve({ type: 'base64', mime: ni.file.type, data: res.split(',')[1] });
+            };
+            reader.onerror = () => resolve({ type: 'base64', mime: '', data: '' });
+            reader.readAsDataURL(ni.file);
+          });
+        }
+      }));
+      const validImages = imagesPayload.filter(img => img.data);
+
       const res = await fetch('/api/admin/seo-suggest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -257,6 +277,7 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
           specs: Object.fromEntries(specs.filter(s => s.key.trim()).map(s => [s.key.trim(), s.value.trim()])),
           useCases: useCases.filter(uc => selectedUseCases.includes(uc._id)).map(uc => uc.name),
           imageCount: images.length,
+          images: validImages,
         }),
       });
       const data = await res.json();
@@ -271,6 +292,31 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
       setAiError('Could not reach the AI service.');
     } finally {
       setAiBusy(false);
+    }
+  }
+
+  async function generateDescWithAi() {
+    if (!name.trim()) { setDescAiError('Fill in the product name first.'); return; }
+    setDescAiBusy(true); setDescAiError('');
+    try {
+      const res = await fetch('/api/admin/desc-suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          brand: brandName || undefined,
+          category: cats.find(c => c._id === catId)?.name,
+          subcategory: allSubs.find(s => s._id === subId)?.name,
+          specs: Object.fromEntries(specs.filter(s => s.key.trim()).map(s => [s.key.trim(), s.value.trim()])),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setDescAiError(data.error ?? 'AI generation failed.'); return; }
+      setDesc(data.description ?? '');
+    } catch {
+      setDescAiError('Could not reach the AI service.');
+    } finally {
+      setDescAiBusy(false);
     }
   }
 
@@ -397,8 +443,23 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
         </div>
         <div className="form-row single">
           <div className="form-field">
-            <label>Description</label>
-            <textarea value={desc} onChange={e => setDesc(e.target.value)} placeholder="What the product does and its key use case…" />
+            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>Description</span>
+              <button
+                type="button"
+                onClick={generateDescWithAi}
+                disabled={descAiBusy}
+                style={{
+                  background: 'none', border: 'none', padding: 0, fontSize: 12, fontWeight: 600,
+                  color: 'var(--navy)', cursor: descAiBusy ? 'not-allowed' : 'pointer', opacity: descAiBusy ? 0.5 : 1,
+                  display: 'flex', alignItems: 'center', gap: 4
+                }}
+              >
+                {descAiBusy ? '⏳ Searching web & writing...' : '✨ Write with AI (Web Search)'}
+              </button>
+            </label>
+            {descAiError && <span style={{ color: '#dc2626', fontSize: 12, marginTop: -4, marginBottom: 4 }}>{descAiError}</span>}
+            <textarea value={desc} onChange={e => setDesc(e.target.value)} placeholder="What the product does and its key use case…" rows={8} />
           </div>
         </div>
       </div>

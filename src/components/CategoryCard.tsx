@@ -9,23 +9,23 @@ export default function CategoryCard({ cat }: { cat: Category }) {
 
   return (
     <Link className="cat6" href={`/catalogue?cat=${cat.slug}`}>
-      <div className="cat6-previews" style={{ position: 'relative' }}>
-        {cat.imageUrl ? (
+      {cat.imageUrl ? (
+        <div style={{ position: 'relative', aspectRatio: '4/3', borderBottom: '1px solid var(--line)', background: '#fff' }}>
           <Image
             src={cat.imageUrl}
             alt={cat.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-            style={{ objectFit: 'contain', background: '#fff', padding: '12px' }}
+            style={{ objectFit: 'contain', padding: '16px' }}
           />
-        ) : (
-          <>
-            <div className="ph" data-label={cat.name} />
-            <div className="ph" data-label={cat.teaser} />
-            <div className="ph" data-label={cat.name} />
-          </>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="cat6-previews">
+          <div className="ph" data-label={cat.name} />
+          <div className="ph" data-label={cat.teaser} />
+          <div className="ph" data-label={cat.name} />
+        </div>
+      )}
       <div className="cat6-body">
         <span className="cat6-ic">
           <CatIcon name={cat.icon} />

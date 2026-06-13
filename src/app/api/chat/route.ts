@@ -229,7 +229,8 @@ export async function POST(req: NextRequest) {
         console.error('Stream relay error', err);
       } finally {
         // Save captured leads before closing so serverless doesn't cut us off.
-        for (const raw of capturedTags) {
+        if (capturedTags.length > 0) {
+          const raw = capturedTags[0];
           try {
             const lead = JSON.parse(raw);
             const phone = String(lead.phone ?? '').trim();

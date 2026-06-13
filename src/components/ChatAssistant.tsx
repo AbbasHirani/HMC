@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect, Fragment } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { IconAssistant, IconClose, IconSend, IconSparkle } from './Icons';
 
@@ -102,6 +103,8 @@ export default function ChatAssistant() {
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const pathname = usePathname();
+  const isProductPage = pathname?.startsWith('/product/');
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -204,7 +207,7 @@ export default function ChatAssistant() {
     <>
       {/* Launcher */}
       <button
-        className={`hc-fab${open ? ' hidden' : ''}`}
+        className={`hc-fab${open ? ' hidden' : ''}${isProductPage ? ' hc-fab-product' : ''}`}
         onClick={() => setOpen(true)}
         aria-label="Open product assistant"
       >

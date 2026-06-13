@@ -16,6 +16,7 @@ interface SeoSuggestBody {
   specs?: Record<string, string>;
   useCases?: string[];
   imageCount?: number;
+  images?: { type: 'url' | 'base64'; data: string; mime?: string }[];
 }
 
 function buildPrompt(p: SeoSuggestBody): string {
@@ -23,7 +24,7 @@ function buildPrompt(p: SeoSuggestBody): string {
   return `You are an expert e-commerce SEO copywriter for a local business. Generate SEO metadata for the product page below.
 
 THE BUSINESS:
-Hirani Marketing Combines (HMC) — a pump & water-systems dealer in Parrys, George Town, Chennai, Tamil Nadu, India. Running since 2008. Authorised dealer of genuine brands with an in-house repair workshop. Customers search Google for things like "buy <product> in Chennai", "<product> price Chennai", "<brand> <product> dealer near me".
+Hirani Marketing Combines — a pump & water-systems dealer in Parrys, George Town, Chennai, Tamil Nadu, India. Running since 2008. Authorised dealer of genuine brands with an in-house repair workshop. Customers search Google for things like "buy <product> in Chennai", "<product> price Chennai", "<brand> <product> dealer near me".
 
 THE PRODUCT:
 - Name: ${p.name || '(unnamed)'}
@@ -37,10 +38,10 @@ ${p.useCases?.length ? `- Use cases / applications: ${p.useCases.join(', ')}` : 
 - Number of product images: ${p.imageCount ?? 0}
 
 GENERATE (follow these rules strictly):
-1. "title" — meta title, 58–65 characters. Use the full space — do not waste it. Front-load the primary keyword (product + type). Include the brand if it has search value and "Chennai" for local intent. Compelling, not keyword-stuffed.
-2. "description" — meta description, 280–320 characters. Use as close to 320 as possible without going over. Structure it so the FIRST 155 characters work standalone (primary keyword + key benefit + Chennai — this is what shows in search results), then continue with specs, use cases, dealer credibility (authorised dealer, since 2008, Parrys) and end with a call to action (e.g. "Call for best price"). Must read like a human wrote it.
-3. "keywords" — a single comma-separated string of 15–20 keywords/phrases. Mix: primary keyword, brand+product combos, local variants ("... in Chennai", "... price", "... dealer near me"), buyer-intent long-tails ("best ... for home", "... for borewell"), and the use cases. Lowercase except brand names.
-4. "imageAlts" — an array of EXACTLY ${Math.max(p.imageCount ?? 0, 0)} alt texts (empty array if 0 images). Each one descriptive and specific (what the image likely shows: front view, side view, in use, nameplate/specs). Include the product name + brand naturally; vary the phrasing; 80–125 characters each. Never start with "image of" or "photo of".
+1. "title" — meta title, 58–65 characters. Use the full space — do not waste it. Strictly follow this priority of importance: Product -> Shop Name ("Hirani Marketing Combines") -> Manufacturer Brand. Front-load the product keyword. NEVER use the abbreviation "HMC". Include "Chennai" for local intent. Compelling, not keyword-stuffed.
+2. "description" — meta description, 280–320 characters. Use as close to 320 as possible. Structure the FIRST 155 characters to work standalone (primary keyword + key benefit + Chennai). Follow the exact priority: Product first, then the shop name ("Hirani Marketing Combines"), and lastly the brand. ALWAYS use the full name "Hirani Marketing Combines" and NEVER use "HMC". End with a call to action (e.g. "Call for best price"). Must read naturally.
+3. "keywords" — a single comma-separated string of 15–20 keywords/phrases. Mix: primary keyword, "Hirani Marketing Combines", brand+product combos, local variants ("... in Chennai", "... price", "... dealer near me"), buyer-intent long-tails, and use cases. Lowercase except proper names.
+4. "imageAlts" — an array of EXACTLY ${Math.max(p.imageCount ?? 0, 0)} alt texts (empty array if 0 images). Use the provided image data to accurately describe what is shown in each image. Descriptive and specific (e.g., front view, side view, nameplate, etc.). Focus on the Product first, then "Hirani Marketing Combines". NEVER use "HMC". Vary the phrasing; 80–125 characters each. Never start with "image of" or "photo of".
 
 Return ONLY the JSON object.`;
 }
@@ -60,8 +61,33 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Product name is required — fill it in first.' }, { status: 400 });
   }
 
+  const parts: any[] = [{ text: buildPrompt(body) }];
+
+  if (body.images) {
+    for (const img of body.images) {
+      if (img.type === 'base64' && img.data) {
+        parts.push({ inlineData: { mimeType: img.mime || 'image/jpeg', data: img.data } });
+      } else if (img.type === 'url' && img.data) {
+        try {
+          const r = await fetch(img.data);
+          if (r.ok) {
+            const buf = await r.arrayBuffer();
+            parts.push({
+              inlineData: {
+                mimeType: r.headers.get('content-type') || 'image/jpeg',
+                data: Buffer.from(buf).toString('base64'),
+              }
+            });
+          }
+        } catch (e) {
+          console.error("Failed to fetch image for AI:", img.data);
+        }
+      }
+    }
+  }
+
   const geminiBody = {
-    contents: [{ role: 'user', parts: [{ text: buildPrompt(body) }] }],
+    contents: [{ role: 'user', parts }],
     generationConfig: {
       temperature: 0.4,
       maxOutputTokens: 2048,

@@ -13,7 +13,7 @@ export default async function BrandsStrip() {
       {brands.map(b => (
         <a className="brand-pill" key={b.slug} href={`/brand/${b.slug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, textDecoration: 'none' }}>
           {b.logoUrl
-            ? <Image src={b.logoUrl} alt={b.name} width={80} height={20} style={{ objectFit: 'contain' }} />
+            ? <Image src={b.logoUrl} alt={b.name} width={80} height={20} style={{ objectFit: 'contain', height: 'auto' }} />
             : b.name}
         </a>
       ))}

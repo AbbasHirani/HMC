@@ -8,13 +8,14 @@ function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-interface Sub { _id?: string; name: string; slug: string; order: number; isNew?: boolean; blurb?: string; }
+interface Sub { _id?: string; name: string; slug: string; order: number; isNew?: boolean; blurb?: string; seo?: { title?: string; description?: string; keywords?: string }; }
 interface Props {
   mode: 'new' | 'edit';
   id?: string;
   initial?: {
     name: string; slug: string; icon: string; teaser: string; footText: string; order: number;
     imageUrl?: string; imagePublicId?: string;
+    seo?: { title?: string; description?: string; keywords?: string };
   };
   initialSubs?: Sub[];
 }
@@ -27,6 +28,9 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
   const [teaser, setTeaser] = useState(initial?.teaser ?? '');
   const [footText, setFootText] = useState(initial?.footText ?? '');
   const [order, setOrder] = useState(initial?.order ?? 0);
+  const [seoTitle, setSeoTitle] = useState(initial?.seo?.title ?? '');
+  const [seoDescription, setSeoDescription] = useState(initial?.seo?.description ?? '');
+  const [seoKeywords, setSeoKeywords] = useState(initial?.seo?.keywords ?? '');
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? '');
   const [imagePublicId, setImagePublicId] = useState(initial?.imagePublicId ?? '');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -39,6 +43,8 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
   const [editSubId, setEditSubId] = useState<string | null>(null);
   const [editSubName, setEditSubName] = useState('');
   const [editSubBlurb, setEditSubBlurb] = useState('');
+  const [editSubSeoTitle, setEditSubSeoTitle] = useState('');
+  const [editSubSeoDescription, setEditSubSeoDescription] = useState('');
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -78,10 +84,12 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
     setEditSubId(String(idx));
     setEditSubName(subs[idx].name);
     setEditSubBlurb(subs[idx].blurb ?? '');
+    setEditSubSeoTitle(subs[idx].seo?.title ?? '');
+    setEditSubSeoDescription(subs[idx].seo?.description ?? '');
   }
 
   function saveEditSub(idx: number) {
-    setSubs(prev => prev.map((s, i) => i === idx ? { ...s, name: editSubName, slug: slugify(editSubName), blurb: editSubBlurb } : s));
+    setSubs(prev => prev.map((s, i) => i === idx ? { ...s, name: editSubName, slug: slugify(editSubName), blurb: editSubBlurb, seo: { title: editSubSeoTitle, description: editSubSeoDescription } } : s));
     setEditSubId(null);
   }
 
@@ -106,7 +114,7 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
       if (data.url) { finalImageUrl = data.url; finalImagePublicId = data.publicId; }
     }
 
-    const body = { name, slug, icon, teaser, footText, order: Number(order), imageUrl: finalImageUrl, imagePublicId: finalImagePublicId };
+    const body = { name, slug, icon, teaser, footText, order: Number(order), imageUrl: finalImageUrl, imagePublicId: finalImagePublicId, seo: { title: seoTitle, description: seoDescription, keywords: seoKeywords } };
 
     let catId = id;
     if (mode === 'new') {
@@ -121,7 +129,7 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
 
     // Sync subcategories
     for (const sub of subs) {
-      const subBody = { categoryId: catId, categorySlug: slug, slug: sub.slug, name: sub.name, order: sub.order, blurb: sub.blurb };
+      const subBody = { categoryId: catId, categorySlug: slug, slug: sub.slug, name: sub.name, order: sub.order, blurb: sub.blurb, seo: sub.seo };
       if (sub.isNew || !sub._id) {
         await fetch('/api/subcategories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(subBody) });
       } else {
@@ -177,6 +185,29 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
         </div>
       </div>
 
+      {/* Category SEO */}
+      <div className="adm-form-section">
+        <h3>SEO Settings <span style={{ fontWeight: 400, fontSize: 11, color: '#9ca3af', textTransform: 'none' }}>(optional)</span></h3>
+        <div className="form-row single">
+          <div className="form-field">
+            <label>Custom Meta Title</label>
+            <input value={seoTitle} onChange={e => setSeoTitle(e.target.value)} placeholder="e.g. Best Water Pumps in Chennai | Hirani Marketing" />
+          </div>
+        </div>
+        <div className="form-row single">
+          <div className="form-field">
+            <label>Custom Meta Description</label>
+            <textarea value={seoDescription} onChange={e => setSeoDescription(e.target.value)} placeholder="Write a compelling meta description under 160 characters..." style={{ minHeight: 60, padding: '7px 12px', resize: 'vertical' }} className="adm-input" />
+          </div>
+        </div>
+        <div className="form-row single">
+          <div className="form-field">
+            <label>Meta Keywords</label>
+            <input value={seoKeywords} onChange={e => setSeoKeywords(e.target.value)} placeholder="e.g. water pumps, ro systems, chennai (comma separated)" />
+          </div>
+        </div>
+      </div>
+
       {/* Category image */}
       <div className="adm-form-section">
         <h3>Category image <span style={{ fontWeight: 400, fontSize: 11, color: '#9ca3af', textTransform: 'none' }}>(optional — used on category card)</span></h3>
@@ -227,6 +258,22 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
                       placeholder="Optional blurb/description for this subcategory..."
                       style={{ minHeight: 60, padding: '7px 12px', resize: 'vertical' }}
                     />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        value={editSubSeoTitle}
+                        onChange={e => setEditSubSeoTitle(e.target.value)}
+                        className="adm-input"
+                        placeholder="Custom Meta Title..."
+                        style={{ padding: '7px 12px', flex: 1 }}
+                      />
+                      <input
+                        value={editSubSeoDescription}
+                        onChange={e => setEditSubSeoDescription(e.target.value)}
+                        className="adm-input"
+                        placeholder="Custom Meta Description..."
+                        style={{ padding: '7px 12px', flex: 2 }}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <>

@@ -1,12 +1,13 @@
 import { MetadataRoute } from 'next';
-import { getAllProductSlugs, getBrands } from '@/lib/queries';
+import { getAllProductSlugs, getBrands, getCategories } from '@/lib/queries';
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [slugs, brands] = await Promise.all([
+  const [slugs, brands, categories] = await Promise.all([
     getAllProductSlugs().catch(() => [] as string[]),
     getBrands().catch(() => []),
+    getCategories().catch(() => []),
   ]);
 
   const staticUrls: MetadataRoute.Sitemap = [
@@ -17,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE}/ta/services`, priority: 0.8, changeFrequency: 'monthly' },
     { url: `${SITE}/brands`,      priority: 0.6, changeFrequency: 'monthly' },
     { url: `${SITE}/llms.txt`,    priority: 0.3, changeFrequency: 'monthly' },
+    { url: `${SITE}/pricing.md`,  priority: 0.3, changeFrequency: 'monthly' },
   ];
 
   const productUrls: MetadataRoute.Sitemap = slugs.map(slug => ({
@@ -31,5 +33,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: 'weekly',
   }));
 
-  return [...staticUrls, ...productUrls, ...brandUrls];
+  const categoryUrls: MetadataRoute.Sitemap = categories.map(c => ({
+    url: `${SITE}/catalogue?cat=${c.slug}`,
+    priority: 0.8,
+    changeFrequency: 'weekly',
+  }));
+
+  const subcategoryUrls: MetadataRoute.Sitemap = categories.flatMap(c => c.subs.map(s => ({
+    url: `${SITE}/catalogue?cat=${c.slug}&sub=${s.slug}`,
+    priority: 0.7,
+    changeFrequency: 'weekly',
+  })));
+
+  return [...staticUrls, ...categoryUrls, ...subcategoryUrls, ...productUrls, ...brandUrls];
 }

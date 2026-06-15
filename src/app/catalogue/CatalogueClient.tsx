@@ -8,6 +8,7 @@ import { IconSearch } from '@/components/Icons';
 import { WA } from '@/lib/data';
 import type { Category, FlatSubCategory, Product } from '@/lib/data';
 import { BRANDS } from '@/lib/data';
+import { jsonLd } from '@/lib/jsonLd';
 
 interface UseCaseOpt { slug: string; name: string; }
 
@@ -67,8 +68,22 @@ export default function CatalogueClient({ categories, products: allProducts, use
   const subtitle = subObj?.blurb
     || (catObj ? catObj.teaser : 'Browse the full Hirani Marketing Combines catalogue — pumps, water systems, fountains, pressure washers, hydraulics and spares.');
 
+  const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: title,
+    description: subtitle,
+    itemListElement: products.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `${SITE}/product/${p.slug}`,
+    })),
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(itemListSchema) }} />
       <section className="list-head">
         <div className="container">
           <nav className="crumb">

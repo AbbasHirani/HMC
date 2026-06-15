@@ -9,6 +9,8 @@ export async function POST(req: NextRequest) {
 
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand text`;
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS seo JSONB DEFAULT '{}'::jsonb`;
+  await sql`ALTER TABLE categories ADD COLUMN IF NOT EXISTS seo JSONB DEFAULT '{}'::jsonb`;
+  await sql`ALTER TABLE subcategories ADD COLUMN IF NOT EXISTS seo JSONB DEFAULT '{}'::jsonb`;
   await sql`
     CREATE TABLE IF NOT EXISTS brands (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

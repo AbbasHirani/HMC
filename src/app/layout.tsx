@@ -12,12 +12,19 @@ export const metadata: Metadata = {
     template: '%s | Hirani Marketing Combines',
   },
   description:
-    "Chennai's trusted pump & water-systems specialist since 2008. Water pumps, RO & filtration, fountains, pressure washers and hydraulic equipment — supplied to spec with workshop repair at our Parrys shop.",
+    "Buy water pumps, pressure booster pumps, hydro test pumps, chemical pumps, high pressure washers, dosing pumps and RO systems in Parrys, Chennai. Hirani Marketing Combines offers sales, service and industrial pumping solutions.",
   openGraph: {
     siteName: 'Hirani Marketing Combines',
     locale: 'en_IN',
     type: 'website',
     images: [{ url: '/logo-mark.png', width: 512, height: 512, alt: 'Hirani Marketing Combines' }],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  verification: {
+    google: 'myNNIhfRT3bfM6ZuZ7l5EM19cA5pFbYK-InSRTeSj6E',
   },
 };
 

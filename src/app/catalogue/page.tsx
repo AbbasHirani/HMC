@@ -34,13 +34,49 @@ async function getUseCaseFilters() {
   }
 }
 
-export const metadata: Metadata = {
-  title: 'Water Pumps, RO Systems & Industrial Equipment in Chennai',
-  description: 'Shop water pumps, RO & filtration systems, fountains, pressure washers, air compressors and hydraulic equipment in Chennai. 70+ products from Kent, CRI, Grundfos, Kirloskar and more. Workshop repair at Parrys.',
-  // All filtered views (?cat=, ?sub=, ?brand=, ?uc=) serve this same page —
-  // consolidate them onto the clean URL.
-  alternates: { canonical: '/catalogue' },
-};
+type Props = { searchParams: Promise<{ cat?: string; sub?: string }> };
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { cat, sub } = await searchParams;
+  
+  const categories = await getCategories().catch(() => []);
+  const catObj = cat ? categories.find(c => c.slug === cat) : null;
+  const subObj = sub && catObj ? catObj.subs.find(s => s.slug === sub) : null;
+
+  const baseDesc = 'Shop water pumps, RO & filtration systems, fountains, pressure washers, air compressors and hydraulic equipment in Chennai. 70+ products from Kent, CRI, Grundfos, Kirloskar and more. Workshop repair at Parrys.';
+  
+  let title = 'Water Pumps, RO Systems & Industrial Equipment in Chennai';
+  let description = baseDesc;
+  let keywords = '';
+
+  if (subObj) {
+    title = subObj.seo?.title || `${subObj.name} in Chennai | Hirani Marketing Combines`;
+    description = subObj.seo?.description || subObj.blurb || catObj?.teaser || baseDesc;
+    keywords = subObj.seo?.keywords || catObj?.seo?.keywords || '';
+  } else if (catObj) {
+    title = catObj.seo?.title || `${catObj.name} in Chennai | Hirani Marketing Combines`;
+    description = catObj.seo?.description || catObj.teaser || baseDesc;
+    keywords = catObj.seo?.keywords || '';
+  }
+      
+  const params = new URLSearchParams();
+  if (cat) params.set('cat', cat);
+  if (sub) params.set('sub', sub);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+
+  return {
+    title: { absolute: title },
+    description,
+    keywords: keywords || undefined,
+    alternates: { canonical: `/catalogue${qs}` },
+    openGraph: {
+      title,
+      description,
+      url: `/catalogue${qs}`,
+      type: 'website',
+    },
+  };
+}
 
 export default async function CataloguePage() {
   const [categories, products, ucFilters] = await Promise.all([

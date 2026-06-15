@@ -12,6 +12,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       name = ${body.name},
       blurb = ${body.blurb ?? ''},
       sort_order = ${body.order ?? 999},
+      seo = ${body.seo ?? '{}'},
       updated_at = NOW()
     WHERE id = ${id}
   `;

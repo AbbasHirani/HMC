@@ -16,7 +16,6 @@ export function getAdminSecret(): Uint8Array {
   return new TextEncoder().encode(s);
 }
 
-/** True only if the request carries a valid, unexpired admin session cookie. */
 export async function hasValidAdminSession(req: NextRequest): Promise<boolean> {
   const token = req.cookies.get('hmc_admin')?.value;
   if (!token) return false;

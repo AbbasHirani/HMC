@@ -20,12 +20,13 @@ export async function POST(req: NextRequest) {
   if (err) return NextResponse.json({ error: err }, { status: 400 });
 
   const rows = await sql`
-    INSERT INTO categories (slug, name, icon, teaser, foot_text, image_url, image_public_id, sort_order)
+    INSERT INTO categories (slug, name, icon, teaser, foot_text, image_url, image_public_id, sort_order, seo)
     VALUES (
       ${body.slug}, ${body.name}, ${body.icon ?? ''},
       ${body.teaser ?? ''}, ${body.footText ?? ''},
       ${body.imageUrl ?? null}, ${body.imagePublicId ?? null},
-      ${body.order ?? 999}
+      ${body.order ?? 999},
+      ${body.seo ?? '{}'}
     )
     RETURNING *
   `;

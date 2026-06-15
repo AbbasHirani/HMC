@@ -51,3 +51,4 @@ Hours: Monday–Saturday, 9 am–6 pm
 - Full product catalogue: https://hiranimarketing.vercel.app/catalogue
 - Services & repair: https://hiranimarketing.vercel.app/services
 - Brands: https://hiranimarketing.vercel.app/brands
+- Pricing & Service Terms: https://hiranimarketing.vercel.app/pricing.md

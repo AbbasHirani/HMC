@@ -18,6 +18,7 @@ export default async function EditCategoryPage({ params }: Props) {
       slug: s.slug as string,
       order: (s.sort_order as number) ?? 0,
       blurb: (s.blurb as string) ?? '',
+      seo: (s.seo as { title?: string; description?: string; keywords?: string } | null) ?? {},
     }));
   } catch { notFound(); }
 
@@ -41,6 +42,7 @@ export default async function EditCategoryPage({ params }: Props) {
             order: (cat!.sort_order as number) ?? 0,
             imageUrl: cat!.image_url as string | undefined,
             imagePublicId: cat!.image_public_id as string | undefined,
+            seo: (cat!.seo as { title?: string; description?: string; keywords?: string } | null) ?? {},
           }}
           initialSubs={subs!}
         />

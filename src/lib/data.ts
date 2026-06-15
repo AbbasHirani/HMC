@@ -48,6 +48,7 @@ export interface Category {
   imageUrl?: string;
   imagePublicId?: string;
   order: number;
+  seo: { title?: string; description?: string; keywords?: string };
   subs: FlatSubCategory[];
 }
 
@@ -59,6 +60,7 @@ export interface FlatSubCategory {
   name: string;
   blurb: string;
   count: number;
+  seo: { title?: string; description?: string; keywords?: string };
 }
 
 export interface Product {

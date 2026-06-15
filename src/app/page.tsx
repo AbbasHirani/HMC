@@ -16,7 +16,7 @@ import { getCategories, getProducts } from '@/lib/queries';
 export const metadata: Metadata = {
   title: 'Water Pumps, RO Systems & Industrial Supply in Chennai',
   description:
-    "Chennai's pump & water-systems specialist since 2008. Water pumps, RO & filtration, fountains, pressure washers and industrial equipment — supplied to spec with workshop repair at our Parrys shop.",
+    "Buy water pumps, pressure booster pumps, hydro test pumps, chemical pumps, high pressure washers, dosing pumps and RO systems in Parrys, Chennai. Hirani Marketing Combines offers sales, service and industrial pumping solutions.",
   alternates: {
     canonical: '/',
     languages: { en: '/', ta: '/ta', 'x-default': '/' },
@@ -155,9 +155,9 @@ export default async function HomePage() {
           <div className="about-grid">
             <div>
               <span className="eyebrow">About us</span>
-              <h2 style={{ fontSize: 'clamp(26px,3vw,36px)', marginTop: 14 }}>A trusted name in Chennai&rsquo;s hardware trade</h2>
+              <h2 style={{ fontSize: 'clamp(26px,3vw,36px)', marginTop: 14 }}>What is Hirani Marketing Combines?</h2>
               <p style={{ color: 'var(--slate)', fontSize: 16, lineHeight: 1.7, marginTop: 16 }}>
-                Hirani Marketing Combines supplies pumps, water-treatment systems, fountains and industrial equipment to homes, businesses and plants across Tamil Nadu.
+                Hirani Marketing Combines is Chennai&rsquo;s leading pump and water-systems specialist. Since 2008, we have supplied and repaired industrial equipment, RO systems, and over 10,000 water pumps for homes, businesses, and manufacturing plants across Tamil Nadu.
               </p>
               <div style={{ display: 'flex', gap: 12, marginTop: 26, flexWrap: 'wrap' }}>
                 <a className="btn btn-navy" href={CONTACT.phoneHref}><IconPhone />Call us</a>

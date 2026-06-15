@@ -27,11 +27,12 @@ export async function POST(req: NextRequest) {
     categorySlug = catRows[0]?.slug as string;
   }
   const rows = await sql`
-    INSERT INTO subcategories (category_id, category_slug, slug, name, blurb, sort_order)
+    INSERT INTO subcategories (category_id, category_slug, slug, name, blurb, sort_order, seo)
     VALUES (
       ${body.categoryId}, ${categorySlug ?? ''},
       ${body.slug}, ${body.name}, ${body.blurb ?? ''},
-      ${body.order ?? 999}
+      ${body.order ?? 999},
+      ${body.seo ?? '{}'}
     )
     RETURNING *
   `;

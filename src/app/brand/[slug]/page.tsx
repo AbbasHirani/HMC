@@ -6,6 +6,7 @@ import CTABand from '@/components/CTABand';
 import ProductCard from '@/components/ProductCard';
 import Image from 'next/image';
 import { getBrands, getProducts } from '@/lib/queries';
+import { jsonLd } from '@/lib/jsonLd';
 import Link from 'next/link';
 
 export const revalidate = 60;
@@ -38,8 +39,38 @@ export default async function BrandPage({ params }: Props) {
   const brand = brands.find(b => b.slug === slug);
   if (!brand) notFound();
 
+  const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
+  
+  const collectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${brand.name} Pumps & Water Systems in Chennai`,
+    description: `Browse all ${brand.name} products available at Hirani Marketing Combines, Chennai.`,
+    url: `${SITE}/brand/${slug}`,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: products.map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${SITE}/product/${p.slug}`,
+      })),
+    },
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: 'Brands', item: `${SITE}/brands` },
+      { '@type': 'ListItem', position: 3, name: brand.name, item: `${SITE}/brand/${slug}` },
+    ],
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(collectionSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <Header active="products" />
 
       <section className="list-head">

@@ -18,6 +18,7 @@ export async function getCategories(): Promise<Category[]> {
         name: s.name as string,
         blurb: (s.blurb as string) ?? '',
         count: 0,
+        seo: (s.seo as { title?: string; description?: string; keywords?: string } | null) ?? {},
       }));
     return {
       _id: c.id as string,
@@ -31,6 +32,7 @@ export async function getCategories(): Promise<Category[]> {
       imageUrl: c.image_url as string | undefined,
       imagePublicId: c.image_public_id as string | undefined,
       order: (c.sort_order as number) ?? 0,
+      seo: (c.seo as { title?: string; description?: string; keywords?: string } | null) ?? {},
       subs: catSubs,
     };
   });

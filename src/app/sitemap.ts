@@ -40,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const subcategoryUrls: MetadataRoute.Sitemap = categories.flatMap(c => c.subs.map(s => ({
-    url: `${SITE}/catalogue?cat=${c.slug}&sub=${s.slug}`,
+    url: `${SITE}/catalogue?cat=${c.slug}&amp;sub=${s.slug}`,
     priority: 0.7,
     changeFrequency: 'weekly',
   })));

@@ -42,16 +42,22 @@ export default function CatalogueClient({ categories, products: allProducts, use
   const subs: FlatSubCategory[] = catObj?.subs ?? [];
   const subObj = sub ? subs.find(s => s.slug === sub) : null;
 
-  let products = allProducts.filter(p =>
+  let baseProducts = allProducts.filter(p =>
     (!cat || p.cat === cat) &&
-    (!sub || p.sub === sub) &&
-    (!brand || p.brand?.toLowerCase() === brand.toLowerCase()) &&
-    (!uc || p.ucSlugs?.includes(uc))
+    (!sub || p.sub === sub)
   );
   if (q.trim()) {
     const qLow = q.toLowerCase();
-    products = products.filter(p => (p.name + ' ' + p.desc + ' ' + p.subName).toLowerCase().includes(qLow));
+    baseProducts = baseProducts.filter(p => (p.name + ' ' + p.desc + ' ' + p.subName).toLowerCase().includes(qLow));
   }
+
+  const products = baseProducts.filter(p =>
+    (!brand || p.brand?.toLowerCase() === brand.toLowerCase()) &&
+    (!uc || p.ucSlugs?.includes(uc))
+  );
+
+  const brandsInUse = BRANDS.filter(b => baseProducts.some(p => p.brand?.toLowerCase() === b.slug));
+  const ucsInUse = useCases.filter(u => baseProducts.some(p => p.ucSlugs?.includes(u.slug)));
 
   const catName = (slug: string) => categories.find(c => c.slug === slug)?.name ?? slug;
   const catProdCount = (slug: string) => allProducts.filter(p => p.cat === slug).length;
@@ -66,23 +72,20 @@ export default function CatalogueClient({ categories, products: allProducts, use
       <section className="list-head">
         <div className="container">
           <nav className="crumb">
-            <Link href="/">Home</Link><span>/</span>
-            {!cat && <b>Products</b>}
-            {cat && !sub && (
-              <><Link href="/catalogue">Products</Link><span>/</span><b>{catName(cat)}</b></>
+            <Link href="/">Home</Link>
+            {cat && (
+              <><span>/</span><Link href="/catalogue">Products</Link></>
             )}
             {cat && sub && (
-              <><Link href="/catalogue">Products</Link><span>/</span>
-              <Link href={`/catalogue?cat=${cat}`}>{catName(cat)}</Link><span>/</span>
-              <b>{title}</b></>
+              <><span>/</span><Link href={`/catalogue?cat=${cat}`}>{catName(cat)}</Link></>
             )}
           </nav>
-          <h1 style={{ fontSize: 'clamp(28px,3.4vw,40px)', marginTop: 14 }}>{title}</h1>
-          <p style={{ color: 'var(--slate)', fontSize: 16, marginTop: 10, maxWidth: 600 }}>{subtitle}</p>
+          <h1 style={{ fontSize: 'clamp(28px,3.4vw,40px)', marginTop: 8 }}>{title}</h1>
+          <p style={{ color: 'var(--slate)', fontSize: 16, marginTop: 8, maxWidth: 600 }}>{subtitle}</p>
         </div>
       </section>
 
-      <section className="section" style={{ paddingTop: 40 }}>
+      <section className="section" style={{ paddingTop: 12 }}>
         <div className="container">
           <div className="list-layout">
             {/* FILTER RAIL — desktop sidebar */}
@@ -121,55 +124,49 @@ export default function CatalogueClient({ categories, products: allProducts, use
                 </div>
               )}
 
-              {(() => {
-                const brandsInUse = BRANDS.filter(b => allProducts.some(p => p.brand?.toLowerCase() === b.slug));
-                return brandsInUse.length > 0 ? (
-                  <div className="fgroup">
-                    <h4>Brand</h4>
-                    <button className={`filter-link${!brand ? ' on' : ''}`} onClick={() => setBrand(null)}>
-                      All brands <span>{allProducts.length}</span>
+              {brandsInUse.length > 0 && (
+                <div className="fgroup">
+                  <h4>Brand</h4>
+                  <button className={`filter-link${!brand ? ' on' : ''}`} onClick={() => setBrand(null)}>
+                    All brands <span>{baseProducts.length}</span>
+                  </button>
+                  {brandsInUse.map(b => (
+                    <button
+                      key={b.slug}
+                      className={`filter-link${brand === b.slug ? ' on' : ''}`}
+                      onClick={() => setBrand(b.slug)}
+                    >
+                      {b.name} <span>{baseProducts.filter(p => p.brand?.toLowerCase() === b.slug).length}</span>
                     </button>
-                    {brandsInUse.map(b => (
-                      <button
-                        key={b.slug}
-                        className={`filter-link${brand === b.slug ? ' on' : ''}`}
-                        onClick={() => setBrand(b.slug)}
-                      >
-                        {b.name} <span>{allProducts.filter(p => p.brand?.toLowerCase() === b.slug).length}</span>
-                      </button>
-                    ))}
-                  </div>
-                ) : null;
-              })()}
+                  ))}
+                </div>
+              )}
 
-              {(() => {
-                const ucsInUse = useCases.filter(u => allProducts.some(p => p.ucSlugs?.includes(u.slug)));
-                return ucsInUse.length > 0 ? (
-                  <div className="fgroup">
-                    <h4>Use case</h4>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      {ucsInUse.map(u => {
-                        const on = uc === u.slug;
-                        return (
-                          <button
-                            key={u.slug}
-                            onClick={() => setUc(on ? null : u.slug)}
-                            style={{
-                              padding: '6px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
-                              cursor: 'pointer', transition: 'all .15s', fontFamily: 'inherit',
-                              background: on ? 'var(--navy)' : '#f1f5f9',
-                              color: on ? '#fff' : '#475569',
-                              border: `1.5px solid ${on ? 'var(--navy)' : 'transparent'}`,
-                            }}
-                          >
-                            {u.name} <span style={{ opacity: 0.65 }}>{allProducts.filter(p => p.ucSlugs?.includes(u.slug)).length}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
+              {ucsInUse.length > 0 && (
+                <div className="fgroup">
+                  <h4>Use case</h4>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {ucsInUse.map(u => {
+                      const on = uc === u.slug;
+                      return (
+                        <button
+                          key={u.slug}
+                          onClick={() => setUc(on ? null : u.slug)}
+                          style={{
+                            padding: '6px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600,
+                            cursor: 'pointer', transition: 'all .15s', fontFamily: 'inherit',
+                            background: on ? 'var(--navy)' : '#f1f5f9',
+                            color: on ? '#fff' : '#475569',
+                            border: `1.5px solid ${on ? 'var(--navy)' : 'transparent'}`,
+                          }}
+                        >
+                          {u.name} <span style={{ opacity: 0.65 }}>{baseProducts.filter(p => p.ucSlugs?.includes(u.slug)).length}</span>
+                        </button>
+                      );
+                    })}
                   </div>
-                ) : null;
-              })()}
+                </div>
+              )}
 
               <a className="btn btn-primary btn-sm" href={WA} target="_blank" rel="noopener noreferrer" style={{ width: '100%', justifyContent: 'center' }}>
                 Enquire on WhatsApp
@@ -177,21 +174,26 @@ export default function CatalogueClient({ categories, products: allProducts, use
             </aside>
 
             {/* MAIN */}
-            <div>
-              <div className="list-toolbar">
-                <span className="lt-count"><b>{products.length}</b> products</span>
-                <button className="filter-toggle" onClick={() => setDrawerOpen(true)}>
-                  Filters
-                  {activeFilterCount > 0 && <span className="filter-badge" />}
-                </button>
-                <div className="searchbox">
-                  <IconSearch />
-                  <input type="text" placeholder="Search products…" value={q} onChange={e => setQ(e.target.value)} />
+            <div style={{ minWidth: 0 }}>
+              <div className="sticky-mobile-header">
+                <div className="list-toolbar">
+                  <span className="lt-count desktop-only"><b>{products.length}</b> products</span>
+                  <div className="searchbox">
+                    <IconSearch />
+                    <input type="text" placeholder="Search products…" value={q} onChange={e => setQ(e.target.value)} />
+                  </div>
+                  <button className="filter-toggle" onClick={() => setDrawerOpen(true)}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                    Filters
+                    {activeFilterCount > 0 && <span className="filter-badge" />}
+                  </button>
                 </div>
+
+                {/* Mobile categories removed */}
               </div>
 
               {cat && subs.length > 0 && (
-                <div className="chips-row">
+                <div className="chips-row desktop-only">
                   <button className={`fchip${!sub ? ' on' : ''}`} onClick={() => setSub(null)}>All {catName(cat)}</button>
                   {subs.map(s => (
                     <button key={s.slug} className={`fchip${sub === s.slug ? ' on' : ''}`} onClick={() => setSub(s.slug)}>
@@ -225,7 +227,7 @@ export default function CatalogueClient({ categories, products: allProducts, use
           <div style={{
             position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1001,
             background: '#fff', borderRadius: '20px 20px 0 0',
-            maxHeight: '82vh', display: 'flex', flexDirection: 'column',
+            height: '88vh', maxHeight: '88vh', display: 'flex', flexDirection: 'column',
             boxShadow: '0 -8px 40px rgba(0,0,0,0.2)',
             animation: 'drawerUp 0.28s cubic-bezier(0.4,0,0.2,1)',
           }}>
@@ -260,48 +262,42 @@ export default function CatalogueClient({ categories, products: allProducts, use
                   ))}
                 </div>
               )}
-              {(() => {
-                const brandsInUse = BRANDS.filter(b => allProducts.some(p => p.brand?.toLowerCase() === b.slug));
-                return brandsInUse.length > 0 ? (
-                  <div style={{ borderBottom: '1px solid #e8eaf0', paddingBottom: 16, marginBottom: 16 }}>
-                    <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10, fontFamily: 'var(--font-head)', fontWeight: 800 }}>Brand</div>
-                    <button className={`filter-link${!brand ? ' on' : ''}`} onClick={() => setBrand(null)}>All brands <span>{allProducts.length}</span></button>
-                    {brandsInUse.map(b => (
-                      <button key={b.slug} className={`filter-link${brand === b.slug ? ' on' : ''}`} onClick={() => setBrand(b.slug)}>
-                        {b.name} <span>{allProducts.filter(p => p.brand?.toLowerCase() === b.slug).length}</span>
-                      </button>
-                    ))}
+              {brandsInUse.length > 0 && (
+                <div style={{ borderBottom: '1px solid #e8eaf0', paddingBottom: 16, marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10, fontFamily: 'var(--font-head)', fontWeight: 800 }}>Brand</div>
+                  <button className={`filter-link${!brand ? ' on' : ''}`} onClick={() => setBrand(null)}>All brands <span>{baseProducts.length}</span></button>
+                  {brandsInUse.map(b => (
+                    <button key={b.slug} className={`filter-link${brand === b.slug ? ' on' : ''}`} onClick={() => setBrand(b.slug)}>
+                      {b.name} <span>{baseProducts.filter(p => p.brand?.toLowerCase() === b.slug).length}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {ucsInUse.length > 0 && (
+                <div style={{ paddingBottom: 16, marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10, fontFamily: 'var(--font-head)', fontWeight: 800 }}>Use case</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {ucsInUse.map(u => {
+                      const on = uc === u.slug;
+                      return (
+                        <button
+                          key={u.slug}
+                          onClick={() => setUc(on ? null : u.slug)}
+                          style={{
+                            padding: '7px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
+                            cursor: 'pointer', fontFamily: 'inherit',
+                            background: on ? 'var(--navy)' : '#f1f5f9',
+                            color: on ? '#fff' : '#475569',
+                            border: `1.5px solid ${on ? 'var(--navy)' : 'transparent'}`,
+                          }}
+                        >
+                          {u.name}
+                        </button>
+                      );
+                    })}
                   </div>
-                ) : null;
-              })()}
-              {(() => {
-                const ucsInUse = useCases.filter(u => allProducts.some(p => p.ucSlugs?.includes(u.slug)));
-                return ucsInUse.length > 0 ? (
-                  <div style={{ paddingBottom: 16, marginBottom: 16 }}>
-                    <div style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10, fontFamily: 'var(--font-head)', fontWeight: 800 }}>Use case</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                      {ucsInUse.map(u => {
-                        const on = uc === u.slug;
-                        return (
-                          <button
-                            key={u.slug}
-                            onClick={() => setUc(on ? null : u.slug)}
-                            style={{
-                              padding: '7px 14px', borderRadius: 999, fontSize: 13, fontWeight: 600,
-                              cursor: 'pointer', fontFamily: 'inherit',
-                              background: on ? 'var(--navy)' : '#f1f5f9',
-                              color: on ? '#fff' : '#475569',
-                              border: `1.5px solid ${on ? 'var(--navy)' : 'transparent'}`,
-                            }}
-                          >
-                            {u.name}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : null;
-              })()}
+                </div>
+              )}
             </div>
             {/* Footer */}
             <div style={{ padding: '16px 20px', borderTop: '1px solid #e8eaf0', display: 'flex', gap: 12, flexShrink: 0 }}>

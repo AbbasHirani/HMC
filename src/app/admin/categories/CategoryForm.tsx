@@ -8,7 +8,7 @@ function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-interface Sub { _id?: string; name: string; slug: string; order: number; isNew?: boolean; }
+interface Sub { _id?: string; name: string; slug: string; order: number; isNew?: boolean; blurb?: string; }
 interface Props {
   mode: 'new' | 'edit';
   id?: string;
@@ -35,8 +35,10 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
 
   const [subs, setSubs] = useState<Sub[]>(initialSubs);
   const [newSubName, setNewSubName] = useState('');
+  const [newSubBlurb, setNewSubBlurb] = useState('');
   const [editSubId, setEditSubId] = useState<string | null>(null);
   const [editSubName, setEditSubName] = useState('');
+  const [editSubBlurb, setEditSubBlurb] = useState('');
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -63,8 +65,9 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
 
   function addSub() {
     if (!newSubName.trim()) return;
-    setSubs(prev => [...prev, { name: newSubName.trim(), slug: slugify(newSubName), order: prev.length, isNew: true }]);
+    setSubs(prev => [...prev, { name: newSubName.trim(), slug: slugify(newSubName), blurb: newSubBlurb.trim(), order: prev.length, isNew: true }]);
     setNewSubName('');
+    setNewSubBlurb('');
   }
 
   function removeSub(idx: number) {
@@ -74,10 +77,11 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
   function startEditSub(idx: number) {
     setEditSubId(String(idx));
     setEditSubName(subs[idx].name);
+    setEditSubBlurb(subs[idx].blurb ?? '');
   }
 
   function saveEditSub(idx: number) {
-    setSubs(prev => prev.map((s, i) => i === idx ? { ...s, name: editSubName, slug: slugify(editSubName) } : s));
+    setSubs(prev => prev.map((s, i) => i === idx ? { ...s, name: editSubName, slug: slugify(editSubName), blurb: editSubBlurb } : s));
     setEditSubId(null);
   }
 
@@ -117,7 +121,7 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
 
     // Sync subcategories
     for (const sub of subs) {
-      const subBody = { categoryId: catId, categorySlug: slug, slug: sub.slug, name: sub.name, order: sub.order };
+      const subBody = { categoryId: catId, categorySlug: slug, slug: sub.slug, name: sub.name, order: sub.order, blurb: sub.blurb };
       if (sub.isNew || !sub._id) {
         await fetch('/api/subcategories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(subBody) });
       } else {
@@ -204,39 +208,66 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
             {subs.map((sub, i) => (
               <div className="sub-item" key={i}>
                 {editSubId === String(i) ? (
-                  <>
-                    <input
-                      value={editSubName}
-                      onChange={e => setEditSubName(e.target.value)}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        value={editSubName}
+                        onChange={e => setEditSubName(e.target.value)}
+                        className="adm-input"
+                        style={{ padding: '7px 12px', flex: 1 }}
+                        autoFocus
+                      />
+                      <button className="btn-adm btn-adm-primary btn-adm-sm" type="button" onClick={() => saveEditSub(i)}>Save</button>
+                      <button className="btn-adm btn-adm-ghost btn-adm-sm" type="button" onClick={() => setEditSubId(null)}>Cancel</button>
+                    </div>
+                    <textarea
+                      value={editSubBlurb}
+                      onChange={e => setEditSubBlurb(e.target.value)}
                       className="adm-input"
-                      style={{ padding: '7px 12px', flex: 1 }}
-                      autoFocus
+                      placeholder="Optional blurb/description for this subcategory..."
+                      style={{ minHeight: 60, padding: '7px 12px', resize: 'vertical' }}
                     />
-                    <button className="btn-adm btn-adm-primary btn-adm-sm" type="button" onClick={() => saveEditSub(i)}>Save</button>
-                    <button className="btn-adm btn-adm-ghost btn-adm-sm" type="button" onClick={() => setEditSubId(null)}>Cancel</button>
-                  </>
+                  </div>
                 ) : (
                   <>
-                    <span className="sub-item-name">{sub.name}</span>
-                    <span className="sub-item-slug">{sub.slug}</span>
-                    <button className="btn-adm btn-adm-ghost btn-adm-sm" type="button" onClick={() => startEditSub(i)}>Edit</button>
-                    <button className="btn-adm btn-adm-danger btn-adm-sm" type="button" onClick={() => removeSub(i)}>×</button>
+                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 4, minWidth: 0 }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <span className="sub-item-name">{sub.name}</span>
+                        <span className="sub-item-slug">{sub.slug}</span>
+                      </div>
+                      {sub.blurb && (
+                        <span style={{ fontSize: 12, color: 'var(--slate)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {sub.blurb}
+                        </span>
+                      )}
+                    </div>
+                    <button className="btn-adm btn-adm-ghost btn-adm-sm" style={{ flexShrink: 0 }} type="button" onClick={() => startEditSub(i)}>Edit</button>
+                    <button className="btn-adm btn-adm-danger btn-adm-sm" style={{ flexShrink: 0 }} type="button" onClick={() => removeSub(i)}>×</button>
                   </>
                 )}
               </div>
             ))}
           </div>
         )}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            value={newSubName}
-            onChange={e => setNewSubName(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSub())}
-            placeholder="New subcategory name…"
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              value={newSubName}
+              onChange={e => setNewSubName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSub())}
+              placeholder="New subcategory name…"
+              className="adm-input"
+              style={{ flex: 1 }}
+            />
+            <button className="btn-adm btn-adm-ghost" type="button" onClick={addSub}>+ Add</button>
+          </div>
+          <textarea
+            value={newSubBlurb}
+            onChange={e => setNewSubBlurb(e.target.value)}
+            placeholder="Optional blurb/description for the new subcategory..."
             className="adm-input"
-            style={{ flex: 1 }}
+            style={{ minHeight: 60, padding: '7px 12px', resize: 'vertical' }}
           />
-          <button className="btn-adm btn-adm-ghost" type="button" onClick={addSub}>+ Add</button>
         </div>
       </div>
 

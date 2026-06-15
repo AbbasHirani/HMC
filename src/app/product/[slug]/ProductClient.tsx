@@ -65,18 +65,25 @@ export default function ProductClient({ product: p, related = [], popular = [] }
 
   return (
     <>
-      <section className="section" style={{ paddingTop: 26, paddingBottom: 0 }}>
+      <section className="section" style={{ paddingTop: 12, paddingBottom: 0 }}>
         <div className="container">
           <nav className="crumb">
             <Link href="/">Home</Link><span>/</span>
             <Link href="/catalogue">Products</Link><span>/</span>
-            <Link href={`/catalogue?cat=${p.cat}`}>{cn}</Link><span className="crumb-last">/</span>
-            <b className="crumb-last">{p.name}</b>
+            <Link href={`/catalogue?cat=${p.cat}`}>{cn}</Link>
           </nav>
 
           <div className="pd">
             <div className="pd-media">
               <div className="main" style={{ position: 'relative' }}>
+                {p.tag && (
+                  <span
+                    className={`pd-badge ${p.tag.toLowerCase().includes('popular') ? 'popular' : 'seller'}`}
+                    style={{ position: 'absolute', top: 12, left: 12, zIndex: 10, fontSize: 10, padding: '4px 10px', margin: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}
+                  >
+                    {p.tag}
+                  </span>
+                )}
                 {mainImage
                   ? <ImageZoom
                       src={mainImage}
@@ -105,10 +112,6 @@ export default function ProductClient({ product: p, related = [], popular = [] }
             </div>
 
             <div className="pd-info">
-              {p.tag && (
-                <span className={`pd-badge ${p.tag.toLowerCase().includes('popular') ? 'popular' : 'seller'}`}>{p.tag}</span>
-              )}
-
               <h1>{p.name}</h1>
               {p.brand && (
                 <p style={{ fontSize: 13.5, color: 'var(--slate)', marginTop: 6, fontWeight: 500 }}>
@@ -162,41 +165,17 @@ export default function ProductClient({ product: p, related = [], popular = [] }
               {p.brand && (
                 <a
                   href={`/brand/${p.brand}`}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 20,
-                    marginTop: 22, padding: '18px 22px',
-                    border: '1.5px solid var(--line)',
-                    borderRadius: 14,
-                    background: 'var(--paper)',
-                    textDecoration: 'none',
-                    transition: 'border-color .18s, box-shadow .18s',
-                  }}
-                  onMouseEnter={e => {
-                    const el = e.currentTarget as HTMLElement;
-                    el.style.borderColor = 'var(--navy)';
-                    el.style.boxShadow = '0 4px 18px rgba(20,20,63,.09)';
-                  }}
-                  onMouseLeave={e => {
-                    const el = e.currentTarget as HTMLElement;
-                    el.style.borderColor = 'var(--line)';
-                    el.style.boxShadow = 'none';
-                  }}
+                  className="pd-brand-box"
                 >
                   {p.brandLogo && (
-                    <div style={{
-                      width: 88, height: 56, flexShrink: 0,
-                      background: '#fff', borderRadius: 10,
-                      border: '1px solid var(--line)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      padding: 10,
-                    }}>
+                    <div className="pd-brand-logo">
                       <img src={cdn(p.brandLogo)} alt={p.brandName ?? p.brand} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                     </div>
                   )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 4 }}>Brand</span>
-                    <span style={{ display: 'block', fontSize: 16, fontWeight: 800, color: 'var(--navy)', fontFamily: 'var(--font-head)' }}>{p.brandName ?? p.brand}</span>
-                    <span style={{ display: 'block', fontSize: 12.5, color: 'var(--orange)', fontWeight: 600, marginTop: 3 }}>View all {p.brandName ?? p.brand} products →</span>
+                  <div className="pd-brand-text">
+                    <span className="pd-brand-lbl">Brand</span>
+                    <span className="pd-brand-name">{p.brandName ?? p.brand}</span>
+                    <span className="pd-brand-link">View all {p.brandName ?? p.brand} products →</span>
                   </div>
                 </a>
               )}
@@ -211,21 +190,9 @@ export default function ProductClient({ product: p, related = [], popular = [] }
               {p.useCases && p.useCases.length > 0 && (
                 <>
                   <div className="pd-sec-title">Common applications</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
+                  <div className="pd-uc-chips">
                     {p.useCases.map(uc => (
-                      <span
-                        key={uc}
-                        style={{
-                          display: 'inline-block',
-                          padding: '5px 14px',
-                          borderRadius: 999,
-                          background: 'rgba(20,20,63,.07)',
-                          color: 'var(--navy)',
-                          fontSize: 13,
-                          fontWeight: 600,
-                          border: '1px solid rgba(20,20,63,.12)',
-                        }}
-                      >
+                      <span key={uc} className="pd-uc-chip">
                         {uc}
                       </span>
                     ))}

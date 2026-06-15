@@ -19,7 +19,7 @@ export default function CTABand({
               <h2>{title}</h2>
               <p>{body}</p>
             </div>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div className="cta-band-btns">
               <a className="btn btn-primary btn-lg" href={CONTACT.phoneHref}>
                 <IconPhone />Call now
               </a>

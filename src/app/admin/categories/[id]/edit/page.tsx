@@ -17,6 +17,7 @@ export default async function EditCategoryPage({ params }: Props) {
       name: s.name as string,
       slug: s.slug as string,
       order: (s.sort_order as number) ?? 0,
+      blurb: (s.blurb as string) ?? '',
     }));
   } catch { notFound(); }
 

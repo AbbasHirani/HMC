@@ -120,7 +120,7 @@ export default async function HomePage() {
               </div>
               <Link className="btn btn-ghost-light" href="/catalogue">View all</Link>
             </div>
-            <div className="prod-grid" style={{ marginTop: 38 }}>
+            <div className="prod-grid prod-carousel" style={{ marginTop: 38 }}>
               {displayProducts.map((p, index) => (
                 <ProductCard key={p.slug} p={p} dark priority={index < 4} />
               ))}
@@ -137,7 +137,7 @@ export default async function HomePage() {
             <h2>Repair, reconditioning &amp; maintenance</h2>
             <p>We keep your equipment running — pumps, filters, compressors and hydraulic systems serviced by our own team.</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 18, marginTop: 40 }}>
+          <div className="svc-grid" style={{ marginTop: 40 }}>
             {SERVICES.map((s, i) => (
               <div className="svc-card" key={i}>
                 <span className="trust-ic"><IconWrench /></span>
@@ -152,7 +152,7 @@ export default async function HomePage() {
       {/* ABOUT & BRANDS */}
       <section className="section" id="about" style={{ background: 'var(--paper)', borderTop: '1px solid var(--line)' }}>
         <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 56, alignItems: 'center' }}>
+          <div className="about-grid">
             <div>
               <span className="eyebrow">About us</span>
               <h2 style={{ fontSize: 'clamp(26px,3vw,36px)', marginTop: 14 }}>A trusted name in Chennai&rsquo;s hardware trade</h2>
@@ -164,54 +164,57 @@ export default async function HomePage() {
                 <Link className="btn btn-ghost" href="/catalogue">See the catalogue</Link>
               </div>
             </div>
-            <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 20px 60px rgba(20,20,63,.13)', position: 'relative', height: 420 }}>
+            <div className="about-img-wrap">
               <Image src="/shop.jpg" alt="Hirani Marketing Combines — Parrys store" fill style={{ objectFit: 'cover', objectPosition: 'center' }} sizes="(max-width: 768px) 100vw, 50vw" />
             </div>
           </div>
+          </div>
+          
           <p style={{ fontFamily: 'var(--font-head)', fontWeight: 700, color: 'var(--muted)', fontSize: 12, letterSpacing: '.14em', textTransform: 'uppercase', margin: '54px 0 18px', textAlign: 'center' }}>
             Trusted brands we carry
           </p>
-          <BrandsStrip />
-        </div>
+          <div className="brands-full-wrapper">
+            <BrandsStrip />
+          </div>
       </section>
 
       {/* FIND US */}
       <section className="section" style={{ background: '#fff', borderTop: '1px solid var(--line)' }}>
         <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 40, alignItems: 'center' }}>
+          <div className="find-us-grid">
             {/* Details */}
             <div>
               <span className="eyebrow">Visit our shop</span>
               <h2 style={{ fontSize: 'clamp(24px,3vw,34px)', marginTop: 12 }}>Find us here</h2>
-              <p style={{ color: 'var(--slate)', fontSize: 15.5, lineHeight: 1.75, marginTop: 14 }}>
+              <p className="find-us-text">
                 Drop by our Parrys store for pumps, water systems, and expert advice — or bring your equipment in for repair and servicing.
               </p>
 
-              <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: 20, marginTop: 2 }}>📍</span>
+              <div className="find-us-list">
+                <div className="find-us-item">
+                  <span className="fu-ic">📍</span>
                   <div>
-                    <b style={{ display: 'block', fontSize: 14, color: 'var(--navy)', marginBottom: 2 }}>Address</b>
-                    <span style={{ color: 'var(--slate)', fontSize: 15 }}>Old No.133 / New No.279, Thambu Chetty St,<br />opposite TNEB office, Parrys, George Town,<br />Chennai – 600001</span>
+                    <b>Address</b>
+                    <span>Old No.133 / New No.279, Thambu Chetty St,<br />opposite TNEB office, Parrys, George Town,<br />Chennai – 600001</span>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: 20, marginTop: 2 }}>📞</span>
+                <div className="find-us-item">
+                  <span className="fu-ic">📞</span>
                   <div>
-                    <b style={{ display: 'block', fontSize: 14, color: 'var(--navy)', marginBottom: 2 }}>Phone</b>
-                    <a href={CONTACT.phoneHref} style={{ color: 'var(--slate)', fontSize: 15, textDecoration: 'none' }}>{CONTACT.phone}</a>
+                    <b>Phone</b>
+                    <a href={CONTACT.phoneHref}>{CONTACT.phone}</a>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: 20, marginTop: 2 }}>✉️</span>
+                <div className="find-us-item">
+                  <span className="fu-ic">✉️</span>
                   <div>
-                    <b style={{ display: 'block', fontSize: 14, color: 'var(--navy)', marginBottom: 2 }}>Email</b>
-                    <a href={`mailto:${CONTACT.email}`} style={{ color: 'var(--slate)', fontSize: 15, textDecoration: 'none' }}>{CONTACT.email}</a>
+                    <b>Email</b>
+                    <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
+              <div className="find-us-cta">
                 <a
                   className="btn btn-primary"
                   href="https://share.google/KeoILUOJjoljr4Pby"
@@ -223,7 +226,7 @@ export default async function HomePage() {
             </div>
 
             {/* Map */}
-            <div style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid var(--line)', height: 380, boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
+            <div className="find-us-map">
               <iframe
                 src="https://maps.google.com/maps?q=Hirani+Marketing+Combines+Parrys+Chennai&output=embed&hl=en"
                 width="100%"

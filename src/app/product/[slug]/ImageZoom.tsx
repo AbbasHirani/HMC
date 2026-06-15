@@ -99,35 +99,16 @@ export default function ImageZoom({ src, alt, height = '100%', allImages = [], a
           }}
         >
           {/* Close button */}
-          <button
-            onClick={closeLightbox}
-            style={{
-              position: 'fixed', top: 20, right: 24, zIndex: 100001,
-              background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '50%', color: '#fff', fontSize: 20,
-              width: 44, height: 44, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              backdropFilter: 'blur(4px)',
-              transition: 'background 0.15s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.22)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
-          >✕</button>
+          <button className="lb-close" onClick={closeLightbox}>✕</button>
 
           {/* Escape hint */}
-          <span style={{
-            position: 'fixed', top: 28, left: '50%', transform: 'translateX(-50%)',
-            color: 'rgba(255,255,255,0.45)', fontSize: 12, letterSpacing: '0.06em',
-            pointerEvents: 'none',
-          }}>Press ESC to close{allImages.length > 1 ? ' · ← → to browse' : ''}</span>
+          <span className="lb-hint">Press ESC to close{allImages.length > 1 ? ' · ← → to browse' : ''}</span>
 
           {/* Prev arrow */}
           {allImages.length > 1 && (
             <button
+              className="lb-arrow left"
               onClick={e => { e.stopPropagation(); onIndexChange?.((activeIndex - 1 + allImages.length) % allImages.length); }}
-              style={{ ...arrowStyle, left: 20 }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.18)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
             >‹</button>
           )}
 
@@ -151,24 +132,16 @@ export default function ImageZoom({ src, alt, height = '100%', allImages = [], a
           {/* Next arrow */}
           {allImages.length > 1 && (
             <button
+              className="lb-arrow right"
               onClick={e => { e.stopPropagation(); onIndexChange?.((activeIndex + 1) % allImages.length); }}
-              style={{ ...arrowStyle, right: 20 }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.18)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
             >›</button>
           )}
 
           {/* Thumbnail strip */}
           {allImages.length > 1 && (
             <div
+              className="lb-thumbs"
               onClick={e => e.stopPropagation()}
-              style={{
-                position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-                display: 'flex', gap: 10, padding: '10px 14px',
-                background: 'rgba(255,255,255,0.06)',
-                backdropFilter: 'blur(8px)',
-                borderRadius: 12, border: '1px solid rgba(255,255,255,0.12)',
-              }}
             >
               {allImages.map((img, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -198,14 +171,3 @@ export default function ImageZoom({ src, alt, height = '100%', allImages = [], a
     </>
   );
 }
-
-const arrowStyle: React.CSSProperties = {
-  position: 'fixed', top: '50%', transform: 'translateY(-50%)',
-  background: 'rgba(255,255,255,0.08)',
-  border: '1px solid rgba(255,255,255,0.18)',
-  borderRadius: 10, color: '#fff',
-  fontSize: 36, width: 52, height: 52, cursor: 'pointer',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  lineHeight: 1, zIndex: 100001,
-  transition: 'background 0.15s',
-};

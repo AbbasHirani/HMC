@@ -86,7 +86,7 @@ export default function ShowcaseCarousel({ categories }: Props) {
           <Link key={i} className={`sc-slide${i === cur ? ' active' : ''}`} href={s.link}>
             {s.image ? (
               <div style={{ position: 'relative', width: '100%', height: '100%', borderBottom: '1px solid var(--line)', backgroundColor: '#fff' }}>
-                <Image src={s.image} alt={s.name} fill style={{ objectFit: 'contain', padding: '32px' }} sizes="(max-width: 680px) 100vw, 50vw" priority={i === 0} />
+                <Image src={s.image} alt={s.name} fill style={{ objectFit: 'contain' }} sizes="(max-width: 680px) 100vw, 50vw" priority={i === 0} />
               </div>
             ) : (
               <div className="ph" data-label={s.cat} style={{ height: '100%', borderRadius: 0, borderBottom: '1px solid var(--line)' }} />

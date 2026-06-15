@@ -120,6 +120,33 @@ export default function ChatAssistant() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Dynamically adjust FAB position based on sticky CTA resting state
+  const [isStickyActive, setIsStickyActive] = useState(isProductPage);
+  useEffect(() => {
+    if (!isProductPage) {
+      setIsStickyActive(false);
+      return;
+    }
+    const updateFab = () => {
+      const sticky = document.querySelector('.pd-sticky');
+      if (!sticky) return;
+      // When sticky CTA scrolls up into its resting place, its bottom is less than window height
+      if (sticky.getBoundingClientRect().bottom < window.innerHeight - 5) {
+        setIsStickyActive(false);
+      } else {
+        setIsStickyActive(true);
+      }
+    };
+    window.addEventListener('scroll', updateFab, { passive: true });
+    window.addEventListener('resize', updateFab);
+    // Initial check after a slight delay for render
+    setTimeout(updateFab, 100);
+    return () => {
+      window.removeEventListener('scroll', updateFab);
+      window.removeEventListener('resize', updateFab);
+    };
+  }, [isProductPage]);
+
   async function send(text: string) {
     const content = text.trim();
     if (!content || busy) return;
@@ -207,7 +234,7 @@ export default function ChatAssistant() {
     <>
       {/* Launcher */}
       <button
-        className={`hc-fab${open ? ' hidden' : ''}${isProductPage ? ' hc-fab-product' : ''}`}
+        className={`hc-fab${open ? ' hidden' : ''}${isStickyActive ? ' hc-fab-product' : ''}`}
         onClick={() => setOpen(true)}
         aria-label="Open product assistant"
       >

@@ -27,14 +27,12 @@ Product Details provided by the user:
 ${specLines ? `- Known Specifications:\n${specLines}` : ''}
 
 Instructions:
-1. Search the web for "${p.name} ${p.brand}" to gather official facts, features, and benefits.
-2. Write a comprehensive, highly professional product description structured exactly as follows:
-   - **Paragraph 1:** Introduction highlighting the key value proposition and core construction/design. Bold the primary keywords and main design feature.
-   - **Paragraph 2:** Technical capabilities. Embed the key specifications (like flow rate, head, motor power, connections) naturally into the sentences and bold them. Mention where it is well suited.
-   - **Paragraph 3:** Materials, durability, and operational benefits (e.g., low maintenance, leak-proof).
-   - **Applications:** Add a bold heading "**Applications:**" followed by a bulleted list of 5-7 specific use cases or industries.
-3. Keep the tone persuasive and tailored for B2B/B2C buyers of water pumps, motors, and related equipment.
-4. Return ONLY the final formatted description in Markdown. Do not wrap it in JSON or any preamble.`;
+1. Use your knowledge to gather facts, features, and benefits about "${p.name} ${p.brand}".
+2. Write a concise, natural, and highly professional product description (maximum 2 short paragraphs).
+3. Focus purely on what the product is, its core design, build materials, and key technical capabilities (like flow rate, head, motor power).
+4. DO NOT include an "Applications", "Use Cases", or "Ideal For" section. That information is displayed separately.
+5. Keep the tone persuasive but human-readable, tailored for B2B/B2C buyers of pumps and industrial equipment.
+6. Return ONLY the final formatted description in Markdown. Do not wrap it in JSON or add any conversational preamble.`;
 }
 
 export async function POST(req: NextRequest) {

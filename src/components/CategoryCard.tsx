@@ -8,7 +8,7 @@ export default function CategoryCard({ cat }: { cat: Category }) {
   const foot = (cat.foot === 'types' || !cat.foot) ? `${subCount}+ types` : cat.foot;
 
   return (
-    <Link className="cat6" href={`/catalogue?cat=${cat.slug}`}>
+    <Link className="cat6" href={`/catalogue/${cat.slug}`}>
       {cat.imageUrl ? (
         <div className="cat6-img-wrap" style={{ position: 'relative' }}>
           <div style={{ position: 'relative', width: '100%', height: '100%' }}>

@@ -119,6 +119,35 @@ export async function getAllProductSlugs(): Promise<string[]> {
   return rows.map(r => r.slug as string);
 }
 
+export async function getUseCaseFilters(): Promise<{
+  byProduct: Map<string, string[]>;
+  options: { slug: string; name: string }[];
+}> {
+  try {
+    const rows = await sql`
+      SELECT uc.slug, uc.name, puc.product_id
+      FROM use_cases uc
+      JOIN product_use_cases puc ON puc.use_case_id = uc.id
+    `;
+    const byProduct = new Map<string, string[]>();
+    const options = new Map<string, string>();
+    for (const r of rows) {
+      options.set(r.slug as string, r.name as string);
+      const list = byProduct.get(r.product_id as string) ?? [];
+      list.push(r.slug as string);
+      byProduct.set(r.product_id as string, list);
+    }
+    return {
+      byProduct,
+      options: [...options.entries()]
+        .map(([slug, name]) => ({ slug, name }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    };
+  } catch {
+    return { byProduct: new Map<string, string[]>(), options: [] };
+  }
+}
+
 function toProduct(row: Record<string, unknown>): Product {
   return {
     _id: row.id as string,

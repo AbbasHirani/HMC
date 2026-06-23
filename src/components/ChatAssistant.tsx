@@ -16,6 +16,16 @@ const SUGGESTIONS = [
 const GREETING =
   "Hey, I'm **Hira** from Hirani Marketing Combines. What are you looking for — a pump, water filter, fountain, pressure washer? Tell me what you need and I'll sort you out.";
 
+const ADMIN_SUGGESTIONS = [
+  'Suggest SEO meta tags for a new chemical pump',
+  'Write an SEO-friendly category description',
+  'Give me keywords for agricultural pumps',
+  'Review and optimize current homepage metadata',
+];
+
+const ADMIN_GREETING =
+  "Hi! I'm the **HMC SEO Agent**. I can help you write optimized meta titles, meta descriptions, focus keywords, or suggest product copy for your categories and products. What would you like to optimize today?";
+
 // Only allow safe link targets — blocks javascript:, data:, etc. that could
 // turn an assistant/product link into an XSS vector.
 function safeHref(href: string): { kind: 'internal' | 'external' } | null {
@@ -105,6 +115,7 @@ export default function ChatAssistant() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const pathname = usePathname();
   const isProductPage = pathname?.startsWith('/product/');
+  const isAdminPage = pathname?.startsWith('/admin');
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -161,7 +172,7 @@ export default function ChatAssistant() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: history, isAdmin: isAdminPage, currentPath: pathname }),
       });
 
       if (!res.ok || !res.body) {
@@ -236,20 +247,20 @@ export default function ChatAssistant() {
       <button
         className={`hc-fab${open ? ' hidden' : ''}${isStickyActive ? ' hc-fab-product' : ''}`}
         onClick={() => setOpen(true)}
-        aria-label="Open product assistant"
+        aria-label={isAdminPage ? "Open SEO assistant" : "Open product assistant"}
       >
-        <span className="hc-fab-tip">Need help choosing a product?</span>
+        <span className="hc-fab-tip">{isAdminPage ? "Need help with SEO writing?" : "Need help choosing a product?"}</span>
         <span className="hc-fab-ic"><IconAssistant /></span>
       </button>
 
       {/* Panel */}
-      <div className={`hc-panel${open ? ' open' : ''}`} role="dialog" aria-label="Product assistant" aria-modal="false">
+      <div className={`hc-panel${open ? ' open' : ''}`} role="dialog" aria-label={isAdminPage ? "SEO assistant" : "Product assistant"} aria-modal="false">
         <header className="hc-head">
           <div className="hc-head-id">
             <span className="hc-avatar"><img src="/logo-mark.png" alt="HMC" /></span>
             <div>
-              <b>Hira · Product Assistant</b>
-              <span>Hirani Marketing Combines</span>
+              <b>{isAdminPage ? 'HMC SEO Agent' : 'Hira · Product Assistant'}</b>
+              <span>{isAdminPage ? 'SEO & Content Specialist' : 'Hirani Marketing Combines'}</span>
             </div>
           </div>
           <button className="hc-close" onClick={() => setOpen(false)} aria-label="Close assistant"><IconClose /></button>
@@ -257,7 +268,7 @@ export default function ChatAssistant() {
 
         <div className="hc-body" ref={scrollRef}>
           <div className="hc-msg assistant">
-            <div className="hc-bubble"><RichText text={GREETING} /></div>
+            <div className="hc-bubble"><RichText text={isAdminPage ? ADMIN_GREETING : GREETING} /></div>
           </div>
 
           {messages.map((m, i) => (
@@ -272,7 +283,7 @@ export default function ChatAssistant() {
 
           {messages.length === 0 && (
             <div className="hc-suggest">
-              {SUGGESTIONS.map(s => (
+              {(isAdminPage ? ADMIN_SUGGESTIONS : SUGGESTIONS).map(s => (
                 <button key={s} className="hc-chip" onClick={() => send(s)} disabled={busy}>{s}</button>
               ))}
             </div>
@@ -283,7 +294,7 @@ export default function ChatAssistant() {
           <textarea
             ref={inputRef}
             rows={1}
-            placeholder="Ask about a product or your need…"
+            placeholder={isAdminPage ? "Ask for metadata suggestions, copy refinement..." : "Ask about a product or your need…"}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={onKeyDown}
@@ -291,7 +302,11 @@ export default function ChatAssistant() {
           />
           <button type="submit" className="hc-send" disabled={busy || !input.trim()} aria-label="Send"><IconSend /></button>
         </form>
-        <p className="hc-foot">AI assistant · answers from our live catalogue. Confirm critical details with our team.</p>
+        <p className="hc-foot">
+          {isAdminPage 
+            ? "AI SEO assistant · check suggestion lengths against Google limits." 
+            : "AI assistant · answers from our live catalogue. Confirm critical details with our team."}
+        </p>
       </div>
     </>
   );

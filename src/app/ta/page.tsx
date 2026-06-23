@@ -132,8 +132,8 @@ export default async function TamilHomePage() {
               <Link className="btn btn-ghost-light" href="/catalogue">அனைத்தும்</Link>
             </div>
             <div className="prod-grid" style={{ marginTop: 38 }}>
-              {displayProducts.map((p, index) => (
-                <ProductCard key={p.slug} p={p} dark priority={index < 4} />
+              {displayProducts.map((p) => (
+                <ProductCard key={p.slug} p={p} dark />
               ))}
             </div>
           </div>

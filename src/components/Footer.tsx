@@ -39,7 +39,7 @@ export default async function Footer({ lang = 'en' }: { lang?: 'en' | 'ta' }) {
             <div className="foot-col foot-about">
               <div className="foot-brand">
                 <span className="brand-chip">
-                  <Image src="/logo-mark.png" alt="HMC" width={32} height={32} style={{ height: 'auto' }} />
+                  <Image src="/logo-mark.png" alt="Hirani Marketing Combines" width={32} height={32} style={{ height: 'auto' }} />
                 </span>
                 <b>Hirani Marketing Combines</b>
               </div>
@@ -54,7 +54,7 @@ export default async function Footer({ lang = 'en' }: { lang?: 'en' | 'ta' }) {
             <div className="foot-col">
               <h4>{t.products}</h4>
               {categories.map(c => (
-                <Link key={c.slug} href={`/catalogue?cat=${c.slug}`}>{c.name}</Link>
+                <Link key={c.slug} href={`/catalogue/${c.slug}`}>{c.name}</Link>
               ))}
               <Link href="/catalogue" className="foot-all">{t.viewAll}</Link>
             </div>

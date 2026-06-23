@@ -37,7 +37,7 @@ export default function Header({ active, lang = 'en' }: Props) {
       <div className="container">
         <nav className="nav">
           <Link href={home} className="brand" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <Image src="/logo-mark.png" alt="HMC mark" width={44} height={44} style={{ objectFit: 'contain', flexShrink: 0, height: 'auto' }} priority />
+            <Image src="/logo-mark.png" alt="Hirani Marketing Combines Logo" width={44} height={44} style={{ objectFit: 'contain', flexShrink: 0, height: 'auto' }} priority />
             <Image src="/logo-wordmark.png" alt="Hirani Marketing Combines" width={136} height={34} className="logo-wordmark" style={{ objectFit: 'contain', height: 'auto' }} priority />
           </Link>
 

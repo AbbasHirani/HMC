@@ -47,6 +47,27 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
+  async redirects() {
+    return [
+      // /catalogue?cat=X&sub=Y → /catalogue/X/Y  (more specific — must come first)
+      {
+        source: '/catalogue',
+        has: [
+          { type: 'query', key: 'cat', value: '(?<cat>[^&]+)' },
+          { type: 'query', key: 'sub', value: '(?<sub>[^&]+)' },
+        ],
+        destination: '/catalogue/:cat/:sub',
+        permanent: true,
+      },
+      // /catalogue?cat=X → /catalogue/X
+      {
+        source: '/catalogue',
+        has: [{ type: 'query', key: 'cat', value: '(?<cat>[^&]+)' }],
+        destination: '/catalogue/:cat',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -5,8 +5,11 @@ import Footer from '@/components/Footer';
 import CTABand from '@/components/CTABand';
 import Link from 'next/link';
 import { getBrands, getProducts } from '@/lib/queries';
+import { jsonLd } from '@/lib/jsonLd';
 
 export const revalidate = 60;
+
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
 
 export const metadata: Metadata = {
   title: 'Pump & Water System Brands We Carry in Chennai',
@@ -25,8 +28,18 @@ export default async function BrandsPage() {
     count: allProducts.filter(p => p.brand?.toLowerCase() === b.slug).length,
   }));
 
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home',   item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: 'Brands', item: `${SITE}/brands` },
+    ],
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <Header active="products" />
 
       <section className="list-head">

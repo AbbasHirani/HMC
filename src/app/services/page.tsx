@@ -18,6 +18,12 @@ export const metadata: Metadata = {
     canonical: '/services',
     languages: { en: '/services', ta: '/ta/services', 'x-default': '/services' },
   },
+  openGraph: {
+    title: 'Pump Repair & Servicing in Chennai | Hirani Marketing Combines',
+    description: 'Pump repair & reconditioning, water filter servicing, air compressor overhaul and hydro pressure test pump repair in Chennai. 17+ years in the trade. Drop in at our Parrys workshop.',
+    url: '/services',
+    type: 'website',
+  },
 };
 
 const SVCS = [

@@ -6,9 +6,13 @@ import { WA, CONTACT } from '@/lib/data';
 import { cdn } from '@/lib/img';
 import ReactMarkdown from 'react-markdown';
 import ProductCard from '@/components/ProductCard';
-import QuoteModal from '@/components/QuoteModal';
 import RecentlyViewed from '@/components/RecentlyViewed';
 import ImageZoom from './ImageZoom';
+import dynamic from 'next/dynamic';
+
+const QuoteModal = dynamic(() => import('@/components/QuoteModal'), {
+  ssr: false,
+});
 import { IconPhone, IconWA, IconWrench, IconCheck, IconTruck, IconArrow } from '@/components/Icons';
 
 const THUMB_LABELS = ['View 1', 'View 2', 'Detail', 'In use'];
@@ -70,7 +74,7 @@ export default function ProductClient({ product: p, related = [], popular = [] }
           <nav className="crumb">
             <Link href="/">Home</Link><span>/</span>
             <Link href="/catalogue">Products</Link><span>/</span>
-            <Link href={`/catalogue?cat=${p.cat}`}>{cn}</Link>
+            <Link href={`/catalogue/${p.cat}`}>{cn}</Link>
           </nav>
 
           <div className="pd">
@@ -250,7 +254,7 @@ export default function ProductClient({ product: p, related = [], popular = [] }
                 <span className="eyebrow">{p.subName}</span>
                 <h2>You may also need</h2>
               </div>
-              <Link className="btn btn-ghost" href={`/catalogue?cat=${p.cat}&sub=${p.sub}`}>View all</Link>
+              <Link className="btn btn-ghost" href={`/catalogue/${p.cat}/${p.sub}`}>View all</Link>
             </div>
             <div className="prod-grid" style={{ marginTop: 36 }}>
               {related.map(r => <ProductCard key={r.slug} p={r} />)}

@@ -13,9 +13,14 @@ export default async function BrandsStrip() {
   const bottomBrands = brands.slice(mid);
 
   // Duplicate items enough times so the marquee can scroll seamlessly on any screen size.
-  // Since we split the array in half, we duplicate it 10 times to ensure it's wider than any screen.
-  const topMarquee = Array(10).fill(topBrands).flat();
-  const bottomMarquee = Array(10).fill(bottomBrands).flat();
+  // We calculate repeats dynamically to target at least 20 items per row. This ensures
+  // seamless scrolling on wide screens while avoiding rendering excessive components.
+  const minItems = 20;
+  const topRepeats = Math.max(2, Math.ceil(minItems / Math.max(1, topBrands.length)));
+  const bottomRepeats = Math.max(2, Math.ceil(minItems / Math.max(1, bottomBrands.length)));
+
+  const topMarquee = Array(topRepeats).fill(topBrands).flat();
+  const bottomMarquee = Array(bottomRepeats).fill(bottomBrands).flat();
 
   return (
     <div className="brands-container">

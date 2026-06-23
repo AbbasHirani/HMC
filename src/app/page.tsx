@@ -14,7 +14,7 @@ import { SERVICES, CONTACT, WA } from '@/lib/data';
 import { getCategories, getProducts } from '@/lib/queries';
 
 export const metadata: Metadata = {
-  title: 'Water Pumps, RO Systems & Industrial Supply in Chennai',
+  title: { absolute: 'Hirani Marketing Combines | Water Pumps, RO Systems & Industrial Supply in Chennai' },
   description:
     "Buy water pumps, pressure booster pumps, hydro test pumps, chemical pumps, high pressure washers, dosing pumps and RO systems in Parrys, Chennai. Hirani Marketing Combines offers sales, service and industrial pumping solutions.",
   alternates: {
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Hirani Marketing Combines — Pumps & Water Systems, Chennai',
-    description: "Chennai's trusted pump supplier since 2008. 70+ products, workshop repair at Parrys.",
+    description: "Chennai's trusted supplier of water pumps, RO systems, water purifiers, pressure washers and industrial equipment since 2008. Sales, service and pump repair in Parrys, George Town.",
     url: '/',
     type: 'website',
   },
@@ -50,9 +50,9 @@ export default async function HomePage() {
           <div className="grid">
             <div className="copy">
               <span className="eyebrow">Pumps · Water Systems · Industrial Supply</span>
-              <h1>The right equipment, <em>backed by service.</em></h1>
+              <h1>Hirani Marketing Combines – Water Pumps, RO Systems &amp; Industrial Equipment in Chennai</h1>
               <p className="sub">
-                Chennai&rsquo;s single source for water pumps, RO &amp; filtration, fountains and hydraulic equipment — supplied to spec, with workshop repair &amp; servicing available at our Parrys shop.
+                Trusted since 2008 — water purifiers, RO water purifiers, RO spares, water filters, industrial pumps and pressure washers available from our Parrys, George Town shop. Sales, service and pump repair under one roof.
               </p>
               <div className="h-cta">
                 <Link className="btn btn-primary btn-lg" href="/catalogue">Browse the catalogue</Link>
@@ -121,8 +121,8 @@ export default async function HomePage() {
               <Link className="btn btn-ghost-light" href="/catalogue">View all</Link>
             </div>
             <div className="prod-grid prod-carousel" style={{ marginTop: 38 }}>
-              {displayProducts.map((p, index) => (
-                <ProductCard key={p.slug} p={p} dark priority={index < 4} />
+              {displayProducts.map((p) => (
+                <ProductCard key={p.slug} p={p} dark />
               ))}
             </div>
           </div>
@@ -158,6 +158,9 @@ export default async function HomePage() {
               <h2 style={{ fontSize: 'clamp(26px,3vw,36px)', marginTop: 14 }}>What is Hirani Marketing Combines?</h2>
               <p style={{ color: 'var(--slate)', fontSize: 16, lineHeight: 1.7, marginTop: 16 }}>
                 Hirani Marketing Combines is Chennai&rsquo;s leading pump and water-systems specialist. Since 2008, we have supplied and repaired industrial equipment, RO systems, and over 10,000 water pumps for homes, businesses, and manufacturing plants across Tamil Nadu.
+              </p>
+              <p style={{ color: 'var(--slate)', fontSize: 15.5, lineHeight: 1.7, marginTop: 12 }}>
+                Our Parrys, George Town shop stocks water purifiers, RO water purifiers, water filters, RO spares, industrial pumps, pressure washers and hydraulic equipment. We also offer pump repair and reconditioning — drop your equipment in for a same-day inspection and quote.
               </p>
               <div style={{ display: 'flex', gap: 12, marginTop: 26, flexWrap: 'wrap' }}>
                 <a className="btn btn-navy" href={CONTACT.phoneHref}><IconPhone />Call us</a>

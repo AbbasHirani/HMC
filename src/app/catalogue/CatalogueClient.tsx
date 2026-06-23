@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -16,27 +16,41 @@ interface Props {
   categories: Category[];
   products: Product[];
   useCases?: UseCaseOpt[];
+  /** Slug pre-selected from the URL path (e.g. /catalogue/chemical-pumps). */
+  initialCat?: string | null;
+  /** Slug pre-selected from the URL path (e.g. /catalogue/chemical-pumps/monoblock). */
+  initialSub?: string | null;
 }
 
-export default function CatalogueClient({ categories, products: allProducts, useCases = [] }: Props) {
+export default function CatalogueClient({ categories, products: allProducts, useCases = [], initialCat, initialSub }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [cat, setCat] = useState<string | null>(searchParams.get('cat'));
-  const [sub, setSub] = useState<string | null>(searchParams.get('sub'));
+  const [cat, setCat] = useState<string | null>(initialCat ?? searchParams.get('cat'));
+  const [sub, setSub] = useState<string | null>(initialSub ?? searchParams.get('sub'));
   const [brand, setBrand] = useState<string | null>(searchParams.get('brand'));
   const [uc, setUc] = useState<string | null>(searchParams.get('uc'));
   const [q, setQ] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const activeFilterCount = [cat, sub, brand, uc].filter(Boolean).length;
 
+  // Skip the very first render so we don't trigger a spurious navigation on mount.
+  const isInitialRender = useRef(true);
+
   useEffect(() => {
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+    // Build a clean path-based URL: /catalogue/[cat]/[sub]
+    let path = '/catalogue';
+    if (cat) path += `/${cat}`;
+    if (sub) path += `/${sub}`;
+    // Brand and use-case stay as query params (they are UI-only filters, not pages).
     const params = new URLSearchParams();
-    if (cat) params.set('cat', cat);
-    if (sub) params.set('sub', sub);
     if (brand) params.set('brand', brand);
     if (uc) params.set('uc', uc);
-    router.replace('/catalogue' + (params.toString() ? '?' + params.toString() : ''), { scroll: false });
+    router.replace(path + (params.toString() ? '?' + params.toString() : ''), { scroll: false });
   }, [cat, sub, brand, uc, router]);
 
   const catObj = cat ? categories.find(c => c.slug === cat) : null;
@@ -92,7 +106,7 @@ export default function CatalogueClient({ categories, products: allProducts, use
               <><span>/</span><Link href="/catalogue">Products</Link></>
             )}
             {cat && sub && (
-              <><span>/</span><Link href={`/catalogue?cat=${cat}`}>{catName(cat)}</Link></>
+              <><span>/</span><Link href={`/catalogue/${cat}`}>{catName(cat)}</Link></>
             )}
           </nav>
           <h1 style={{ fontSize: 'clamp(28px,3.4vw,40px)', marginTop: 8 }}>{title}</h1>

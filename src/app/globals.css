@@ -262,7 +262,7 @@ ul { list-style: none; }
 .heroB::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg,rgba(255,255,255,.4),#fff 86%); pointer-events: none; }
 .heroB .grid { position: relative; z-index: 2; display: grid; grid-template-columns: 1.04fr .96fr; gap: 58px; align-items: center; }
 .heroB .eyebrow { margin-bottom: 22px; }
-.heroB h1 { font-size: clamp(34px,4.3vw,55px); letter-spacing: -.035em; line-height: 1.04; color: var(--navy); }
+.heroB h1 { font-size: clamp(28px,3.6vw,46px); letter-spacing: -.03em; line-height: 1.06; color: var(--navy); }
 .heroB h1 em { font-style: normal; color: var(--orange); }
 .heroB .sub { color: var(--slate); font-size: 18px; line-height: 1.6; margin: 22px 0 0; max-width: 480px; }
 .heroB .h-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
@@ -569,7 +569,7 @@ ul { list-style: none; }
   .sec-head p { font-size: 14.5px; line-height: 1.6; margin-top: 10px; }
   .container { padding: 0 18px; }
   .heroB { padding: 44px 0 52px; }
-  .heroB h1 { font-size: clamp(30px, 9vw, 36px); line-height: 1.08; }
+  .heroB h1 { font-size: clamp(26px, 8vw, 32px); line-height: 1.1; }
   .heroB .sub { font-size: 15.5px; line-height: 1.55; margin-top: 16px; }
   .heroB .h-cta { margin-top: 24px; }
   .heroB .h-cta .btn { padding: 12px 18px; font-size: 13.5px; flex: 1; justify-content: center; text-align: center; min-width: max-content; }

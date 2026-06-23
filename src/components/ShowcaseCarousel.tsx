@@ -6,12 +6,12 @@ import Image from 'next/image';
 import type { Category } from '@/lib/data';
 
 const FALLBACK_SLIDES = [
-  { cat: 'Water Pumps',        name: 'Pressure Booster Pumps',   sub: 'Consistent pressure for buildings & pipelines',     priceLabel: 'Starting from', price: '₹5,800',   link: '/catalogue?cat=water-pumps', image: '' },
-  { cat: 'Water Filters & RO', name: 'Domestic RO Purifier',      sub: 'Safe, purified drinking water for homes & offices', priceLabel: 'Pricing',       price: 'On request', link: '/catalogue?cat=water-filters', image: '' },
-  { cat: 'Fountains',          name: 'Submersible Fountain Pump', sub: 'Smooth, energy-efficient water feature pump',       priceLabel: 'From',          price: '₹800',      link: '/catalogue?cat=fountains', image: '' },
-  { cat: 'Pressure Washers',   name: 'Electric Pressure Washer',  sub: 'Domestic & commercial high-pressure cleaning',      priceLabel: 'Starting from', price: '₹5,800',   link: '/catalogue?cat=pressure-washers', image: '' },
-  { cat: 'Hydraulic Equipment',name: 'Hydraulic Power Pack',      sub: 'Custom power units for industrial systems',         priceLabel: 'Pricing',       price: 'On request', link: '/catalogue?cat=hydraulic', image: '' },
-  { cat: 'Seals & Spare Parts',name: 'Mechanical Seals',          sub: 'Leak-free seals for pumps & rotating equipment',   priceLabel: 'Quick availability', price: 'On request', link: '/catalogue?cat=spares', image: '' },
+  { cat: 'Water Pumps',        name: 'Pressure Booster Pumps',   sub: 'Consistent pressure for buildings & pipelines',     priceLabel: 'Starting from', price: '₹5,800',   link: '/catalogue/water-pumps', image: '' },
+  { cat: 'Water Filters & RO', name: 'Domestic RO Purifier',      sub: 'Safe, purified drinking water for homes & offices', priceLabel: 'Pricing',       price: 'On request', link: '/catalogue/water-filters', image: '' },
+  { cat: 'Fountains',          name: 'Submersible Fountain Pump', sub: 'Smooth, energy-efficient water feature pump',       priceLabel: 'From',          price: '₹800',      link: '/catalogue/fountains', image: '' },
+  { cat: 'Pressure Washers',   name: 'Electric Pressure Washer',  sub: 'Domestic & commercial high-pressure cleaning',      priceLabel: 'Starting from', price: '₹5,800',   link: '/catalogue/pressure-washers', image: '' },
+  { cat: 'Hydraulic Equipment',name: 'Hydraulic Power Pack',      sub: 'Custom power units for industrial systems',         priceLabel: 'Pricing',       price: 'On request', link: '/catalogue/hydraulic', image: '' },
+  { cat: 'Seals & Spare Parts',name: 'Mechanical Seals',          sub: 'Leak-free seals for pumps & rotating equipment',   priceLabel: 'Quick availability', price: 'On request', link: '/catalogue/spares', image: '' },
 ];
 
 const INTERVAL = 3800;
@@ -24,6 +24,7 @@ export default function ShowcaseCarousel({ categories }: Props) {
   const [cur, setCur] = useState(0);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [visited, setVisited] = useState<Record<number, boolean>>({ 0: true });
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const rafRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -35,7 +36,7 @@ export default function ShowcaseCarousel({ categories }: Props) {
         sub: c.teaser || 'Explore our comprehensive range',
         priceLabel: 'Available',
         price: 'Explore',
-        link: `/catalogue?cat=${c.slug}`,
+        link: `/catalogue/${c.slug}`,
         image: c.imageUrl
       }))
     : FALLBACK_SLIDES;
@@ -71,6 +72,10 @@ export default function ShowcaseCarousel({ categories }: Props) {
     };
   }, [paused, startTimer]);
 
+  useEffect(() => {
+    setVisited(prev => (prev[cur] ? prev : { ...prev, [cur]: true }));
+  }, [cur]);
+
   const slide = slides[cur] || slides[0];
   if (!slide) return null;
 
@@ -82,17 +87,21 @@ export default function ShowcaseCarousel({ categories }: Props) {
       </div>
 
       <div className="sc-slides">
-        {slides.map((s, i) => (
-          <Link key={i} className={`sc-slide${i === cur ? ' active' : ''}`} href={s.link}>
-            {s.image ? (
-              <div style={{ position: 'relative', width: '100%', height: '100%', borderBottom: '1px solid var(--line)', backgroundColor: '#fff' }}>
-                <Image src={s.image} alt={s.name} fill style={{ objectFit: 'contain' }} sizes="(max-width: 680px) 100vw, 50vw" priority={i === 0} />
-              </div>
-            ) : (
-              <div className="ph" data-label={s.cat} style={{ height: '100%', borderRadius: 0, borderBottom: '1px solid var(--line)' }} />
-            )}
-          </Link>
-        ))}
+        {slides.map((s, i) => {
+          const isVisited = visited[i] || i === cur;
+          if (!isVisited) return null;
+          return (
+            <Link key={i} className={`sc-slide${i === cur ? ' active' : ''}`} href={s.link}>
+              {s.image ? (
+                <div style={{ position: 'relative', width: '100%', height: '100%', borderBottom: '1px solid var(--line)', backgroundColor: '#fff' }}>
+                  <Image src={s.image} alt={s.name} fill style={{ objectFit: 'contain' }} sizes="(max-width: 680px) 100vw, 50vw" priority={i === 0} />
+                </div>
+              ) : (
+                <div className="ph" data-label={s.cat} style={{ height: '100%', borderRadius: 0, borderBottom: '1px solid var(--line)' }} />
+              )}
+            </Link>
+          );
+        })}
 
         <div className="sc-dots">
           {slides.map((_, i) => (

@@ -19,6 +19,13 @@ export const metadata: Metadata = {
     canonical: '/ta/services',
     languages: { en: '/services', ta: '/ta/services', 'x-default': '/services' },
   },
+  openGraph: {
+    title: 'பம்ப் பழுது & சர்வீஸ் — சென்னை | Hirani Marketing Combines',
+    description: 'பம்ப் பழுது & மறுசீரமைப்பு, வாட்டர் ஃபில்டர் சர்வீஸ், கம்ப்ரசர் ஓவர்ஹால், ஹைட்ரோ டெஸ்ட் பம்ப் பழுது — சென்னை பாரிஸில். 17+ வருட அனுபவம்.',
+    url: '/ta/services',
+    type: 'website',
+    locale: 'ta_IN',
+  },
 };
 
 const SVCS = [

@@ -34,13 +34,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const categoryUrls: MetadataRoute.Sitemap = categories.map(c => ({
-    url: `${SITE}/catalogue?cat=${c.slug}`,
+    url: `${SITE}/catalogue/${c.slug}`,
     priority: 0.8,
     changeFrequency: 'weekly',
   }));
 
   const subcategoryUrls: MetadataRoute.Sitemap = categories.flatMap(c => c.subs.map(s => ({
-    url: `${SITE}/catalogue?cat=${c.slug}&amp;sub=${s.slug}`,
+    url: `${SITE}/catalogue/${c.slug}/${s.slug}`,
     priority: 0.7,
     changeFrequency: 'weekly',
   })));

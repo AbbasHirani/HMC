@@ -28,20 +28,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const autoTitle = p.brandName
     ? `${p.name} by ${p.brandName} — Buy in Chennai`
     : `${p.name} — Buy in Chennai`;
-  const autoDesc = p.desc
-    ? `${p.desc.slice(0, 140)}. Available at Hirani Marketing Combines, Parrys, Chennai.`
+
+  // Truncate at word boundary so the appended sentence doesn't look broken.
+  const descBase = p.desc && p.desc.length > 140
+    ? p.desc.slice(0, 140).replace(/\s+\S*$/, '') + '…'
+    : (p.desc ?? '');
+  const autoDesc = descBase
+    ? `${descBase} Available at Hirani Marketing Combines, Parrys, Chennai.`
     : `Buy ${p.name} in Chennai at Hirani Marketing Combines. Genuine product, expert advice, workshop servicing available.`;
+
   const autoKeywords = [
     p.name, p.brandName, p.subName, p.catName,
     ...(p.useCases ?? []),
     'Chennai', 'Hirani Marketing Combines',
   ].filter((k): k is string => Boolean(k));
 
-  const title = p.seo?.title || autoTitle;
+  const title       = p.seo?.title       || autoTitle;
   const description = p.seo?.description || autoDesc;
-  const keywords = p.seo?.keywords
+  const keywords    = p.seo?.keywords
     ? p.seo.keywords.split(',').map(k => k.trim()).filter(Boolean)
     : autoKeywords;
+
+  // Use the product's own first image for both OG and Twitter cards.
+  const productImage = p.images?.[0]?.url
+    ? [{ url: p.images[0].url, alt: p.images[0].alt || p.name }]
+    : undefined;
 
   return {
     // Absolute: skip the "| Hirani Marketing Combines" template so carefully
@@ -55,9 +66,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: `/product/${slug}`,
       type: 'website',
-      images: p.images?.[0]?.url
-        ? [{ url: p.images[0].url, alt: p.images[0].alt || p.name }]
-        : undefined,
+      images: productImage,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: productImage?.map(i => i.url),
     },
   };
 }
@@ -80,21 +95,29 @@ export default async function ProductPage({ params }: Props) {
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
+    '@id': `${SITE}/product/${slug}`,
     name: product.name,
     description: product.desc,
+    url: `${SITE}/product/${slug}`,
     image: product.images?.map(img => img.url) ?? [],
     brand: product.brandName
       ? { '@type': 'Brand', name: product.brandName }
       : undefined,
     offers: {
       '@type': 'Offer',
+      url: `${SITE}/product/${slug}`,
       priceCurrency: 'INR',
       price: product.price ?? undefined,
       priceSpecification: product.price
         ? undefined
         : { '@type': 'UnitPriceSpecification', description: 'Price on request' },
       availability: 'https://schema.org/InStock',
-      seller: { '@type': 'Organization', name: 'Hirani Marketing Combines' },
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: {
+        '@type': 'Organization',
+        name: 'Hirani Marketing Combines',
+        url: SITE,
+      },
     },
     category: product.catName ?? product.cat,
   };
@@ -105,7 +128,7 @@ export default async function ProductPage({ params }: Props) {
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home',     item: `${SITE}/` },
       { '@type': 'ListItem', position: 2, name: 'Products', item: `${SITE}/catalogue` },
-      { '@type': 'ListItem', position: 3, name: product.catName ?? product.cat, item: `${SITE}/catalogue?cat=${product.cat}` },
+      { '@type': 'ListItem', position: 3, name: product.catName ?? product.cat, item: `${SITE}/catalogue/${product.cat}` },
       { '@type': 'ListItem', position: 4, name: product.name, item: `${SITE}/product/${slug}` },
     ],
   };

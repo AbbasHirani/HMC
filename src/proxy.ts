@@ -9,7 +9,7 @@ const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 //  chat = public assistant, enquiries POST = public quote form, rate-limited.)
 const API_PUBLIC = new Set(['/api/admin/auth', '/api/admin/migrate', '/api/chat', '/api/enquiries']);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ── Admin pages: require a valid session, redirect to login otherwise ──

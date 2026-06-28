@@ -256,8 +256,8 @@ export default function ProductClient({ product: p, related = [], popular = [] }
               </div>
               <Link className="btn btn-ghost" href={`/catalogue/${p.cat}/${p.sub}`}>View all</Link>
             </div>
-            <div className="prod-grid" style={{ marginTop: 36 }}>
-              {related.map(r => <ProductCard key={r.slug} p={r} />)}
+            <div style={{ display: 'flex', gap: 20, marginTop: 24, overflowX: 'auto', paddingBottom: 16, WebkitOverflowScrolling: 'touch', scrollSnapType: 'x mandatory', margin: '24px -20px 0', padding: '0 20px 16px' }}>
+              {related.map(r => <div key={r.slug} style={{ flex: '0 0 240px', scrollSnapAlign: 'start' }}><ProductCard p={r} /></div>)}
             </div>
           </div>
         </section>
@@ -270,8 +270,8 @@ export default function ProductClient({ product: p, related = [], popular = [] }
               <span className="eyebrow">Popular right now</span>
               <h2>People also enquired about</h2>
             </div>
-            <div className="prod-grid" style={{ marginTop: 36 }}>
-              {popular.map(r => <ProductCard key={r.slug} p={r} />)}
+            <div style={{ display: 'flex', gap: 20, marginTop: 24, overflowX: 'auto', paddingBottom: 16, WebkitOverflowScrolling: 'touch', scrollSnapType: 'x mandatory', margin: '24px -20px 0', padding: '0 20px 16px' }}>
+              {popular.map(r => <div key={r.slug} style={{ flex: '0 0 240px', scrollSnapAlign: 'start' }}><ProductCard p={r} /></div>)}
             </div>
           </div>
         </section>

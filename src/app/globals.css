@@ -151,6 +151,13 @@ ul { list-style: none; }
 
 /* ---------- product card ---------- */
 .prod-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+.prod-scroll { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 16px; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; scrollbar-width: none; margin-right: -28px; padding-right: 28px; }
+.prod-scroll::-webkit-scrollbar { display: none; }
+.prod-scroll > * { flex: 0 0 260px; scroll-snap-align: start; }
+@media(max-width:680px) {
+  .prod-scroll { margin-right: -20px; padding-right: 20px; gap: 16px; }
+  .prod-scroll > * { flex: 0 0 230px; }
+}
 .prod-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; transition: all .25s cubic-bezier(0.4, 0, 0.2, 1); }
 .prod-card:hover { box-shadow: 0 12px 30px rgba(20,20,63,.08); border-color: var(--navy-500); transform: translateY(-4px); }
 .prod-card .ph { height: 184px; border-radius: 0; border-bottom: 1px solid var(--line); }

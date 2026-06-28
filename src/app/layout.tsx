@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { jsonLd } from '@/lib/jsonLd';
 import ClientChatAssistant from '@/components/ClientChatAssistant';
+import { Analytics } from '@vercel/analytics/react';
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
 
@@ -126,6 +127,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <ClientChatAssistant />
+        <Analytics />
       </body>
     </html>
   );

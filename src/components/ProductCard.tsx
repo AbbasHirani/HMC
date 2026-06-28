@@ -33,7 +33,7 @@ export default function ProductCard({ p, dark, priority }: { p: Product; dark?: 
             {p.brandLogo
               ? (
                 <div style={{ height: 22, maxWidth: 70, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <img src={p.brandLogo} alt={p.brandName ?? p.brand ?? ''} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', display: 'block' }} />
+                  <img src={p.brandLogo} alt={p.brandName ?? p.brand ?? ''} loading="lazy" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', display: 'block' }} />
                 </div>
               )
               : <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--navy)', letterSpacing: '.04em', textTransform: 'uppercase' }}>{p.brandName ?? p.brand}</span>

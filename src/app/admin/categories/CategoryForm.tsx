@@ -48,6 +48,9 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState('');
+  const [subAiBusy, setSubAiBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function onNameChange(v: string) {
@@ -91,6 +94,59 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
   function saveEditSub(idx: number) {
     setSubs(prev => prev.map((s, i) => i === idx ? { ...s, name: editSubName, slug: slugify(editSubName), blurb: editSubBlurb, seo: { title: editSubSeoTitle, description: editSubSeoDescription } } : s));
     setEditSubId(null);
+  }
+
+  async function generateSeoWithAi() {
+    if (!name.trim()) { setAiError('Fill in the category name first.'); return; }
+    setAiBusy(true); setAiError('');
+    try {
+      const res = await fetch('/api/admin/category-seo-suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          teaser,
+          subs: subs.map(s => s.name),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setAiError(data.error ?? 'AI generation failed.'); return; }
+      setSeoTitle(data.title ?? '');
+      setSeoDescription(data.description ?? '');
+      setSeoKeywords(data.keywords ?? '');
+      if (data.teaser) setTeaser(data.teaser);
+      if (data.footText) setFootText(data.footText);
+    } catch {
+      setAiError('Could not reach the AI service.');
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
+  async function generateSubSeoWithAi() {
+    if (!editSubName.trim()) return;
+    setSubAiBusy(true);
+    try {
+      const res = await fetch('/api/admin/category-seo-suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editSubName,
+          teaser: editSubBlurb,
+          subs: [],
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEditSubSeoTitle(data.title ?? '');
+        setEditSubSeoDescription(data.description ?? '');
+        if (data.teaser) setEditSubBlurb(data.teaser);
+      }
+    } catch {
+      // Silently fail for subcategories or show a toast if we had one
+    } finally {
+      setSubAiBusy(false);
+    }
   }
 
   async function save() {
@@ -173,8 +229,8 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
         </div>
         <div className="form-row single">
           <div className="form-field">
-            <label>Teaser <span className="opt">(short tag-line for category card)</span></label>
-            <input value={teaser} onChange={e => setTeaser(e.target.value)} placeholder="Domestic · booster · sewage · dewatering" />
+            <label>Teaser <span className="opt">(short descriptive sentence for category card)</span></label>
+            <textarea value={teaser} onChange={e => setTeaser(e.target.value)} placeholder="Explore our range of high-performance pumps suitable for industrial and residential applications." className="adm-input" style={{ minHeight: 60, padding: '7px 12px', resize: 'vertical' }} />
           </div>
         </div>
         <div className="form-row single">
@@ -187,7 +243,25 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
 
       {/* Category SEO */}
       <div className="adm-form-section">
-        <h3>SEO Settings <span style={{ fontWeight: 400, fontSize: 11, color: '#9ca3af', textTransform: 'none' }}>(optional)</span></h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
+          <h3 style={{ margin: 0 }}>SEO Settings <span style={{ fontWeight: 400, fontSize: 11, color: '#9ca3af', textTransform: 'none' }}>(optional)</span></h3>
+          <button
+            type="button"
+            onClick={generateSeoWithAi}
+            disabled={aiBusy}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '6px 12px', borderRadius: 6,
+              background: aiBusy ? '#e5e7eb' : 'linear-gradient(135deg, #1E1D5C, #4338ca)',
+              color: aiBusy ? '#9ca3af' : '#fff', border: 'none', cursor: aiBusy ? 'wait' : 'pointer',
+              fontSize: 12, fontWeight: 600, transition: 'opacity .15s',
+            }}
+          >
+            <span style={{ fontSize: 14 }}>✨</span>
+            {aiBusy ? 'Generating…' : 'Auto-fill SEO & Copy'}
+          </button>
+        </div>
+        {aiError && <div className="adm-err" style={{ marginBottom: 12 }}>{aiError}</div>}
         <div className="form-row single">
           <div className="form-field">
             <label>Custom Meta Title</label>
@@ -258,21 +332,39 @@ export default function CategoryForm({ mode, id, initial, initialSubs = [] }: Pr
                       placeholder="Optional blurb/description for this subcategory..."
                       style={{ minHeight: 60, padding: '7px 12px', resize: 'vertical' }}
                     />
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <input
-                        value={editSubSeoTitle}
-                        onChange={e => setEditSubSeoTitle(e.target.value)}
-                        className="adm-input"
-                        placeholder="Custom Meta Title..."
-                        style={{ padding: '7px 12px', flex: 1 }}
-                      />
-                      <input
-                        value={editSubSeoDescription}
-                        onChange={e => setEditSubSeoDescription(e.target.value)}
-                        className="adm-input"
-                        placeholder="Custom Meta Description..."
-                        style={{ padding: '7px 12px', flex: 2 }}
-                      />
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
+                        <input
+                          value={editSubSeoTitle}
+                          onChange={e => setEditSubSeoTitle(e.target.value)}
+                          className="adm-input"
+                          placeholder="Custom Meta Title..."
+                          style={{ padding: '7px 12px' }}
+                        />
+                        <input
+                          value={editSubSeoDescription}
+                          onChange={e => setEditSubSeoDescription(e.target.value)}
+                          className="adm-input"
+                          placeholder="Custom Meta Description..."
+                          style={{ padding: '7px 12px' }}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={generateSubSeoWithAi}
+                        disabled={subAiBusy}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          padding: '6px 10px', borderRadius: 6,
+                          background: subAiBusy ? '#e5e7eb' : '#fff',
+                          color: subAiBusy ? '#9ca3af' : 'var(--navy)',
+                          border: '1px solid #e5e7eb', cursor: subAiBusy ? 'wait' : 'pointer',
+                          fontSize: 11, fontWeight: 600, flexShrink: 0,
+                        }}
+                      >
+                        <span style={{ fontSize: 13 }}>✨</span>
+                        {subAiBusy ? 'Wait…' : 'Auto-fill SEO & Desc'}
+                      </button>
                     </div>
                   </div>
                 ) : (

@@ -84,7 +84,7 @@ export default async function TamilHomePage() {
                   <span>Kent · Aquaguard · CRI</span>
                 </div>
               </div>
-              <ShowcaseCarousel />
+              <ShowcaseCarousel categories={categories} />
             </div>
           </div>
         </div>
@@ -131,7 +131,7 @@ export default async function TamilHomePage() {
               </div>
               <Link className="btn btn-ghost-light" href="/catalogue">அனைத்தும்</Link>
             </div>
-            <div className="prod-grid" style={{ marginTop: 38 }}>
+            <div className="prod-grid prod-carousel" style={{ marginTop: 38 }}>
               {displayProducts.map((p) => (
                 <ProductCard key={p.slug} p={p} dark />
               ))}
@@ -148,7 +148,7 @@ export default async function TamilHomePage() {
             <h2>பழுது பார்த்தல், மறுசீரமைப்பு &amp; பராமரிப்பு</h2>
             <p>பம்புகள், ஃபில்டர்கள், கம்ப்ரசர்கள் — உங்கள் உபகரணங்களை எங்கள் சொந்த டீம் சரி செய்கிறது.</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 18, marginTop: 40 }}>
+          <div className="svc-grid" style={{ marginTop: 40 }}>
             {SVCS_TA.map((s, i) => (
               <div className="svc-card" key={i}>
                 <span className="trust-ic"><IconWrench /></span>
@@ -163,7 +163,7 @@ export default async function TamilHomePage() {
       {/* ABOUT & BRANDS */}
       <section className="section" id="about" style={{ background: 'var(--paper)', borderTop: '1px solid var(--line)' }}>
         <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 56, alignItems: 'center' }}>
+          <div className="about-grid">
             <div>
               <span className="eyebrow">எங்களை பற்றி</span>
               <h2 style={{ fontSize: 'clamp(26px,3vw,36px)', marginTop: 14 }}>சென்னை ஹார்டுவேர் வியாபாரத்தில் நம்பகமான பெயர்</h2>
@@ -175,53 +175,55 @@ export default async function TamilHomePage() {
                 <Link className="btn btn-ghost" href="/catalogue">பொருட்களை பாருங்கள்</Link>
               </div>
             </div>
-            <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 20px 60px rgba(20,20,63,.13)', position: 'relative', height: 420 }}>
+            <div className="about-img-wrap">
               <Image src="/shop.jpg" alt="ஹிரானி மார்க்கெட்டிங் கம்பைன்ஸ் — பாரிஸ் கடை" fill style={{ objectFit: 'cover', objectPosition: 'center' }} sizes="(max-width: 768px) 100vw, 50vw" />
             </div>
           </div>
           <p style={{ fontFamily: 'var(--font-head)', fontWeight: 700, color: 'var(--muted)', fontSize: 12, letterSpacing: '.14em', textTransform: 'uppercase', margin: '54px 0 18px', textAlign: 'center' }}>
             நாங்கள் விற்கும் நம்பகமான பிராண்டுகள்
           </p>
-          <BrandsStrip />
+          <div className="brands-full-wrapper">
+            <BrandsStrip />
+          </div>
         </div>
       </section>
 
       {/* FIND US */}
       <section className="section" style={{ background: '#fff', borderTop: '1px solid var(--line)' }}>
         <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 40, alignItems: 'center' }}>
+          <div className="find-us-grid">
             <div>
               <span className="eyebrow">கடைக்கு வாருங்கள்</span>
               <h2 style={{ fontSize: 'clamp(24px,3vw,34px)', marginTop: 12 }}>எங்கள் முகவரி</h2>
-              <p style={{ color: 'var(--slate)', fontSize: 15.5, lineHeight: 1.75, marginTop: 14 }}>
+              <p className="find-us-text">
                 பம்புகள், தண்ணீர் சிஸ்டம், ஆலோசனை — பாரிஸ் கடைக்கு நேரில் வாருங்கள். பழுது பார்க்க உபகரணத்தையும் கொண்டு வரலாம்.
               </p>
 
-              <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: 20, marginTop: 2 }}>📍</span>
+              <div className="find-us-list">
+                <div className="find-us-item">
+                  <span className="fu-ic">📍</span>
                   <div>
-                    <b style={{ display: 'block', fontSize: 14, color: 'var(--navy)', marginBottom: 2 }}>முகவரி</b>
-                    <span style={{ color: 'var(--slate)', fontSize: 15 }}>Old No.133 / New No.279, Thambu Chetty St,<br />TNEB ஆபீஸ் எதிரில், Parrys, George Town,<br />Chennai – 600001</span>
+                    <b>முகவரி</b>
+                    <span>Old No.133 / New No.279, Thambu Chetty St,<br />TNEB ஆபீஸ் எதிரில், Parrys, George Town,<br />Chennai – 600001</span>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: 20, marginTop: 2 }}>📞</span>
+                <div className="find-us-item">
+                  <span className="fu-ic">📞</span>
                   <div>
-                    <b style={{ display: 'block', fontSize: 14, color: 'var(--navy)', marginBottom: 2 }}>போன்</b>
-                    <a href={CONTACT.phoneHref} style={{ color: 'var(--slate)', fontSize: 15, textDecoration: 'none' }}>{CONTACT.phone}</a>
+                    <b>போன்</b>
+                    <a href={CONTACT.phoneHref}>{CONTACT.phone}</a>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: 20, marginTop: 2 }}>✉️</span>
+                <div className="find-us-item">
+                  <span className="fu-ic">✉️</span>
                   <div>
-                    <b style={{ display: 'block', fontSize: 14, color: 'var(--navy)', marginBottom: 2 }}>மின்னஞ்சல்</b>
-                    <a href={`mailto:${CONTACT.email}`} style={{ color: 'var(--slate)', fontSize: 15, textDecoration: 'none' }}>{CONTACT.email}</a>
+                    <b>மின்னஞ்சல்</b>
+                    <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
+              <div className="find-us-cta">
                 <a
                   className="btn btn-primary"
                   href="https://share.google/KeoILUOJjoljr4Pby"
@@ -232,7 +234,7 @@ export default async function TamilHomePage() {
               </div>
             </div>
 
-            <div style={{ borderRadius: 16, overflow: 'hidden', border: '1px solid var(--line)', height: 380, boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
+            <div className="find-us-map">
               <iframe
                 src="https://maps.google.com/maps?q=Hirani+Marketing+Combines+Parrys+Chennai&output=embed&hl=ta"
                 width="100%"
@@ -257,7 +259,7 @@ export default async function TamilHomePage() {
                 <h2>உங்கள் தேவையை சொல்லுங்கள்</h2>
                 <p>சரியான பம்பையும் விலையையும் அன்றே சொல்கிறோம்.</p>
               </div>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <div className="cta-band-btns">
                 <a className="btn btn-primary btn-lg" href={CONTACT.phoneHref}><IconPhone />இப்போது அழைக்கவும்</a>
                 <a className="btn btn-ghost-light btn-lg" href={WA} target="_blank" rel="noopener noreferrer"><IconWA />WhatsApp</a>
               </div>

@@ -51,9 +51,43 @@ export default function ProductClient({ product: p, related = [], popular = [] }
     } catch { /* localStorage unavailable */ }
   }, [p.slug, p.name, p.price, p.images]);
 
-  // Optimized Cloudinary delivery (WebP/AVIF + auto quality) for all gallery images.
-  const imgs = (p.images ?? []).map(img => ({ ...img, url: cdn(img.url) }));
-  const mainImage = imgs[activeThumb]?.url ?? imgs[0]?.url;
+  // Combine images and videos for the gallery
+  type MediaItem = { type: 'image'; url: string; alt?: string } | { type: 'youtube' | 'cloudinary-video'; url: string; thumbUrl?: string };
+  const imgs = (p.images ?? []).map(img => ({ type: 'image' as const, url: cdn(img.url), alt: img.alt }));
+  const vids = (p.videos ?? []).map(vid => {
+    let finalUrl = vid.url;
+    let thumbUrl = '';
+    if (vid.type === 'cloudinary') {
+      // Ensure a playable extension is present
+      if (!/\.(mp4|webm|mov|mkv)$/i.test(finalUrl)) {
+        finalUrl += '.mp4';
+      }
+      thumbUrl = finalUrl.replace(/\.(mp4|webm|mov|mkv)$/i, '.jpg');
+    } else if (vid.type === 'youtube') {
+      // Normalise all YouTube URL formats to an embed URL
+      let videoId = '';
+      try {
+        if (finalUrl.includes('youtu.be/')) {
+          videoId = finalUrl.split('youtu.be/')[1]?.split('?')[0] ?? '';
+        } else if (finalUrl.includes('youtube.com')) {
+          videoId = new URL(finalUrl).searchParams.get('v') ?? '';
+          // already an embed URL — extract from path
+          if (!videoId && finalUrl.includes('/embed/')) {
+            videoId = finalUrl.split('/embed/')[1]?.split('?')[0] ?? '';
+          }
+        }
+      } catch { /* malformed URL – leave as-is */ }
+      if (videoId) {
+        finalUrl = `https://www.youtube.com/embed/${videoId}`;
+        thumbUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      }
+    }
+    return { type: vid.type === 'youtube' ? 'youtube' as const : 'cloudinary-video' as const, url: finalUrl, thumbUrl };
+  });
+  const media: MediaItem[] = [...imgs, ...vids];
+
+  const activeMedia = media[activeThumb] ?? imgs[0] ?? null;
+
   // Admin-set alt text wins; otherwise auto-generate from product name.
   const imgAlt = (i: number) =>
     p.images?.[i]?.alt
@@ -63,9 +97,6 @@ export default function ProductClient({ product: p, related = [], popular = [] }
     ['Product type', p.subName],
     ...Object.entries(p.specs ?? {}),
   ];
-  const thumbs = imgs.length
-    ? imgs
-    : THUMB_LABELS.map(() => ({ url: '', publicId: '' }));
 
   return (
     <>
@@ -88,28 +119,85 @@ export default function ProductClient({ product: p, related = [], popular = [] }
                     {p.tag}
                   </span>
                 )}
-                {mainImage
-                  ? <ImageZoom
-                      src={mainImage}
-                      alt={imgAlt(activeThumb)}
+                {activeMedia ? (
+                  activeMedia.type === 'image' ? (
+                    <ImageZoom
+                      src={activeMedia.url}
+                      alt={activeMedia.alt || imgAlt(activeThumb)}
                       height="100%"
-                      allImages={imgs}
-                      activeIndex={activeThumb}
+                      allImages={imgs.map(i => ({ url: i.url }))}
+                      activeIndex={Math.min(activeThumb, imgs.length - 1)}
                       onIndexChange={setActiveThumb}
                     />
-                  : <div className="ph" data-label={p.name} style={{ height: '100%', borderRadius: 0 }} />
-                }
-                <span className="img-count">{activeThumb + 1} / {thumbs.length}</span>
+                  ) : activeMedia.type === 'youtube' ? (
+                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                      <iframe
+                        src={activeMedia.url}
+                        style={{ width: '100%', height: '100%', border: 'none', borderRadius: '12px' }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        onError={(e) => {
+                          // If YouTube embedding is disabled, show a fallback overlay
+                          const iframe = e.currentTarget;
+                          const parent = iframe.parentElement;
+                          if (parent) {
+                            iframe.style.display = 'none';
+                            const fallback = parent.querySelector('.yt-fallback') as HTMLElement | null;
+                            if (fallback) fallback.style.display = 'flex';
+                          }
+                        }}
+                      />
+                      {/* Shown only if iframe errors (embedding disabled by uploader) */}
+                      <div className="yt-fallback" style={{ display: 'none', position: 'absolute', inset: 0, background: '#000', borderRadius: '12px', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+                        {activeMedia.thumbUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={activeMedia.thumbUrl} alt="Video" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4, borderRadius: '12px' }} />
+                        )}
+                        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+                          <p style={{ color: '#fff', marginBottom: 12, fontSize: 14 }}>This video cannot be embedded.</p>
+                          <a href={activeMedia.url.replace('/embed/', '/watch?v=')} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#ff0000', color: '#fff', padding: '10px 20px', borderRadius: 8, fontWeight: 600, textDecoration: 'none', fontSize: 14 }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                            Watch on YouTube
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <video
+                      src={activeMedia.url}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000', borderRadius: '12px' }}
+                      controls
+                      autoPlay
+                      muted
+                      playsInline
+                    />
+                  )
+                ) : <div className="ph" data-label={p.name} style={{ height: '100%', borderRadius: 0 }} />}
+                <span className="img-count">{activeThumb + 1} / {media.length || THUMB_LABELS.length}</span>
               </div>
               <div className="thumbs">
-                {thumbs.map((img, i) => (
+                {media.length > 0 ? media.map((item, i) => (
                   <div key={i} className={`thumb-ph${i === activeThumb ? ' active' : ''}`} onClick={() => setActiveThumb(i)}>
-                    {img.url ? (
+                    {item.type === 'image' ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={img.url} alt={imgAlt(i)} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }} />
+                      <img src={item.url} alt={item.alt || imgAlt(i)} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }} />
                     ) : (
-                      <div className="ph" data-label={THUMB_LABELS[i] ?? `View ${i + 1}`} style={{ height: '100%', borderRadius: 0 }} />
+                      <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000', borderRadius: '4px', overflow: 'hidden' }}>
+                        {item.thumbUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={item.thumbUrl} alt="Video thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
+                        )}
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                          </svg>
+                        </div>
+                      </div>
                     )}
+                  </div>
+                )) : THUMB_LABELS.map((label, i) => (
+                  <div key={i} className="thumb-ph">
+                    <div className="ph" data-label={label} style={{ height: '100%', borderRadius: 0 }} />
                   </div>
                 ))}
               </div>

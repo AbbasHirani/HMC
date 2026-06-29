@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
       category_id, subcategory_id,
       category_slug, subcategory_slug,
       category_name, subcategory_name,
-      price, tag, featured, images, specs, brand, seo
+      price, tag, featured, images, videos, specs, brand, seo
     ) VALUES (
       ${body.slug}, ${body.name}, ${body.desc ?? ''},
       ${body.categoryId}, ${body.subcategoryId},
@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
       ${body.price ?? null}, ${body.tag ?? null},
       ${body.featured ?? false},
       ${JSON.stringify(body.images ?? [])}::jsonb,
+      ${JSON.stringify(body.videos ?? [])}::jsonb,
       ${JSON.stringify(body.specs ?? {})}::jsonb,
       ${body.brand ?? null},
       ${JSON.stringify(body.seo ?? {})}::jsonb

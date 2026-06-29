@@ -163,6 +163,7 @@ function toProduct(row: Record<string, unknown>): Product {
     tag: (row.tag as string | null) ?? null,
     featured: (row.featured as boolean) ?? false,
     images: (row.images as Array<{ url: string; publicId: string; alt?: string }>) ?? [],
+    videos: (row.videos as Array<{ type: 'cloudinary' | 'youtube'; url: string; publicId?: string }>) ?? [],
     specs: (row.specs as Record<string, string>) ?? {},
     brand: (row.brand as string | null) ?? null,
     brandName: (row.brand_display_name as string | null) ?? null,

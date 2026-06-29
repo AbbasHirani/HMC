@@ -26,6 +26,14 @@ export const metadata: Metadata = {
     description: "Chennai's trusted supplier of water pumps, RO systems, water purifiers, pressure washers and industrial equipment since 2008. Sales, service and pump repair in Parrys, George Town.",
     url: '/',
     type: 'website',
+    images: [
+      {
+        url: '/logo-stacked.png',
+        width: 1200,
+        height: 630,
+        alt: 'Hirani Marketing Combines Logo',
+      },
+    ],
   },
 };
 

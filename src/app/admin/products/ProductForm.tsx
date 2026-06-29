@@ -16,6 +16,7 @@ interface Sub { _id: string; name: string; slug: string; categoryId: string; }
 interface BrandOpt { _id: string; name: string; slug: string; logoUrl?: string | null; }
 interface UseCaseOpt { _id: string; name: string; slug: string; }
 interface ImgEntry { url: string; publicId: string; alt?: string; }
+interface VidEntry { type: 'cloudinary' | 'youtube'; url: string; publicId?: string; }
 interface SpecRow { key: string; value: string; }
 interface SeoData { title?: string; description?: string; keywords?: string; }
 
@@ -33,6 +34,11 @@ type ImgState =
       uploadProgress?: number;
     };
 
+type VidState =
+  | { id?: string; stateType: 'existing'; type: 'cloudinary' | 'youtube'; url: string; publicId?: string }
+  | { id: string; stateType: 'new_youtube'; type: 'youtube'; url: string }
+  | { id: string; stateType: 'new_upload'; type: 'cloudinary'; file: File; previewUrl: string; uploadProgress?: number };
+
 interface Props {
   mode: 'new' | 'edit';
   id?: string;
@@ -46,6 +52,7 @@ interface Props {
     brand: string;
     specs: Record<string, string>;
     images: ImgEntry[];
+    videos?: VidEntry[];
     useCaseIds: string[];
     seo?: SeoData;
   };
@@ -71,6 +78,23 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
     initial?.images?.map(img => ({ id: img.publicId, type: 'existing', url: img.url, publicId: img.publicId, alt: img.alt ?? '' })) ?? []
   );
   const [deletedPublicIds, setDeletedPublicIds] = useState<string[]>([]);
+  const [videos, setVideos] = useState<VidState[]>(
+    initial?.videos?.map((v, i) => {
+      let finalUrl = v.url;
+      if (v.type === 'cloudinary') {
+        if (!/\.(mp4|webm|mov|mkv)$/i.test(finalUrl)) {
+          finalUrl += '.mp4';
+        }
+        if (!finalUrl.includes('/vc_auto/')) {
+          finalUrl = finalUrl.replace('/upload/', '/upload/vc_auto/');
+        }
+      }
+      return { id: `vid-${i}`, stateType: 'existing', type: v.type, url: finalUrl, publicId: v.publicId };
+    }) ?? []
+  );
+  const [deletedVideoPublicIds, setDeletedVideoPublicIds] = useState<string[]>([]);
+  const videoFileRef = useRef<HTMLInputElement>(null);
+  const [ytInput, setYtInput] = useState('');
 
   // Compression settings (adjustable in UI)
   const [compressMaxWidth, setCompressMaxWidth] = useState<number>(2048);
@@ -228,6 +252,39 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
     setImages(prev => prev.filter((_, i) => i !== idx));
   }
 
+  function handleVideoSelect(files: FileList) {
+    if (files && files.length > 0) {
+      let file = files[0];
+      // On some OSes, file.type might be empty or generic. Force it for common extensions.
+      if (!file.type || file.type === 'application/octet-stream') {
+        const ext = file.name.split('.').pop()?.toLowerCase();
+        let mime = 'video/mp4';
+        if (ext === 'webm') mime = 'video/webm';
+        else if (ext === 'mov') mime = 'video/quicktime';
+        file = new File([file], file.name, { type: mime });
+      }
+      
+      setVideos(prev => [...prev, {
+        id: generateTmpId(), stateType: 'new_upload', type: 'cloudinary', file, previewUrl: URL.createObjectURL(file), uploadProgress: 0
+      }]);
+    }
+  }
+
+  function addYoutubeVideo() {
+    if (!ytInput.trim()) return;
+    setVideos(prev => [...prev, { id: generateTmpId(), stateType: 'new_youtube', type: 'youtube', url: ytInput.trim() }]);
+    setYtInput('');
+  }
+
+  function removeVideo(idx: number) {
+    const vid = videos[idx] as any;
+    if (vid.stateType === 'existing' && vid.type === 'cloudinary' && vid.publicId) {
+      setDeletedVideoPublicIds(prev => [...prev, vid.publicId]);
+    }
+    if (vid.stateType === 'new_upload' && vid.previewUrl) URL.revokeObjectURL(vid.previewUrl);
+    setVideos(prev => prev.filter((_, i) => i !== idx));
+  }
+
   function makeMain(idx: number) {
     if (idx === 0) return;
     setImages(prev => {
@@ -346,7 +403,10 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
 
     // 1. Process deletes
     for (const pid of deletedPublicIds) {
-      await fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ publicId: pid }) });
+      await fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ publicId: pid, resourceType: 'image' }) });
+    }
+    for (const pid of deletedVideoPublicIds) {
+      await fetch('/api/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ publicId: pid, resourceType: 'video' }) });
     }
 
     // 2. Process uploads (with per-image progress)
@@ -399,12 +459,31 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
       }
     }
 
+    const finalVideos: VidEntry[] = [];
+    for (const vid of videos as any[]) {
+      if (vid.stateType === 'existing' || vid.stateType === 'new_youtube') {
+        finalVideos.push({ type: vid.type, url: vid.url, publicId: vid.publicId });
+      } else if (vid.stateType === 'new_upload') {
+        const publicId = slugify(name || 'product') + '-vid-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+        try {
+          const result = await uploadWithProgress(vid.file, folder, publicId, (p) => {
+            setVideos(prev => prev.map(it => it.id === vid.id ? { ...it, uploadProgress: p } : it));
+          });
+          if (result?.url) finalVideos.push({ type: 'cloudinary', url: result.url, publicId: result.publicId });
+        } catch (err) {
+          setError('Video upload failed.');
+          setSaving(false);
+          return;
+        }
+      }
+    }
+
     const body = {
       name, slug,
       categoryId: catId, categorySlug: selectedCat.slug, categoryName: selectedCat.name,
       subcategoryId: subId, subcategorySlug: selectedSub.slug, subcategoryName: selectedSub.name,
       desc, price: price ? Number(price) : null,
-      tag: tag || null, featured, brand: brand || null, images: finalImages, specs: specsRecord,
+      tag: tag || null, featured, brand: brand || null, images: finalImages, videos: finalVideos, specs: specsRecord,
       useCaseIds: selectedUseCases,
       seo: {
         title: seoTitle.trim() || undefined,
@@ -717,6 +796,73 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
                       ) : null}
                       <span className="hint">Describes the image for Google &amp; screen readers. Blank = auto-generated.</span>
                     </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Videos */}
+      <div className="adm-form-section">
+        <h3>Product videos <span style={{ fontWeight: 400, fontSize: 11, color: '#9ca3af', textTransform: 'none' }}>(optional)</span></h3>
+        
+        <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
+          <button type="button" className="btn-adm btn-adm-ghost" onClick={() => videoFileRef.current?.click()}>
+            Upload Video (MP4/WebM)
+          </button>
+          <input ref={videoFileRef} type="file" accept="video/mp4,video/webm,video/quicktime" style={{ display: 'none' }} onChange={e => e.target.files && handleVideoSelect(e.target.files)} />
+          <div style={{ display: 'flex', flex: 1, gap: 8 }}>
+            <input value={ytInput} onChange={e => setYtInput(e.target.value)} placeholder="Or paste YouTube URL here..." style={{ flex: 1 }} />
+            <button type="button" className="btn-adm btn-adm-ghost" onClick={addYoutubeVideo}>Add YouTube</button>
+          </div>
+        </div>
+
+        {videos.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {videos.map((vid: any, i) => {
+              const uploadProgress = vid.uploadProgress;
+              return (
+                <div key={vid.id ?? i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '10px 12px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, position: 'relative' }}>
+                  <button className="img-del" type="button" onClick={() => removeVideo(i)} style={{ position: 'absolute', top: 6, right: 6, zIndex: 10 }}>×</button>
+                  <div style={{ flexShrink: 0, width: 180, height: 100, background: '#000', borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
+                    {vid.type === 'youtube' ? (
+                      <iframe width="180" height="100" src={vid.url.includes('watch?v=') ? vid.url.replace('watch?v=', 'embed/') : vid.url} frameBorder="0" allowFullScreen></iframe>
+                    ) : (
+                      <>
+                        <video 
+                          src={vid.stateType === 'existing' ? vid.url : vid.previewUrl} 
+                          width="180" 
+                          height="100" 
+                          style={{ objectFit: 'cover' }} 
+                          controls 
+                          muted 
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            if (e.currentTarget.nextElementSibling) {
+                              (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
+                            }
+                          }}
+                        />
+                        <div style={{ display: 'none', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', background: '#374151', color: '#9ca3af', fontSize: 11, textAlign: 'center', padding: 8, lineHeight: 1.4 }}>
+                          Preview unavailable<br/>(will process on upload)
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>
+                      {vid.type === 'youtube' ? 'YouTube Video' : 'Uploaded Video'}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4, wordBreak: 'break-all' }}>
+                      {vid.type === 'youtube' ? vid.url : vid.stateType === 'existing' ? vid.url : vid.file?.name}
+                    </div>
+                    {uploadProgress !== undefined && uploadProgress > 0 && (
+                      <div style={{ width: '100%', background: '#fff', border: '1px solid #e5e7eb', height: 8, borderRadius: 6, overflow: 'hidden', marginTop: 8 }}>
+                        <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'linear-gradient(90deg,#1E1D5C,#4338ca)' }} />
+                      </div>
+                    )}
                   </div>
                 </div>
               );

@@ -77,6 +77,7 @@ export interface Product {
   tag: string | null;
   featured: boolean;
   images: Array<{ url: string; publicId: string; alt?: string }>;
+  videos?: Array<{ type: 'cloudinary' | 'youtube'; url: string; publicId?: string }>;
   specs: Record<string, string>;
   brand?: string | null;
   brandName?: string | null;

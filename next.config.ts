@@ -5,7 +5,8 @@ const isDev = process.env.NODE_ENV !== 'production';
 // Content-Security-Policy tuned to what the site actually loads:
 //  - Google Fonts (fonts.googleapis.com / fonts.gstatic.com)
 //  - Google Maps embed (frame-src)
-//  - Cloudinary images (res.cloudinary.com)
+//  - Cloudinary images + videos (res.cloudinary.com)
+//  - YouTube embeds (frame-src)
 //  - same-origin /api/chat streaming (connect-src 'self')
 // 'unsafe-inline' is needed for Next's inline bootstrap + inline JSON-LD/styles.
 // In dev we additionally allow eval + websockets so HMR keeps working.
@@ -14,12 +15,15 @@ const csp = [
   `base-uri 'self'`,
   `object-src 'none'`,
   `frame-ancestors 'self'`,
-  `img-src 'self' data: blob: https://res.cloudinary.com`,
+  `img-src 'self' data: blob: https://res.cloudinary.com https://img.youtube.com`,
+  // media-src must explicitly allow Cloudinary so <video src> is not blocked by CSP.
+  // Without this it falls back to default-src 'self' and the browser fires MediaError immediately.
+  `media-src 'self' https://res.cloudinary.com`,
   `font-src 'self' https://fonts.gstatic.com`,
   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
   `connect-src 'self'${isDev ? ' ws: wss:' : ''}`,
-  `frame-src https://www.google.com https://maps.google.com`,
+  `frame-src https://www.google.com https://maps.google.com https://www.youtube.com https://youtube.com`,
   `form-action 'self'`,
   `upgrade-insecure-requests`,
 ].join('; ');

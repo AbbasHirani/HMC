@@ -9,13 +9,17 @@ cloudinary.config({
 export async function uploadToCloudinary(
   buffer: Buffer,
   folder: string,
-  publicId: string
+  publicId: string,
+  resourceType: 'image' | 'video' | 'auto' = 'image'
 ): Promise<{ url: string; publicId: string }> {
   return new Promise((resolve, reject) => {
     cloudinary.uploader
       .upload_stream(
-        { folder, public_id: publicId, overwrite: true, resource_type: 'image',
-          transformation: [{ quality: 'auto', fetch_format: 'auto' }] },
+        { folder, public_id: publicId, overwrite: true, resource_type: resourceType,
+          transformation: resourceType === 'image' ? [{ quality: 'auto', fetch_format: 'auto' }] : undefined,
+          eager: resourceType === 'video' ? [{ format: 'mp4', video_codec: 'auto' }] : undefined,
+          eager_async: false // Wait for transcoding so the frontend can immediately play it with byte-ranges
+        },
         (err, result) => {
           if (err || !result) return reject(err ?? new Error('Upload failed'));
           resolve({ url: result.secure_url, publicId: result.public_id });
@@ -25,10 +29,10 @@ export async function uploadToCloudinary(
   });
 }
 
-export async function deleteFromCloudinary(publicId: string): Promise<void> {
+export async function deleteFromCloudinary(publicId: string, resourceType: 'image' | 'video' = 'image'): Promise<void> {
   try {
-    await cloudinary.uploader.destroy(publicId);
+    await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
   } catch {
-    // ignore — image may already be gone
+    // ignore — file may already be gone
   }
 }

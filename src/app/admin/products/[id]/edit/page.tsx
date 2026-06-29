@@ -63,6 +63,7 @@ export default async function EditProductPage({ params }: Props) {
             brand: (product!.brand as string) ?? '',
             specs: (product!.specs as Record<string, string>) ?? {},
             images: (product!.images as Array<{ url: string; publicId: string; alt?: string }>) ?? [],
+            videos: (product!.videos as Array<{ type: 'cloudinary' | 'youtube'; url: string; publicId?: string }>) ?? [],
             useCaseIds: productUseCaseIds!,
             seo: (product!.seo as { title?: string; description?: string; keywords?: string }) ?? {},
           }}

@@ -31,11 +31,19 @@ export async function PUT(req: NextRequest, { params }: Params) {
   });
   if (err) return NextResponse.json({ error: err }, { status: 400 });
 
-  const existing = await sql`SELECT images, slug FROM products WHERE id = ${id}`;
+  const existing = await sql`SELECT images, videos, slug FROM products WHERE id = ${id}`;
   if (existing[0]?.images && Array.isArray(existing[0].images) && existing[0].images.length) {
     const newIds = new Set((body.images ?? []).map((i: { publicId: string }) => i.publicId));
     for (const img of existing[0].images as Array<{ publicId: string }>) {
-      if (!newIds.has(img.publicId)) await deleteFromCloudinary(img.publicId);
+      if (!newIds.has(img.publicId)) await deleteFromCloudinary(img.publicId, 'image');
+    }
+  }
+  if (existing[0]?.videos && Array.isArray(existing[0].videos) && existing[0].videos.length) {
+    const newVideoIds = new Set((body.videos ?? []).filter((v: any) => v.type === 'cloudinary').map((v: any) => v.publicId));
+    for (const vid of existing[0].videos as Array<{ type: string, publicId?: string }>) {
+      if (vid.type === 'cloudinary' && vid.publicId && !newVideoIds.has(vid.publicId)) {
+        await deleteFromCloudinary(vid.publicId, 'video');
+      }
     }
   }
 
@@ -54,6 +62,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       tag = ${body.tag ?? null},
       featured = ${body.featured ?? false},
       images = ${JSON.stringify(body.images ?? [])}::jsonb,
+      videos = ${JSON.stringify(body.videos ?? [])}::jsonb,
       specs = ${JSON.stringify(body.specs ?? {})}::jsonb,
       brand = ${body.brand ?? null},
       seo = ${JSON.stringify(body.seo ?? {})}::jsonb,
@@ -86,10 +95,17 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
 export async function DELETE(_: NextRequest, { params }: Params) {
   const { id } = await params;
-  const rows = await sql`SELECT images, slug FROM products WHERE id = ${id}`;
+  const rows = await sql`SELECT images, videos, slug FROM products WHERE id = ${id}`;
   if (rows[0]?.images && Array.isArray(rows[0].images) && rows[0].images.length) {
     await Promise.all(
-      (rows[0].images as Array<{ publicId: string }>).map(img => deleteFromCloudinary(img.publicId))
+      (rows[0].images as Array<{ publicId: string }>).map(img => deleteFromCloudinary(img.publicId, 'image'))
+    );
+  }
+  if (rows[0]?.videos && Array.isArray(rows[0].videos) && rows[0].videos.length) {
+    await Promise.all(
+      (rows[0].videos as Array<{ type: string, publicId?: string }>)
+        .filter(v => v.type === 'cloudinary' && v.publicId)
+        .map(v => deleteFromCloudinary(v.publicId!, 'video'))
     );
   }
   await sql`DELETE FROM products WHERE id = ${id}`;

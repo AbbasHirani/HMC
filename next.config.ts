@@ -22,7 +22,7 @@ const csp = [
   `font-src 'self' https://fonts.gstatic.com`,
   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
-  `connect-src 'self'${isDev ? ' ws: wss:' : ''}`,
+  `connect-src 'self' https://us.i.posthog.com${isDev ? ' ws: wss:' : ''}`,
   `frame-src https://www.google.com https://maps.google.com https://www.youtube.com https://youtube.com`,
   `form-action 'self'`,
   `upgrade-insecure-requests`,

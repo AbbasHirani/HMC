@@ -37,7 +37,13 @@ function logClick(source: 'whatsapp' | 'call', p: Product) {
 
 export default function ProductClient({ product: p, related = [], popular = [] }: Props) {
   const cn = p.catName || p.cat;
-  const waLink = WA + encodeURIComponent(`${p.name} (${cn})`);
+  const [waLink, setWaLink] = useState(WA + encodeURIComponent(`${p.name} (${cn})`));
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setWaLink(WA + encodeURIComponent(`${p.name} (${cn})\n\nLink: ${window.location.origin}/product/${p.slug}`));
+    }
+  }, [p.name, cn, p.slug]);
   const [activeThumb, setActiveThumb] = useState(0);
   const [showModal, setShowModal] = useState(false);
 

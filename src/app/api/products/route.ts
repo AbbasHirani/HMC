@@ -8,6 +8,8 @@ export async function GET(req: NextRequest) {
   const subSlug = searchParams.get('subcategorySlug');
   const featured = searchParams.get('featured') === 'true';
 
+  const brandSlug = searchParams.get('brandSlug');
+
   let rows;
   if (catSlug && subSlug) {
     rows = await sql`SELECT * FROM products WHERE category_slug = ${catSlug} AND subcategory_slug = ${subSlug} ORDER BY created_at DESC`;
@@ -15,6 +17,8 @@ export async function GET(req: NextRequest) {
     rows = await sql`SELECT * FROM products WHERE category_slug = ${catSlug} ORDER BY created_at DESC`;
   } else if (subSlug) {
     rows = await sql`SELECT * FROM products WHERE subcategory_slug = ${subSlug} ORDER BY created_at DESC`;
+  } else if (brandSlug) {
+    rows = await sql`SELECT * FROM products WHERE LOWER(brand) = ${brandSlug.toLowerCase()} ORDER BY created_at DESC`;
   } else if (featured) {
     rows = await sql`SELECT * FROM products WHERE featured = true ORDER BY created_at DESC`;
   } else {
@@ -73,7 +77,8 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const { revalidatePath } = await import('next/cache');
+  const { revalidatePath, revalidateTag } = await import('next/cache');
+  revalidateTag('products', {});
   revalidatePath('/');
   revalidatePath('/catalogue');
   revalidatePath(`/product/${body.slug}`);

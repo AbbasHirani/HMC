@@ -9,18 +9,22 @@ import { sql } from '@/lib/db';
 import RepairJobsCarousel from '@/components/RepairJobsCarousel';
 import { jsonLd } from '@/lib/jsonLd';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Pump Repair, Filter Servicing & Hydro Test Pump Repair in Chennai',
-  description: 'Pump repair & reconditioning, water filter servicing, compressor overhaul and hydro pressure test pump repair in Chennai. 17+ years in the trade. Drop in at our Parrys workshop.',
-  alternates: {
-    canonical: '/services',
-    languages: { en: '/services', ta: '/ta/services', 'x-default': '/services' },
-  },
+  title: { absolute: 'Pump Repair & Hydro Test Pump Service in Chennai' },
+  description: 'Pump repair, hydro test pump service, water filter maintenance & air compressor overhaul in Chennai. 17+ years — inspect, quote, repair at our Parrys workshop.',
+  keywords: [
+    'pump repair Chennai', 'pump repair Parrys', 'hydro test pump repair Chennai',
+    'hydro pressure test pump service', 'water filter repair Chennai',
+    'RO service Chennai', 'air compressor repair Chennai',
+    'chemical pump repair Chennai', 'pump reconditioning Chennai',
+    'Hirani Marketing Combines',
+  ],
+  alternates: { canonical: '/services' },
   openGraph: {
-    title: 'Pump Repair & Servicing in Chennai | Hirani Marketing Combines',
-    description: 'Pump repair & reconditioning, water filter servicing, air compressor overhaul and hydro pressure test pump repair in Chennai. 17+ years in the trade. Drop in at our Parrys workshop.',
+    title: 'Pump Repair & Hydro Test Pump Service in Chennai | Hirani Marketing Combines',
+    description: 'Pump repair, hydro test pump service, water filter maintenance & air compressor overhaul in Chennai. 17+ years — inspect, quote, repair at our Parrys workshop.',
     url: '/services',
     type: 'website',
   },
@@ -37,7 +41,8 @@ const SVCS = [
       'Mechanical seal replacement',
       'Winding and motor checks',
       'Performance and pressure testing after repair',
-      'Available for domestic, industrial and chemical pumps',
+      'Chemical pump repair & reconditioning',
+      'Centrifugal, submersible and industrial pump overhaul',
     ],
   },
   {
@@ -164,10 +169,41 @@ export default async function ServicesPage() {
     ],
   };
 
+  const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
+
+  const serviceSchemas = SVCS.map(svc => ({
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: svc.name,
+    description: svc.desc,
+    provider: {
+      '@type': 'LocalBusiness',
+      '@id': `${SITE}/#localbusiness`,
+      name: 'Hirani Marketing Combines',
+      url: SITE,
+    },
+    areaServed: { '@type': 'City', name: 'Chennai' },
+    serviceType: svc.name,
+    url: `${SITE}/services`,
+  }));
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: 'Services', item: `${SITE}/services` },
+    ],
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(howToSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
+      {serviceSchemas.map((s, i) => (
+        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(s) }} />
+      ))}
       <Header active="services" />
 
       {/* HERO */}
@@ -177,9 +213,9 @@ export default async function ServicesPage() {
             <nav className="crumb">
               <Link href="/">Home</Link><span>/</span><b>Services &amp; About</b>
             </nav>
-            <h1>Repair, reconditioning &amp; the people behind it</h1>
+            <h1>Pump Repair, Hydro Test Pump Service &amp; Filter Maintenance in Chennai</h1>
             <p>
-              We don&rsquo;t just supply equipment — we keep it running. Workshop repair and maintenance for pumps, water filters, air compressors and hydraulic systems, backed by 17+ years in the trade.
+              Pump repair &amp; reconditioning, hydro test pump servicing, chemical pump overhaul, water filter maintenance and air compressor repair — all from our workshop in Parrys, Chennai. Backed by 17+ years in the trade.
             </p>
             <div className="pills">
               <span className="pill">Pump repair &amp; reconditioning</span>

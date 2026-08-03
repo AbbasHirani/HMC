@@ -30,6 +30,8 @@ export default async function EditBrandPage({ params }: Props) {
             order: (brand!.sort_order as number) ?? 0,
             logoUrl: (brand!.logo_url as string) ?? '',
             logoPublicId: (brand!.logo_public_id as string) ?? '',
+            description: (brand!.description as string) ?? '',
+            seo: (brand!.seo as { title?: string; description?: string; keywords?: string }) ?? {},
           }}
         />
       </div>

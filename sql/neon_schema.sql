@@ -57,3 +57,9 @@ CREATE TABLE IF NOT EXISTS products (
 );
 CREATE INDEX IF NOT EXISTS idx_products_category_slug ON products(category_slug);
 CREATE INDEX IF NOT EXISTS idx_products_subcategory_slug ON products(subcategory_slug);
+
+-- Run these if upgrading an existing database:
+-- ALTER TABLE categories ADD COLUMN IF NOT EXISTS seo JSONB DEFAULT '{}';
+-- ALTER TABLE subcategories ADD COLUMN IF NOT EXISTS seo JSONB DEFAULT '{}';
+-- ALTER TABLE brands ADD COLUMN IF NOT EXISTS description TEXT;
+-- ALTER TABLE brands ADD COLUMN IF NOT EXISTS seo JSONB DEFAULT '{}';

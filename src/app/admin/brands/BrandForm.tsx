@@ -14,6 +14,8 @@ interface Props {
   initial?: {
     name: string; slug: string; order: number;
     logoUrl?: string; logoPublicId?: string;
+    description?: string;
+    seo?: { title?: string; description?: string; keywords?: string };
   };
 }
 
@@ -29,6 +31,12 @@ export default function BrandForm({ mode, id, initial }: Props) {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [deletedPublicId, setDeletedPublicId] = useState<string | null>(null);
+  const [description, setDescription] = useState(initial?.description ?? '');
+  const [seoTitle, setSeoTitle] = useState(initial?.seo?.title ?? '');
+  const [seoDescription, setSeoDescription] = useState(initial?.seo?.description ?? '');
+  const [seoKeywords, setSeoKeywords] = useState(initial?.seo?.keywords ?? '');
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -101,6 +109,42 @@ export default function BrandForm({ mode, id, initial }: Props) {
     setLogoFile(null);
   }
 
+  async function generateSeoWithAi() {
+    if (!name.trim()) { setAiError('Fill in the brand name first.'); return; }
+    setAiBusy(true); setAiError('');
+    try {
+      // Fetch this brand's actual products so the AI knows what it really sells.
+      let products: { name: string; category: string; subcategory: string }[] = [];
+      if (initial?.slug) {
+        const pr = await fetch(`/api/products?brandSlug=${initial.slug}`).catch(() => null);
+        if (pr?.ok) {
+          const data = await pr.json();
+          products = (Array.isArray(data) ? data : []).map((p: any) => ({
+            name: p.name,
+            category: p.category_name ?? p.category_slug ?? '',
+            subcategory: p.subcategory_name ?? p.subcategory_slug ?? '',
+          }));
+        }
+      }
+
+      const res = await fetch('/api/admin/brand-seo-suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description, products }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setAiError(data.error ?? 'AI generation failed.'); return; }
+      setSeoTitle(data.title ?? '');
+      setSeoDescription(data.description ?? '');
+      setSeoKeywords(data.keywords ?? '');
+      if (data.brandDescription && !description.trim()) setDescription(data.brandDescription);
+    } catch {
+      setAiError('Could not reach the AI service.');
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
   async function save() {
     if (!name || !slug) { setError('Name and slug are required.'); return; }
     setSaving(true); setError('');
@@ -122,7 +166,16 @@ export default function BrandForm({ mode, id, initial }: Props) {
       if (data.url) { finalLogoUrl = data.url; finalLogoPublicId = data.publicId; }
     }
 
-    const body = { name, slug, order: Number(order), logoUrl: finalLogoUrl, logoPublicId: finalLogoPublicId };
+    const body = {
+      name, slug, order: Number(order),
+      logoUrl: finalLogoUrl, logoPublicId: finalLogoPublicId,
+      description: description.trim() || null,
+      seo: {
+        title: seoTitle.trim() || undefined,
+        description: seoDescription.trim() || undefined,
+        keywords: seoKeywords.trim() || undefined,
+      },
+    };
     const url = mode === 'new' ? '/api/brands' : `/api/brands/${id}`;
     const method = mode === 'new' ? 'POST' : 'PUT';
     const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -180,6 +233,80 @@ export default function BrandForm({ mode, id, initial }: Props) {
           </div>
         )}
         <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
+      </div>
+
+      <div className="adm-form-section">
+        <h3>Brand description <span style={{ fontWeight: 400, fontSize: 11, color: '#9ca3af', textTransform: 'none' }}>(shown on the brand page)</span></h3>
+        <div className="form-row single">
+          <div className="form-field">
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder={`Browse all ${name || 'brand'} products available at Hirani Marketing Combines, Chennai.`}
+              rows={3}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="adm-form-section">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
+          <h3 style={{ margin: 0 }}>SEO <span style={{ fontWeight: 400, fontSize: 11, color: '#9ca3af', textTransform: 'none' }}>(optional — override auto-generated values)</span></h3>
+          <button
+            type="button"
+            onClick={generateSeoWithAi}
+            disabled={aiBusy}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '6px 12px', borderRadius: 6,
+              background: aiBusy ? '#e5e7eb' : 'linear-gradient(135deg, #1E1D5C, #4338ca)',
+              color: aiBusy ? '#9ca3af' : '#fff', border: 'none', cursor: aiBusy ? 'wait' : 'pointer',
+              fontSize: 12, fontWeight: 600, transition: 'opacity .15s',
+            }}
+          >
+            <span style={{ fontSize: 14 }}>✨</span>
+            {aiBusy ? 'Generating…' : 'Auto-fill with AI'}
+          </button>
+        </div>
+        {aiError && <div className="adm-err" style={{ marginBottom: 12 }}>{aiError}</div>}
+        <div className="form-row single">
+          <div className="form-field">
+            <label>
+              Meta title
+              <span className="opt" style={{ float: 'right', color: seoTitle.length > 65 ? '#dc2626' : '#9ca3af' }}>{seoTitle.length}/65</span>
+            </label>
+            <input
+              value={seoTitle}
+              onChange={e => setSeoTitle(e.target.value)}
+              placeholder={name ? `${name} Pumps & Water Systems in Chennai | Hirani Marketing` : 'Auto-generated from brand name'}
+            />
+          </div>
+        </div>
+        <div className="form-row single">
+          <div className="form-field">
+            <label>
+              Meta description
+              <span className="opt" style={{ float: 'right', color: seoDescription.length > 160 ? '#dc2626' : '#9ca3af' }}>{seoDescription.length}/160</span>
+            </label>
+            <textarea
+              value={seoDescription}
+              onChange={e => setSeoDescription(e.target.value)}
+              placeholder={name ? `Browse all ${name} pumps, water systems and equipment at Hirani Marketing Combines, Chennai.` : 'Auto-generated from brand name'}
+              rows={3}
+            />
+          </div>
+        </div>
+        <div className="form-row single">
+          <div className="form-field">
+            <label>Keywords</label>
+            <input
+              value={seoKeywords}
+              onChange={e => setSeoKeywords(e.target.value)}
+              placeholder={name ? `${name}, ${name.toLowerCase()} pumps, chennai` : 'comma, separated, keywords'}
+            />
+            <span className="hint">Comma-separated.</span>
+          </div>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: 10 }}>

@@ -81,7 +81,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
     }
   }
 
-  const { revalidatePath } = await import('next/cache');
+  const { revalidatePath, revalidateTag } = await import('next/cache');
+  revalidateTag('products', {});
   revalidatePath('/');
   revalidatePath('/catalogue');
   revalidatePath(`/product/${body.slug}`);
@@ -110,7 +111,8 @@ export async function DELETE(_: NextRequest, { params }: Params) {
   }
   await sql`DELETE FROM products WHERE id = ${id}`;
 
-  const { revalidatePath } = await import('next/cache');
+  const { revalidatePath, revalidateTag } = await import('next/cache');
+  revalidateTag('products', {});
   revalidatePath('/');
   revalidatePath('/catalogue');
   if (rows[0]?.slug) revalidatePath(`/product/${rows[0].slug}`);

@@ -25,9 +25,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!p) return { title: 'Product Not Found' };
 
   // Admin SEO overrides win; otherwise fall back to auto-generated values.
-  const autoTitle = p.brandName
-    ? `${p.name} by ${p.brandName} — Buy in Chennai`
-    : `${p.name} — Buy in Chennai`;
+  // Truncate product name at word boundary so the full title stays under 60 chars.
+  const MAX_TITLE = 60;
+  const suffix = ' — Buy in Chennai';
+  const brandSuffix = p.brandName ? ` by ${p.brandName}` : '';
+  const fullTitle = `${p.name}${brandSuffix}${suffix}`;
+  const autoTitle = fullTitle.length <= MAX_TITLE
+    ? fullTitle
+    : fullTitle.length - brandSuffix.length <= MAX_TITLE
+      ? `${p.name}${suffix}`
+      : `${p.name.slice(0, MAX_TITLE - suffix.length).replace(/\s\S*$/, '')}${suffix}`;
 
   // Truncate at word boundary so the appended sentence doesn't look broken.
   const descBase = p.desc && p.desc.length > 140

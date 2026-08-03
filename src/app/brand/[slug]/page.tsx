@@ -18,10 +18,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const brands = await getBrands().catch(() => []);
   const brand = brands.find(b => b.slug === slug);
   if (!brand) return {};
+
+  const brandSuffix = ' | Hirani Marketing Combines';
+  const brandBase = `${brand.name} in Chennai`;
+  const autoTitle = (brandBase + brandSuffix).length <= 60 ? brandBase + brandSuffix : brandBase;
+  const autoDesc = brand.description || `Browse all ${brand.name} pumps, water systems and equipment at Hirani Marketing Combines, Chennai.`;
+
+  const title = brand.seo?.title || autoTitle;
+  const description = brand.seo?.description || autoDesc;
+  const keywords = brand.seo?.keywords || undefined;
+
   return {
-    title: `${brand.name} Pumps & Water Systems in Chennai`,
-    description: `Browse all ${brand.name} pumps, water systems and equipment at Hirani Marketing Combines, Chennai.`,
+    title: { absolute: title },
+    description,
+    keywords: keywords || undefined,
     alternates: { canonical: `/brand/${slug}` },
+    openGraph: { title, description, url: `/brand/${slug}`, type: 'website' },
   };
 }
 
@@ -85,7 +97,7 @@ export default async function BrandPage({ params }: Props) {
             <h1 style={{ fontSize: 'clamp(28px,3.4vw,40px)' }}>{brand.name}</h1>
           </div>
           <p style={{ color: 'var(--slate)', fontSize: 16, marginTop: 10, maxWidth: 600 }}>
-            Browse all {brand.name} products available at Hirani Marketing Combines, Chennai.
+            {brand.description || `Browse all ${brand.name} products available at Hirani Marketing Combines, Chennai.`}
           </p>
         </div>
       </section>

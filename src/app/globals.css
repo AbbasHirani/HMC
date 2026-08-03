@@ -856,3 +856,16 @@ ul { list-style: none; }
     height: 100dvh; border-radius: 0; border: none;
   }
 }
+
+
+/* Focus product cards */
+.focus-card {
+  display: flex; flex-direction: column;
+  background: #fff; border: 1px solid var(--line); border-radius: 14px;
+  padding: 28px 24px; text-decoration: none; color: inherit;
+  transition: box-shadow .15s, border-color .15s;
+}
+.focus-card:hover { box-shadow: var(--shadow-md); border-color: var(--navy-200, #c7d2fe); }
+.focus-card h3 { font-size: 18px; color: var(--navy); margin: 0 0 10px; }
+.focus-card p { color: var(--slate); font-size: 14.5px; line-height: 1.65; margin: 0; flex: 1; }
+.focus-card-link { display: inline-block; margin-top: 16px; font-size: 13px; font-weight: 700; color: var(--navy); }

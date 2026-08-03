@@ -12,18 +12,58 @@ import ShowcaseCarousel from '@/components/ShowcaseCarousel';
 import { IconCheck, IconWA, IconPhone, IconWrench } from '@/components/Icons';
 import { SERVICES, CONTACT, WA } from '@/lib/data';
 import { getCategories, getProducts } from '@/lib/queries';
+import { jsonLd } from '@/lib/jsonLd';
+
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Where can I buy a hydro test pump in Chennai?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Hirani Marketing Combines stocks hand-operated, belt-driven and motorised hydrostatic test pumps at our Parrys, George Town shop in Chennai. Visit us at 279, Thambu Chetty Street or call for pricing.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'Do you supply chemical pumps and dosing pumps in Chennai?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Yes — we stock seal-less magnetic drive chemical pumps, SS316 centrifugal chemical pumps, and chemical dosing pumps for acids, alkalis and corrosive fluids used in industrial plants and laboratories across Tamil Nadu.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'Which RO water purifier brands are available at Hirani Marketing Combines?',
+      acceptedAnswer: { '@type': 'Answer', text: 'We carry domestic and commercial RO water purifiers from Kent, Aquaguard and other trusted brands, along with RO filter spares, membrane replacements and filtration accessories at our Parrys store.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'Do you repair hydro test pumps and industrial pumps?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Yes — our in-house workshop at Parrys, George Town repairs, reconditions and overhauls hydro test pumps, chemical pumps, centrifugal pumps, submersible pumps and pressure washers. Drop in for a same-day inspection and quote.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'What industrial pump brands does Hirani Marketing Combines carry?',
+      acceptedAnswer: { '@type': 'Answer', text: 'We are authorised dealers for CRI, Kirloskar, Grundfos, Crompton, Kent, Aquaguard and specialist brands. Our range covers centrifugal pumps, submersible pumps, chemical pumps, hydro test pumps and high pressure washers for industrial, commercial and residential use in Chennai.' },
+    },
+  ],
+};
 
 export const metadata: Metadata = {
-  title: { absolute: 'Hirani Marketing Combines | Water Pumps, RO Systems & Industrial Supply in Chennai' },
+  title: { absolute: 'Industrial Pump Dealer Chennai | Hirani Marketing Combines' },
   description:
-    "Buy water pumps, pressure booster pumps, hydro test pumps, chemical pumps, high pressure washers, dosing pumps and RO systems in Parrys, Chennai. Hirani Marketing Combines offers sales, service and industrial pumping solutions.",
+    "Buy hydro test pumps, chemical pumps, RO systems, industrial & water pumps in Parrys, Chennai. Hirani Marketing Combines — authorised dealer since 2008. Sales, repair & workshop service.",
+  keywords: [
+    'water pump dealer Chennai', 'hydro test pump Chennai', 'chemical pump Chennai',
+    'industrial pump dealer Parrys', 'RO system Chennai', 'magnetic drive pump Chennai',
+    'hydraulic test pump Chennai', 'pump supplier George Town', 'Hirani Marketing Combines',
+  ],
   alternates: {
     canonical: '/',
     languages: { en: '/', ta: '/ta', 'x-default': '/' },
   },
   openGraph: {
-    title: 'Hirani Marketing Combines — Pumps & Water Systems, Chennai',
-    description: "Chennai's trusted supplier of water pumps, RO systems, water purifiers, pressure washers and industrial equipment since 2008. Sales, service and pump repair in Parrys, George Town.",
+    title: 'Industrial Pump Dealer Chennai | Hirani Marketing Combines',
+    description: "Chennai's authorised dealer for hydro test pumps, chemical pumps, RO systems and industrial water pumps since 2008. Sales, service and pump repair at Parrys, George Town.",
     url: '/',
     type: 'website',
     images: [
@@ -31,7 +71,7 @@ export const metadata: Metadata = {
         url: '/logo-stacked.png',
         width: 1200,
         height: 630,
-        alt: 'Hirani Marketing Combines Logo',
+        alt: 'Hirani Marketing Combines — Pump Dealer Chennai',
       },
     ],
   },
@@ -50,6 +90,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />
       <Header active="home" />
 
       {/* HERO */}
@@ -58,9 +99,9 @@ export default async function HomePage() {
           <div className="grid">
             <div className="copy">
               <span className="eyebrow">Pumps · Water Systems · Industrial Supply</span>
-              <h1>Hirani Marketing Combines – Water Pumps, RO Systems &amp; Industrial Equipment in Chennai</h1>
+              <h1>Water Pumps, Hydro Test Pumps, Chemical Pumps &amp; RO Systems in Chennai</h1>
               <p className="sub">
-                Trusted since 2008 — water purifiers, RO water purifiers, RO spares, water filters, industrial pumps and pressure washers available from our Parrys, George Town shop. Sales, service and pump repair under one roof.
+                Hirani Marketing Combines — authorised dealer in Parrys, George Town since 2008. We stock hydro test pumps, seal-less chemical pumps, industrial water pumps, RO water purifiers and pressure washers. Sales, repair and pump reconditioning under one roof.
               </p>
               <div className="h-cta">
                 <Link className="btn btn-primary btn-lg" href="/catalogue">Browse the catalogue</Link>
@@ -116,6 +157,44 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      {/* FOCUS PRODUCTS */}
+      <section className="section" style={{ background: 'var(--paper)', borderTop: '1px solid var(--line)' }}>
+        <div className="container">
+          <div className="sec-head">
+            <span className="eyebrow">What we specialise in</span>
+            <h2>Hydro Test Pumps, Chemical Pumps, RO Systems &amp; Industrial Pumps in Chennai</h2>
+            <p style={{ maxWidth: 620 }}>Authorised dealer and repair workshop for the four most in-demand industrial pump categories in Tamil Nadu.</p>
+          </div>
+          <div className="focus-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24, marginTop: 40 }}>
+
+            <Link href="/catalogue/hydraulic-test-pumps" className="focus-card">
+              <h3>Hydro Test Pumps</h3>
+              <p>Hand-operated, belt-driven and engine-driven hydrostatic test pumps for pipeline pressure testing, boiler testing and leak detection. Manual and motorised models available in Chennai.</p>
+              <span className="focus-card-link">Browse hydro test pumps →</span>
+            </Link>
+
+            <Link href="/catalogue/chemical-pumps" className="focus-card">
+              <h3>Chemical Pumps</h3>
+              <p>Seal-less magnetic drive chemical pumps, SS316 centrifugal pumps and chemical dosing pumps for safe handling of acids, alkalis and corrosive fluids in industrial plants and laboratories.</p>
+              <span className="focus-card-link">Browse chemical pumps →</span>
+            </Link>
+
+            <Link href="/catalogue/water-pumps" className="focus-card">
+              <h3>Industrial &amp; Water Pumps</h3>
+              <p>Centrifugal pumps, submersible pumps, pressure booster pumps and monoblock pumps from CRI, Kirloskar, Grundfos and Crompton. For residential, commercial and industrial water supply in Tamil Nadu.</p>
+              <span className="focus-card-link">Browse water pumps →</span>
+            </Link>
+
+            <Link href="/catalogue" className="focus-card">
+              <h3>RO Systems &amp; Water Filters</h3>
+              <p>Commercial RO water purifiers, domestic RO systems, water filter spares and filtration equipment. Kent, Aquaguard and branded RO systems available at our Parrys store in Chennai.</p>
+              <span className="focus-card-link">Browse RO systems →</span>
+            </Link>
+
+          </div>
+        </div>
+      </section>
 
       {/* FEATURED */}
       {displayProducts.length > 0 && (
@@ -249,6 +328,48 @@ export default async function HomePage() {
                 title="Hirani Marketing Combines location"
               />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="section" style={{ background: 'var(--paper)', borderTop: '1px solid var(--line)' }}>
+        <div className="container" style={{ maxWidth: 800 }}>
+          <div className="sec-head" style={{ marginBottom: 36 }}>
+            <span className="eyebrow">Common questions</span>
+            <h2>Frequently Asked Questions</h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {[
+              {
+                q: 'Where can I buy a hydro test pump in Chennai?',
+                a: 'Hirani Marketing Combines stocks hand-operated, belt-driven and motorised hydrostatic test pumps at our Parrys, George Town shop in Chennai. We carry manual hydro test pumps for low-pressure pipeline testing and motorised models for high-pressure applications. Visit us at 279, Thambu Chetty Street, or call for availability and pricing.',
+              },
+              {
+                q: 'Do you supply chemical pumps and dosing pumps in Chennai?',
+                a: 'Yes — we stock seal-less magnetic drive chemical pumps, SS316 centrifugal chemical pumps, and chemical dosing pumps suitable for acids, alkalis and corrosive fluids. Our chemical pump range is used in industrial plants, water treatment facilities and laboratories across Tamil Nadu. Visit our catalogue or call for a quote.',
+              },
+              {
+                q: 'Which RO water purifier brands are available at Hirani Marketing Combines?',
+                a: 'We carry domestic and commercial RO water purifiers from Kent, Aquaguard and other trusted brands, along with RO filter spares, membrane replacements and filtration accessories. Our Parrys store also provides RO servicing and filter replacement.',
+              },
+              {
+                q: 'Do you repair hydro test pumps and industrial pumps?',
+                a: 'Yes — our in-house workshop at Parrys, George Town handles pump repair, reconditioning and overhauling for hydro test pumps, chemical pumps, centrifugal pumps, submersible pumps and pressure washers. Drop your equipment in for a same-day inspection and quote.',
+              },
+              {
+                q: 'What industrial pump brands does Hirani Marketing Combines carry?',
+                a: 'We are authorised dealers for CRI, Kirloskar, Grundfos, Crompton, Kent, Aquaguard and several specialist brands. Our range covers centrifugal pumps, submersible pumps, pressure booster pumps, chemical pumps, high pressure washers and hydraulic test pumps for industrial, commercial and residential applications in Chennai.',
+              },
+            ].map(({ q, a }, i) => (
+              <details key={i} style={{ borderBottom: '1px solid var(--line)', padding: '20px 0' }}>
+                <summary style={{ fontWeight: 700, fontSize: 16, color: 'var(--navy)', cursor: 'pointer', listStyle: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                  {q}
+                  <span style={{ flexShrink: 0, fontSize: 20, fontWeight: 300, color: 'var(--muted)' }}>+</span>
+                </summary>
+                <p style={{ margin: '12px 0 0', color: 'var(--slate)', fontSize: 15, lineHeight: 1.7 }}>{a}</p>
+              </details>
+            ))}
           </div>
         </div>
       </section>

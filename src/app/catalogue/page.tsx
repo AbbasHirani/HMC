@@ -4,35 +4,9 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CTABand from '@/components/CTABand';
 import CatalogueClient from './CatalogueClient';
-import { getCategories, getProducts } from '@/lib/queries';
-import { sql } from '@/lib/db';
+import { getCategories, getProducts, getUseCaseFilters } from '@/lib/queries';
 
 export const revalidate = 60;
-
-/** All use cases + which products carry each, for the catalogue filter. */
-async function getUseCaseFilters() {
-  try {
-    const rows = await sql`
-      SELECT uc.slug, uc.name, puc.product_id
-      FROM use_cases uc
-      JOIN product_use_cases puc ON puc.use_case_id = uc.id
-    `;
-    const byProduct = new Map<string, string[]>();
-    const options = new Map<string, string>();
-    for (const r of rows) {
-      options.set(r.slug as string, r.name as string);
-      const list = byProduct.get(r.product_id as string) ?? [];
-      list.push(r.slug as string);
-      byProduct.set(r.product_id as string, list);
-    }
-    return {
-      byProduct,
-      options: [...options.entries()].map(([slug, name]) => ({ slug, name })).sort((a, b) => a.name.localeCompare(b.name)),
-    };
-  } catch {
-    return { byProduct: new Map<string, string[]>(), options: [] };
-  }
-}
 
 type Props = { searchParams: Promise<{ cat?: string; sub?: string }> };
 

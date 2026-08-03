@@ -12,32 +12,57 @@ interface CatSeoSuggestBody {
 }
 
 function buildPrompt(p: CatSeoSuggestBody): string {
-  const subsList = p.subs?.length ? `- Subcategories included: ${p.subs.join(', ')}` : '';
-  return `You are an expert Local SEO and Industrial Equipment content writer for Hirani Marketing Combines, a pump and industrial equipment supplier located in Parrys, Chennai, India.
-Your goal is to generate content that helps category pages rank for local searches in Chennai and nearby areas.
+  const subsList = p.subs?.length ? `- Product types / subcategories: ${p.subs.join(', ')}` : '';
+  return `You are a senior SEO specialist writing metadata and copy for a local industrial equipment category page. Your output directly affects Google rankings and click-through rates.
 
-IMPORTANT SEO RULES:
-* Naturally include relevant keywords.
-* Prioritize local intent keywords such as: Chennai, Parrys Chennai, Industrial Pumps Chennai, Water Pumps Chennai, Pump Dealer Chennai, Pump Supplier Chennai, Industrial Equipment Chennai.
-* Never keyword stuff.
-* Write for humans first and search engines second.
-* Use professional industrial terminology.
-* Content must sound trustworthy and business-focused.
-* Do not use exaggerated marketing language or phrases like "best in the world".
+THE BUSINESS:
+Hirani Marketing Combines — authorised pump & water-systems dealer at Parrys, George Town, Chennai, Tamil Nadu. Est. 2008. Stocks genuine brands. In-house repair workshop. Target customers search Google for "[category] in Chennai", "[category] supplier Chennai", "[category] dealer Parrys", "buy [category] Chennai".
 
-THE CATEGORY:
-- Category Name: ${p.name || '(unnamed)'}
-- Short Description/Teaser: ${p.teaser || '(none)'}
+THE CATEGORY PAGE:
+- Category / Page name: ${p.name || '(unnamed)'}
+- Existing description / teaser: ${p.teaser || '(none)'}
 ${subsList}
 
-GENERATE (follow these rules strictly):
-1. "title" — meta title, 50–70 characters. EXACT FORMAT: "[Category Name] in Chennai | [Subcategory 1], [Subcategory 2] & [Subcategory 3]". If subcategories are not provided, use relevant related industrial keywords instead. DO NOT include "Hirani Marketing Combines" in the title.
-2. "description" — meta description, 140–160 characters. EXACT FORMAT: "Leading [Category Name] supplier in Parrys, Chennai offering [Subcategory 1], [Subcategory 2], and [Subcategory 3] with expert sales and support." Adapt this template naturally to fit the character limit and provided subcategories. NO TRANSACTIONAL OR CALL CTAS. Focus purely on professional specifications and category listings. DO NOT explicitly mention the shop name "Hirani Marketing Combines" unless it perfectly fits the limit, prefer just "supplier in Parrys, Chennai".
-3. "keywords" — a single comma-separated string of 15-20 high-intent search terms.
-4. "teaser" — a concise, engaging description of the category (80-120 chars). This is displayed on the category card and at the top of the category page. Make it a proper, well-written sentence describing what this category includes and its main applications.
-5. "footText" — short text appearing at the bottom of the category card. If subcategories are provided, count them and output e.g., "5 types". If not, just say "View types".
+GENERATE the following fields. Every rule is a hard requirement:
 
-Return ONLY the JSON object.`;
+1. "title" — Meta title. HARD LIMIT: 50–60 characters (count carefully). Rules:
+   - Front-load the primary category keyword as buyers would search it (e.g. "Water Pumps", "Chemical Pumps", "High Pressure Washers").
+   - Include "Chennai" for local intent.
+   - End with "| Hirani Marketing Combines" only if it fits within 60 chars.
+   - If subcategories exist, you may include 1–2 of the most searched ones before the pipe.
+   - NO keyword stuffing. Each word must earn its place.
+   - NEVER use "HMC".
+   - Example: "Water Pumps in Chennai | Centrifugal & Booster Pumps | HMC" ← bad, too long and uses HMC
+   - Example: "Water Pumps Chennai | Hirani Marketing Combines" ← good
+
+2. "description" — Meta description. HARD LIMIT: 145–160 characters TOTAL. Rules:
+   - The ENTIRE description must be 145–160 characters — not more.
+   - MUST be unique — do NOT use the template "Leading X supplier in Parrys...". Write a fresh, specific sentence for this category.
+   - Open with what the category covers and who it's for (industrial, residential, commercial use as relevant).
+   - Mention 2–3 specific product types from the subcategories list if available.
+   - Include "Chennai" and "Hirani Marketing Combines" or "Parrys" naturally.
+   - End with a CTA: "Shop now.", "Call for pricing.", "Visit our Parrys store.", or "Get expert advice."
+   - Example good description: "Buy centrifugal, booster & submersible pumps in Chennai at Hirani Marketing Combines. Genuine brands, workshop support, Parrys store. Call for pricing."
+
+3. "keywords" — Comma-separated string of 15–18 keywords. Rules:
+   - Include: category name, each subcategory name, category + "Chennai", category + "price", category + "dealer Chennai", category + "supplier Parrys".
+   - Include transactional long-tails: "buy [category] in Chennai", "[category] near me", "[category] authorised dealer Chennai".
+   - Include "Hirani Marketing Combines" as one keyword.
+   - Lowercase except proper nouns.
+   - NO vague filler terms.
+
+4. "teaser" — Short category description shown on cards and at top of category page. LIMIT: 100–130 characters. Rules:
+   - One well-structured sentence.
+   - Describe what this category includes and its primary real-world applications.
+   - Professional industrial tone — no marketing hyperbole.
+   - Must be unique and specific to this category, not generic.
+   - Example: "Centrifugal, booster and submersible pumps for domestic, commercial and industrial water supply needs."
+
+5. "footText" — Short text at bottom of category card. Rules:
+   - If subcategories are provided: count them and write e.g. "6 types", "4 product types".
+   - If no subcategories: write "View range".
+
+Return ONLY valid JSON with keys: title, description, keywords, teaser, footText.`;
 }
 
 export async function POST(req: NextRequest) {

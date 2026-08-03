@@ -26,11 +26,14 @@ export async function PUT(req: NextRequest, { params }: Params) {
       slug = ${body.slug},
       logo_url = ${body.logoUrl ?? null},
       logo_public_id = ${body.logoPublicId ?? null},
-      sort_order = ${body.order ?? 0}
+      sort_order = ${body.order ?? 0},
+      description = ${body.description ?? null},
+      seo = ${body.seo ? JSON.stringify(body.seo) : null}
     WHERE id = ${id}
   `;
 
-  const { revalidatePath } = await import('next/cache');
+  const { revalidatePath, revalidateTag } = await import('next/cache');
+  revalidateTag('brands', {});
   revalidatePath('/');
   revalidatePath('/brands');
   revalidatePath(`/brand/${body.slug}`);
@@ -49,7 +52,8 @@ export async function DELETE(_: NextRequest, { params }: Params) {
   }
   await sql`DELETE FROM brands WHERE id = ${id}`;
 
-  const { revalidatePath } = await import('next/cache');
+  const { revalidatePath, revalidateTag } = await import('next/cache');
+  revalidateTag('brands', {});
   revalidatePath('/');
   revalidatePath('/brands');
   if (rows[0]?.slug) revalidatePath(`/brand/${rows[0].slug}`);

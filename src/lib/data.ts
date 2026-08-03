@@ -100,4 +100,6 @@ export interface Brand {
   logoUrl?: string | null;
   logoPublicId?: string | null;
   order: number;
+  description?: string | null;
+  seo?: { title?: string; description?: string; keywords?: string } | null;
 }

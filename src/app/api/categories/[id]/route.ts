@@ -28,7 +28,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
       updated_at = NOW()
     WHERE id = ${id}
   `;
-  const { revalidatePath } = await import('next/cache');
+  const { revalidatePath, revalidateTag } = await import('next/cache');
+  revalidateTag('categories', {});
   revalidatePath('/');
   revalidatePath('/catalogue');
   return NextResponse.json({ ok: true });

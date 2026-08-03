@@ -18,11 +18,12 @@ export async function POST(req: NextRequest) {
   if (err) return NextResponse.json({ error: err }, { status: 400 });
 
   const rows = await sql`
-    INSERT INTO brands (name, slug, logo_url, logo_public_id, sort_order)
-    VALUES (${body.name}, ${body.slug}, ${body.logoUrl ?? null}, ${body.logoPublicId ?? null}, ${body.order ?? 0})
+    INSERT INTO brands (name, slug, logo_url, logo_public_id, sort_order, description, seo)
+    VALUES (${body.name}, ${body.slug}, ${body.logoUrl ?? null}, ${body.logoPublicId ?? null}, ${body.order ?? 0}, ${body.description ?? null}, ${body.seo ? JSON.stringify(body.seo) : null})
     RETURNING *
   `;
-  const { revalidatePath } = await import('next/cache');
+  const { revalidatePath, revalidateTag } = await import('next/cache');
+  revalidateTag('brands', {});
   revalidatePath('/');
   revalidatePath('/brands');
   revalidatePath(`/brand/${body.slug}`);

@@ -23,7 +23,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!catObj) return { title: 'Category Not Found' };
 
   // Use admin-configured SEO title/description; fall back to auto-generated values.
-  const title = catObj.seo?.title || `${catObj.name} in Chennai | Hirani Marketing Combines`;
+  const suffix = ' | Hirani Marketing Combines';
+  const base = `${catObj.name} in Chennai`;
+  const autoTitle = (base + suffix).length <= 60 ? base + suffix : base;
+  const title = catObj.seo?.title || autoTitle;
   const description = catObj.seo?.description || catObj.teaser || '';
   const keywords = catObj.seo?.keywords || undefined;
 

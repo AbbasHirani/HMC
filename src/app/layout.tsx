@@ -104,7 +104,21 @@ const localBusinessSchema = {
   currenciesAccepted: 'INR',
   paymentAccepted: 'Cash, Bank Transfer, UPI',
   description:
-    "Chennai's trusted supplier of water pumps, RO & filtration systems, fountains, pressure washers and industrial equipment. Workshop repair & reconditioning at Parrys.",
+    "Chennai's authorised dealer for hydro test pumps, chemical pumps, RO systems, industrial pumps and pressure washers. Workshop repair & reconditioning at Parrys since 2008.",
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Pumps & Water Systems',
+    itemListElement: [
+      { '@type': 'OfferCatalog', name: 'Hydro Test Pumps' },
+      { '@type': 'OfferCatalog', name: 'Chemical Pumps' },
+      { '@type': 'OfferCatalog', name: 'Industrial Water Pumps' },
+      { '@type': 'OfferCatalog', name: 'RO Systems & Water Filters' },
+      { '@type': 'OfferCatalog', name: 'Pressure Booster Pumps' },
+      { '@type': 'OfferCatalog', name: 'High Pressure Washers' },
+      { '@type': 'OfferCatalog', name: 'Submersible Pumps' },
+      { '@type': 'OfferCatalog', name: 'Air Equipment & Compressors' },
+    ],
+  },
   hasMap: 'https://maps.google.com/?q=Hirani+Marketing+Combines+Parrys+Chennai',
   sameAs: [
     'https://share.google/sOaPiynM2Hl88l3Zn',

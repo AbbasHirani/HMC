@@ -51,7 +51,7 @@ const faqSchema = {
 export const metadata: Metadata = {
   title: { absolute: 'Industrial Pump Dealer Chennai | Hirani Marketing Combines' },
   description:
-    "Buy hydro test pumps, chemical pumps, RO systems, industrial & water pumps in Parrys, Chennai. Hirani Marketing Combines — authorised dealer since 2008. Sales, repair & workshop service.",
+    "Buy hydro test pumps, chemical pumps, RO systems & industrial water pumps in Parrys, Chennai. Authorised dealer since 2008 — sales, repair & workshop service.",
   keywords: [
     'water pump dealer Chennai', 'hydro test pump Chennai', 'chemical pump Chennai',
     'industrial pump dealer Parrys', 'RO system Chennai', 'magnetic drive pump Chennai',
@@ -66,14 +66,8 @@ export const metadata: Metadata = {
     description: "Chennai's authorised dealer for hydro test pumps, chemical pumps, RO systems and industrial water pumps since 2008. Sales, service and pump repair at Parrys, George Town.",
     url: '/',
     type: 'website',
-    images: [
-      {
-        url: '/logo-stacked.png',
-        width: 1200,
-        height: 630,
-        alt: 'Hirani Marketing Combines — Pump Dealer Chennai',
-      },
-    ],
+    // No `images` override here — lets the branded opengraph-image.tsx
+    // file convention render for this route instead of the static logo.
   },
 };
 

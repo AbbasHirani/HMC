@@ -21,7 +21,10 @@ export const metadata: Metadata = {
     'chemical pump repair Chennai', 'pump reconditioning Chennai',
     'Hirani Marketing Combines',
   ],
-  alternates: { canonical: '/services' },
+  alternates: {
+    canonical: '/services',
+    languages: { en: '/services', ta: '/ta/services', 'x-default': '/services' },
+  },
   openGraph: {
     title: 'Pump Repair & Hydro Test Pump Service in Chennai | Hirani Marketing Combines',
     description: 'Pump repair, hydro test pump service, water filter maintenance & air compressor overhaul in Chennai. 17+ years — inspect, quote, repair at our Parrys workshop.',
@@ -95,6 +98,43 @@ const WHY = [
   { Icon: IconTruck,    title: 'Fast turnaround', body: 'Most repairs are diagnosed and quoted same-day; standard jobs completed within 48–72 hours.' },
 ];
 
+// Single source for both the visible FAQ section and the FAQPage schema below —
+// keeping these in one array guarantees structured data always matches on-page content.
+const FAQS = [
+  {
+    q: 'How much does pump repair cost in Chennai?',
+    a: 'Pump repair costs at Hirani Marketing Combines vary by pump type and the nature of the fault. We inspect and quote before starting any work — no hidden charges. Call +91 98401 59762 or drop in at our Parrys workshop for a same-day inspection and quote.',
+  },
+  {
+    q: 'How long does pump repair take?',
+    a: 'Most repairs are diagnosed and quoted same-day. Standard pump repair and reconditioning jobs are completed within 48–72 hours. Turnaround depends on parts availability and the extent of the repair needed.',
+  },
+  {
+    q: 'Do you repair all types of water pumps?',
+    a: 'Yes — Hirani Marketing Combines repairs domestic monoblock pumps, submersible pumps, centrifugal pumps, chemical pumps and industrial pumps. We also repair RO water filters, air compressors and hydro pressure test pumps.',
+  },
+  {
+    q: 'Do you offer on-site pump repair or only workshop service?',
+    a: 'We primarily offer workshop repair at our Parrys, Chennai location — drop in your equipment and we handle the rest. On-site service is available for select cases. Call +91 98401 59762 to discuss your requirements.',
+  },
+  {
+    q: 'Do you start repair work before quoting a price?',
+    a: 'No. Hirani Marketing Combines inspects and diagnoses your equipment first, then provides a full repair quote before any work begins. You only pay if you approve the quote.',
+  },
+  {
+    q: 'Do you repair RO water purifiers and water filters?',
+    a: 'Yes — we service and repair RO systems, UV purifiers and water softeners. Services include RO membrane replacement, pump and cartridge replacement, UV lamp and quartz sleeve replacement, softener resin refresh, and water quality checks after service.',
+  },
+  {
+    q: 'What brands of water pumps do you sell and service in Chennai?',
+    a: 'Hirani Marketing Combines is an authorised dealer for Kent, CRI, Kirloskar, Grundfos, Crompton, Texmo, Shakti, Wilo and Pentair. We stock genuine replacement parts and service all these brands at our Parrys workshop.',
+  },
+  {
+    q: 'Where is Hirani Marketing Combines located?',
+    a: 'Hirani Marketing Combines is located at Old No.133 / New No.279, Thambu Chetty St, opposite TNEB office, Parrys, George Town, Chennai – 600001. We are open Monday to Saturday, 9 am to 6 pm.',
+  },
+];
+
 export default async function ServicesPage() {
   let repairJobs: { id: string; title: string; description: string | null; tag: string | null; imageUrl: string | null }[] = [];
   try {
@@ -111,48 +151,11 @@ export default async function ServicesPage() {
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'How much does pump repair cost in Chennai?',
-        acceptedAnswer: { '@type': 'Answer', text: 'Pump repair costs at Hirani Marketing Combines vary by pump type and the nature of the fault. We inspect and quote before starting any work — no hidden charges. Call +91 98401 59762 or drop in at our Parrys workshop for a same-day inspection and quote.' },
-      },
-      {
-        '@type': 'Question',
-        name: 'How long does pump repair take?',
-        acceptedAnswer: { '@type': 'Answer', text: 'Most repairs are diagnosed and quoted same-day. Standard pump repair and reconditioning jobs are completed within 48–72 hours. Turnaround depends on parts availability and the extent of the repair needed.' },
-      },
-      {
-        '@type': 'Question',
-        name: 'Do you repair all types of water pumps?',
-        acceptedAnswer: { '@type': 'Answer', text: 'Yes — Hirani Marketing Combines repairs domestic monoblock pumps, submersible pumps, centrifugal pumps, chemical pumps and industrial pumps. We also repair RO water filters, air compressors and hydro pressure test pumps.' },
-      },
-      {
-        '@type': 'Question',
-        name: 'Do you offer on-site pump repair or only workshop service?',
-        acceptedAnswer: { '@type': 'Answer', text: 'We primarily offer workshop repair at our Parrys, Chennai location — drop in your equipment and we handle the rest. On-site service is available for select cases. Call +91 98401 59762 to discuss your requirements.' },
-      },
-      {
-        '@type': 'Question',
-        name: 'Do you start repair work before quoting a price?',
-        acceptedAnswer: { '@type': 'Answer', text: 'No. Hirani Marketing Combines inspects and diagnoses your equipment first, then provides a full repair quote before any work begins. You only pay if you approve the quote.' },
-      },
-      {
-        '@type': 'Question',
-        name: 'Do you repair RO water purifiers and water filters?',
-        acceptedAnswer: { '@type': 'Answer', text: 'Yes — we service and repair RO systems, UV purifiers and water softeners. Services include RO membrane replacement, pump and cartridge replacement, UV lamp and quartz sleeve replacement, softener resin refresh, and water quality checks after service.' },
-      },
-      {
-        '@type': 'Question',
-        name: 'What brands of water pumps do you sell and service in Chennai?',
-        acceptedAnswer: { '@type': 'Answer', text: 'Hirani Marketing Combines is an authorised dealer for Kent, CRI, Kirloskar, Grundfos, Crompton, Texmo, Shakti, Wilo and Pentair. We stock genuine replacement parts and service all these brands at our Parrys workshop.' },
-      },
-      {
-        '@type': 'Question',
-        name: 'Where is Hirani Marketing Combines located?',
-        acceptedAnswer: { '@type': 'Answer', text: 'Hirani Marketing Combines is located at Old No.133 / New No.279, Thambu Chetty St, opposite TNEB office, Parrys, George Town, Chennai – 600001. We are open Monday to Saturday, 9 am to 6 pm.' },
-      },
-    ],
+    mainEntity: FAQS.map(f => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
   };
 
   const howToSchema = {
@@ -363,32 +366,7 @@ export default async function ServicesPage() {
             <h2>Frequently asked questions</h2>
           </div>
           <div style={{ maxWidth: 760, margin: '44px auto 0', display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {[
-              {
-                q: 'How much does pump repair cost in Chennai?',
-                a: 'Costs vary by pump type and fault. We inspect and quote before starting any work — no hidden charges, no surprise bills. Drop in your equipment or call us for a same-day assessment.',
-              },
-              {
-                q: 'How long does pump repair take?',
-                a: 'Most jobs are diagnosed and quoted same-day. Standard pump repair and reconditioning is completed within 48–72 hours. Turnaround depends on parts availability and repair scope.',
-              },
-              {
-                q: 'Do you repair all types of water pumps?',
-                a: 'Yes — domestic monoblock, submersible, centrifugal, chemical and industrial pumps. We also repair RO systems, water filters, air compressors and hydro pressure test pumps.',
-              },
-              {
-                q: 'Do you start work before quoting?',
-                a: 'Never. We inspect, diagnose and provide a full written quote first. Work only begins after you approve it — no commitment to inspect.',
-              },
-              {
-                q: 'Do you offer on-site repair or only workshop?',
-                a: 'Primarily workshop-based at our Parrys shop — drop in your equipment and collect it repaired. On-site service is available for select industrial cases. Call to discuss.',
-              },
-              {
-                q: 'What brands do you carry and service?',
-                a: 'We are authorised dealers for Kent, CRI, Kirloskar, Grundfos, Crompton, Texmo, Shakti, Wilo and Pentair. We stock genuine parts and service all these brands.',
-              },
-            ].map(({ q, a }, i) => (
+            {FAQS.map(({ q, a }, i) => (
               <details
                 key={i}
                 style={{

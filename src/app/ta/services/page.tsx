@@ -10,7 +10,7 @@ import { sql } from '@/lib/db';
 import RepairJobsCarousel from '@/components/RepairJobsCarousel';
 import { jsonLd } from '@/lib/jsonLd';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'பம்ப் பழுது, ஃபில்டர் சர்வீஸ் & ஹைட்ரோ டெஸ்ட் பம்ப் பழுது — சென்னை',

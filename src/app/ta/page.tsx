@@ -14,9 +14,9 @@ import { CONTACT, WA } from '@/lib/data';
 import { getCategories, getProducts } from '@/lib/queries';
 
 export const metadata: Metadata = {
-  title: 'தண்ணீர் பம்புகள், RO சிஸ்டம் & தொழிற்சாலை உபகரணங்கள் — சென்னை',
+  title: 'தண்ணீர் பம்புகள் & RO சிஸ்டம் — சென்னை பம்ப் கடை',
   description:
-    '2008 முதல் சென்னையின் நம்பகமான பம்ப் கடை. தண்ணீர் பம்புகள், RO & வடிகட்டிகள், நீரூற்றுகள், பிரஷர் வாஷர்கள் — பாரிஸில் பழுது பார்க்கும் சேவையுடன். Kent, CRI, Kirloskar, Grundfos.',
+    '2008 முதல் சென்னையின் நம்பகமான பம்ப் கடை — தண்ணீர் பம்புகள், RO, நீரூற்றுகள், பிரஷர் வாஷர்கள். பாரிஸில் பழுது சேவையும் உண்டு.',
   alternates: {
     canonical: '/ta',
     languages: { en: '/', ta: '/ta', 'x-default': '/' },

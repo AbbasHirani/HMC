@@ -20,9 +20,11 @@ interface Props {
   initialCat?: string | null;
   /** Slug pre-selected from the URL path (e.g. /catalogue/chemical-pumps/monoblock). */
   initialSub?: string | null;
+  /** Use h2 when the server page already renders an h1 (category/subcategory routes). */
+  titleAs?: 'h1' | 'h2';
 }
 
-export default function CatalogueClient({ categories, products: allProducts, useCases = [], initialCat, initialSub }: Props) {
+export default function CatalogueClient({ categories, products: allProducts, useCases = [], initialCat, initialSub, titleAs = 'h1' }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -98,21 +100,23 @@ export default function CatalogueClient({ categories, products: allProducts, use
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(itemListSchema) }} />
-      <section className="list-head">
-        <div className="container">
-          <nav className="crumb">
-            <Link href="/">Home</Link>
-            {cat && (
-              <><span>/</span><Link href="/catalogue">Products</Link></>
-            )}
-            {cat && sub && (
-              <><span>/</span><Link href={`/catalogue/${cat}`}>{catName(cat)}</Link></>
-            )}
-          </nav>
-          <h1 style={{ fontSize: 'clamp(28px,3.4vw,40px)', marginTop: 8 }}>{title}</h1>
-          <p style={{ color: 'var(--slate)', fontSize: 16, marginTop: 8, maxWidth: 600 }}>{subtitle}</p>
-        </div>
-      </section>
+      {titleAs !== 'h2' && (
+        <section className="list-head">
+          <div className="container">
+            <nav className="crumb">
+              <Link href="/">Home</Link>
+              {cat && (
+                <><span>/</span><Link href="/catalogue">Products</Link></>
+              )}
+              {cat && sub && (
+                <><span>/</span><Link href={`/catalogue/${cat}`}>{catName(cat)}</Link></>
+              )}
+            </nav>
+            <h1 style={{ fontSize: 'clamp(28px,3.4vw,40px)', marginTop: 8 }}>{title}</h1>
+            <p style={{ color: 'var(--slate)', fontSize: 16, marginTop: 8, maxWidth: 600 }}>{subtitle}</p>
+          </div>
+        </section>
+      )}
 
       <section className="section" style={{ paddingTop: 12 }}>
         <div className="container">

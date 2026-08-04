@@ -13,50 +13,61 @@ interface CatSeoSuggestBody {
 
 function buildPrompt(p: CatSeoSuggestBody): string {
   const subsList = p.subs?.length ? `- Product types / subcategories: ${p.subs.join(', ')}` : '';
-  return `You are a senior SEO specialist writing metadata and copy for a local industrial equipment category page. Your output directly affects Google rankings and click-through rates.
+  return `You are a senior SEO specialist writing metadata and page copy for a local industrial equipment category page. Your output directly affects Google rankings in Chennai, India.
 
 THE BUSINESS:
-Hirani Marketing Combines — authorised pump & water-systems dealer at Parrys, George Town, Chennai, Tamil Nadu. Est. 2008. Stocks genuine brands. In-house repair workshop. Target customers search Google for "[category] in Chennai", "[category] supplier Chennai", "[category] dealer Parrys", "buy [category] Chennai".
+Hirani Marketing Combines — authorised pump & water-systems dealer at Parrys, George Town, Chennai, Tamil Nadu. Est. 2008. Stocks genuine brands (CRI, Kirloskar, Grundfos, Pentair, Lubi). In-house repair workshop. Customers: homeowners, facility managers, plumbing contractors, industrial buyers across Tamil Nadu.
 
 THE CATEGORY PAGE:
 - Category / Page name: ${p.name || '(unnamed)'}
 - Existing description / teaser: ${p.teaser || '(none)'}
 ${subsList}
 
+KEYWORD INTELLIGENCE — how buyers in Chennai actually search for each product type:
+- Water pumps / monoblock: "monoblock pump Chennai", "1 HP monoblock pump", "centrifugal pump Chennai", "self priming pump" (alternate name), "0.5 HP / 1.5 HP water pump Chennai"
+- Submersible pumps: "submersible pump Chennai", "sewage pump Chennai", "drainage pump", "DC submersible pump", "plastic submersible pump", "openwell pump"
+- Chemical pumps: "chemical dosing pump Chennai", "dosing pump", "metering pump" (alternate name), "acid transfer pump", "PVDF pump", "PP pump"
+- Pressure booster: "pressure booster pump Chennai", "booster pump for apartment Chennai", "water pressure pump", "low water pressure solution"
+- High pressure washers: "high pressure washer Chennai", "car wash pump Chennai", "industrial pressure washer", "jet washer" / "power washer" (alternate names)
+- Hydraulic / hydro test pumps: "hydro test pump Chennai", "hydraulic test pump", "hydrostatic test pump" — all three spellings used by different buyers; "hand operated test pump", "pipeline pressure test pump"
+- Diesel / engine pumps: "diesel water pump Chennai", "dewatering pump Chennai", "portable diesel pump", "engine pump set"
+- Air equipment: "air compressor dealer Chennai", "piston compressor", "compressed air equipment"
+- Plunger pumps: "plunger pump Chennai", "high pressure plunger pump", "reciprocating pump" (alternate name)
+
 GENERATE the following fields. Every rule is a hard requirement:
 
-1. "title" — Meta title. HARD LIMIT: 50–60 characters (count carefully). Rules:
-   - Front-load the primary category keyword as buyers would search it (e.g. "Water Pumps", "Chemical Pumps", "High Pressure Washers").
+1. "title" — Meta title. HARD LIMIT: 50–60 characters (count every character including spaces). Rules:
+   - Front-load the primary keyword buyers search (e.g. "Submersible Pumps", "Chemical Dosing Pumps") — use the most common search phrasing, not the internal category name if they differ.
    - Include "Chennai" for local intent.
-   - End with "| Hirani Marketing Combines" only if it fits within 60 chars.
-   - If subcategories exist, you may include 1–2 of the most searched ones before the pipe.
-   - NO keyword stuffing. Each word must earn its place.
-   - NEVER use "HMC".
-   - Example: "Water Pumps in Chennai | Centrifugal & Booster Pumps | HMC" ← bad, too long and uses HMC
-   - Example: "Water Pumps Chennai | Hirani Marketing Combines" ← good
+   - End with "| Hirani Marketing Combines" only if it fits within 60 chars total.
+   - NEVER use "HMC". Count characters before returning.
 
 2. "description" — Meta description. HARD LIMIT: 145–160 characters TOTAL. Rules:
-   - The ENTIRE description must be 145–160 characters — not more.
-   - MUST be unique — do NOT use the template "Leading X supplier in Parrys...". Write a fresh, specific sentence for this category.
-   - Open with what the category covers and who it's for (industrial, residential, commercial use as relevant).
-   - Mention 2–3 specific product types from the subcategories list if available.
-   - Include "Chennai" and "Hirani Marketing Combines" or "Parrys" naturally.
-   - End with a CTA: "Shop now.", "Call for pricing.", "Visit our Parrys store.", or "Get expert advice."
-   - Example good description: "Buy centrifugal, booster & submersible pumps in Chennai at Hirani Marketing Combines. Genuine brands, workshop support, Parrys store. Call for pricing."
+   - Must be 145–160 characters — count every character.
+   - Open with the primary buyer search phrase for this category (e.g. "Submersible pumps in Chennai").
+   - Name 2–3 specific product types from subcategories if available.
+   - Include "Hirani Marketing Combines" or "Parrys".
+   - End with a CTA: "Call for pricing.", "Visit our Parrys store.", or "Get expert advice."
+   - NEVER use "HMC".
 
-3. "keywords" — Comma-separated string of 15–18 keywords. Rules:
-   - Include: category name, each subcategory name, category + "Chennai", category + "price", category + "dealer Chennai", category + "supplier Parrys".
-   - Include transactional long-tails: "buy [category] in Chennai", "[category] near me", "[category] authorised dealer Chennai".
-   - Include "Hirani Marketing Combines" as one keyword.
-   - Lowercase except proper nouns.
-   - NO vague filler terms.
+3. "keywords" — Comma-separated string of 16–20 keywords. Rules:
+   REQUIRED types — all must be present:
+   a. Primary category name as buyers search it
+   b. Each subcategory name (if provided)
+   c. Alternate names / spellings for this product type (use the Keyword Intelligence section above)
+   d. Spec-based searches where relevant: "[HP] [product type] Chennai", "[LPM] pump", etc.
+   e. Local transactional: "[category] dealer Chennai", "[category] supplier Parrys", "[category] price Chennai", "buy [category] Chennai"
+   f. "[category] authorised dealer Chennai"
+   g. "Hirani Marketing Combines"
+   Lowercase except brand names. No vague fillers.
 
-4. "teaser" — Short category description shown on cards and at top of category page. LIMIT: 100–130 characters. Rules:
-   - One well-structured sentence.
-   - Describe what this category includes and its primary real-world applications.
-   - Professional industrial tone — no marketing hyperbole.
-   - Must be unique and specific to this category, not generic.
-   - Example: "Centrifugal, booster and submersible pumps for domestic, commercial and industrial water supply needs."
+4. "teaser" — Category description shown on listing cards AND as body text on the category page itself. TARGET: 55–80 words. Rules:
+   - Write 2–3 complete sentences. This is body copy, not a tagline — it must contain enough keywords for Google to understand the page topic.
+   - Sentence 1: state what this category covers, naming the specific product variants and alternate names included.
+   - Sentence 2: describe primary real-world applications and who buys them (homeowners, factories, plumbing contractors, ETP/STP plants, facility managers, etc.).
+   - Sentence 3 (optional but recommended): mention spec range or a key differentiator (e.g. "Available from 0.5 HP to 10 HP for domestic and industrial supply lines").
+   - Must include at least 2 high-priority keywords from the Keyword Intelligence section above, worked in naturally.
+   - Professional, factual tone. No superlatives ("best", "leading", "top").
 
 5. "footText" — Short text at bottom of category card. Rules:
    - If subcategories are provided: count them and write e.g. "6 types", "4 product types".
@@ -83,7 +94,7 @@ export async function POST(req: NextRequest) {
   const geminiBody = {
     contents: [{ role: 'user', parts: [{ text: buildPrompt(body) }] }],
     generationConfig: {
-      temperature: 0.4,
+      temperature: 0.2,
       maxOutputTokens: 1024,
       responseMimeType: 'application/json',
       responseSchema: {
@@ -115,7 +126,7 @@ export async function POST(req: NextRequest) {
 
   if (!upstream.ok) {
     const detail = await upstream.text().catch(() => '');
-    console.error('Gemini SEO suggest error', upstream.status, detail);
+    console.error('Gemini category SEO suggest error', upstream.status, detail);
     return NextResponse.json({ error: 'AI generation failed. Try again.' }, { status: 502 });
   }
 

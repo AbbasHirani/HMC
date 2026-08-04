@@ -14,48 +14,59 @@ interface BrandSeoSuggestBody {
 function buildPrompt(p: BrandSeoSuggestBody): string {
   const productLines = p.products?.length
     ? p.products.slice(0, 20).map(pr => `  - ${pr.name} (${pr.category} / ${pr.subcategory})`).join('\n')
-    : '  (no products listed yet — infer from brand name and description)';
+    : '  (no products listed yet — infer conservatively from brand name and description only)';
 
-  return `You are a senior SEO specialist writing metadata for a brand page on a local industrial equipment store.
+  return `You are a senior SEO specialist writing metadata and copy for a brand page on a local industrial equipment store. Your output directly affects Google rankings in Chennai, India.
 
 THE BUSINESS:
-Hirani Marketing Combines — authorised pump & water-systems dealer in Parrys, Chennai, Tamil Nadu. Est. 2008. Stocks genuine brands with an in-house repair workshop. Customers search for "[brand] dealer Chennai", "[brand] products Chennai", "buy [brand] in Chennai".
+Hirani Marketing Combines — authorised pump & water-systems dealer in Parrys, Chennai, Tamil Nadu. Est. 2008. Stocks genuine brands with in-house repair workshop. Customers search: "[brand] dealer Chennai", "[brand] authorised dealer", "buy [brand] in Chennai", "[brand] [product type] price Chennai".
 
 THE BRAND PAGE:
 - Brand name: ${p.name || '(unnamed)'}
 - Brand description (if any): ${p.description || '(none provided)'}
-- Products this brand sells at Hirani Marketing Combines:
+- Products stocked at Hirani Marketing Combines:
 ${productLines}
 
-IMPORTANT: Generate SEO metadata that is 100% accurate to what this brand actually sells. Do NOT invent product categories — use only what is listed above. If no products are listed, be conservative and only describe what the brand name and description suggest.
+IMPORTANT: Generate SEO metadata accurate to what this brand actually sells. Do NOT invent product categories — use only what is listed above.
+
+KEYWORD INTELLIGENCE — search patterns buyers use for pump/equipment brands in Chennai:
+- Brand searches: "[brand] dealer Chennai", "[brand] authorised dealer Chennai", "[brand] distributor Chennai", "[brand] price Chennai", "buy [brand] Chennai"
+- Product-type searches: "[brand] [product type] Chennai", "[brand] [product type] price", "[brand] [spec] [product type]" (e.g. "CRI 1 HP monoblock pump")
+- Alternate product names to include where relevant: monoblock = centrifugal = self-priming; hydro test = hydraulic test = hydrostatic test; dosing pump = metering pump; sewage pump = drainage pump
+- Trust searches: "[brand] genuine dealer Chennai", "[brand] original products Chennai"
 
 GENERATE the following fields:
 
-1. "title" — Meta title. HARD LIMIT: 50–60 characters (count carefully). Rules:
-   - Format: "[Brand Name] [primary product type] in Chennai | Hirani Marketing Combines"
+1. "title" — Meta title. HARD LIMIT: 50–60 characters (count every character). Rules:
+   - Format: "[Brand] [primary product type] in Chennai | Hirani Marketing Combines" — trim as needed to stay within 60 chars.
    - Use the most prominent product type from the products list.
-   - Include "Chennai" for local intent.
-   - NEVER use "HMC". NEVER exceed 60 characters.
-   - Example: "BTALI Pump Controllers in Chennai | Hirani Marketing Combines"
+   - Include "Chennai".
+   - NEVER use "HMC". Count characters before returning.
 
 2. "description" — Meta description. HARD LIMIT: 145–160 characters TOTAL. Rules:
-   - The ENTIRE description must be 145–160 characters — not a character more.
-   - Mention the brand name, the specific types of products they make (from the product list), and "Chennai".
+   - Must be exactly 145–160 characters — count every character.
+   - Mention the brand name, 2–3 specific product types from the products list, and "Chennai".
    - Include "Hirani Marketing Combines" or "Parrys" naturally.
    - End with a CTA: "Call for pricing.", "Visit our Parrys store.", or "Browse the range."
    - NEVER use "HMC". Do NOT invent products not in the list.
-   - Example: "Browse BTALI automatic pump controllers and accessories at Hirani Marketing Combines, Chennai. Dry-run protection, pressure control. Call for pricing."
 
-3. "keywords" — Comma-separated string of 12–16 keywords. Rules:
-   - Include: brand name alone, brand + each main product type, brand + "Chennai", brand + "dealer Chennai", brand + "authorised dealer", brand + "price".
-   - Include "Hirani Marketing Combines" as one keyword.
-   - Only use product types that actually appear in the products list.
-   - Lowercase except proper nouns/brand names.
+3. "keywords" — Comma-separated string of 14–18 keywords. Rules:
+   REQUIRED types — all must be present:
+   a. Brand name alone
+   b. Brand + each main product type it sells (from products list)
+   c. Brand + "Chennai", brand + "dealer Chennai", brand + "authorised dealer", brand + "price"
+   d. Brand + specific product combos: "[brand] [product] price Chennai", "[brand] [product] dealer Chennai"
+   e. Alternate product names where applicable (see Keyword Intelligence above)
+   f. "Hirani Marketing Combines" as one keyword
+   Only use product types that appear in the products list. Lowercase except brand/proper nouns.
 
-4. "brandDescription" — A short brand description for the brand page body. LIMIT: 80–120 characters. Rules:
-   - One clean sentence describing what this brand makes, based strictly on the products list.
+4. "brandDescription" — Brand page body paragraph. TARGET: 55–80 words. Rules:
+   - Write 2–3 complete sentences. This is body copy displayed on the brand page — more words means more indexable content for Google.
+   - Sentence 1: state what the brand makes and its primary product range (based strictly on the products list).
+   - Sentence 2: describe who typically buys this brand and for what applications (residential, commercial, industrial, ETP/STP, HVAC, etc.) — be specific to this brand's actual product types.
+   - Sentence 3: state it is available at Hirani Marketing Combines, Parrys, Chennai with genuine stock and after-sales support.
+   - Must include the brand name at least twice naturally.
    - Professional tone. No superlatives.
-   - Example: "Browse all BTALI automatic pump controllers and accessories available at Hirani Marketing Combines, Chennai."
 
 Return ONLY valid JSON with keys: title, description, keywords, brandDescription.`;
 }
@@ -78,7 +89,7 @@ export async function POST(req: NextRequest) {
   const geminiBody = {
     contents: [{ role: 'user', parts: [{ text: buildPrompt(body) }] }],
     generationConfig: {
-      temperature: 0.3,
+      temperature: 0.2,
       maxOutputTokens: 1024,
       responseMimeType: 'application/json',
       responseSchema: {

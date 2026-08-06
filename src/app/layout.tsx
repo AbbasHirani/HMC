@@ -18,14 +18,6 @@ export const metadata: Metadata = {
     siteName: 'Hirani Marketing Combines',
     locale: 'en_IN',
     type: 'website',
-    images: [
-      {
-        url: '/logo-stacked.png',
-        width: 1200,
-        height: 630,
-        alt: 'Hirani Marketing Combines Logo',
-      },
-    ],
   },
   robots: {
     index: true,
@@ -39,7 +31,6 @@ export const metadata: Metadata = {
     title: 'Hirani Marketing Combines — Pumps, Water Systems & Industrial Supply, Chennai',
     description:
       "Buy water pumps, pressure booster pumps, hydro test pumps, chemical pumps, high pressure washers, dosing pumps and RO systems in Parrys, Chennai. Hirani Marketing Combines offers sales, service and industrial pumping solutions.",
-    images: ['/logo-stacked.png'],
   },
 };
 

@@ -28,7 +28,7 @@ export default function Image() {
       >
         {/* Background Image */}
         <img
-          src="https://hiranimarketing.vercel.app/shop.jpg"
+          src={`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketingcombines.in'}/shop.jpg`}
           alt="Shop Background"
           style={{
             position: 'absolute',

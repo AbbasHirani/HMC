@@ -923,7 +923,7 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
         {/* Google preview */}
         <div style={{ padding: '14px 18px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 18, maxWidth: 600 }}>
           <p style={{ margin: '0 0 8px', fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: '#9ca3af' }}>Google preview</p>
-          <p style={{ margin: 0, fontSize: 12, color: '#1a7f3c' }}>hiranimarketing.vercel.app › product › {slug || 'slug'}</p>
+          <p style={{ margin: 0, fontSize: 12, color: '#1a7f3c' }}>hiranimarketingcombines.in › product › {slug || 'slug'}</p>
           <p style={{ margin: '2px 0 0', fontSize: 17, color: '#1a0dab', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {effTitle || 'Product title appears here'}
           </p>

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { hasValidAdminSession } from '@/lib/adminAuth';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   if (!await hasValidAdminSession(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

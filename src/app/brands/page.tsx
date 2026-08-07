@@ -9,7 +9,7 @@ import { jsonLd } from '@/lib/jsonLd';
 
 export const revalidate = 60;
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketingcombines.in';
 
 export const metadata: Metadata = {
   title: 'Pump & Water System Brands We Carry in Chennai',

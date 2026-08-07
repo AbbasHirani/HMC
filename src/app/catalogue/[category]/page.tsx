@@ -8,7 +8,7 @@ import CatalogueClient from '../CatalogueClient';
 import { getCategories, getProducts, getUseCaseFilters } from '@/lib/queries';
 import { jsonLd } from '@/lib/jsonLd';
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketingcombines.in';
 
 export const revalidate = 60;
 

@@ -84,7 +84,7 @@ export default function CatalogueClient({ categories, products: allProducts, use
   const subtitle = subObj?.blurb
     || (catObj ? catObj.teaser : 'Browse the full Hirani Marketing Combines catalogue — pumps, water systems, fountains, pressure washers, hydraulics and spares.');
 
-  const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
+  const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketingcombines.in';
   const itemListSchema = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',

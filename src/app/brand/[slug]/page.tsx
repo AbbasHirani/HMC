@@ -51,7 +51,7 @@ export default async function BrandPage({ params }: Props) {
   const brand = brands.find(b => b.slug === slug);
   if (!brand) notFound();
 
-  const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
+  const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketingcombines.in';
   
   const collectionSchema = {
     '@context': 'https://schema.org',

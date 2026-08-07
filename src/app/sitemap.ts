@@ -3,7 +3,7 @@ import { getAllProductSlugs, getBrands, getCategories } from '@/lib/queries';
 
 export const revalidate = 3600; // Revalidate every hour
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketingcombines.in';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [slugs, brands, categories] = await Promise.all([

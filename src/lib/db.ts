@@ -17,4 +17,16 @@ function getSql(): NeonQueryFunction<false, false> {
   return neon(url);
 }
 
-export const sql = getSql();
+export const sql: NeonQueryFunction<false, false> = new Proxy(
+  (() => {}) as unknown as NeonQueryFunction<false, false>,
+  {
+    apply(_target, thisArg, argArray) {
+      const sqlFn = getSql();
+      return Reflect.apply(sqlFn, thisArg, argArray);
+    },
+    get(_target, prop, receiver) {
+      const sqlFn = getSql();
+      return Reflect.get(sqlFn, prop, receiver);
+    },
+  }
+);

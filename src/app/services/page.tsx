@@ -172,7 +172,7 @@ export default async function ServicesPage() {
     ],
   };
 
-  const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
+  const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketingcombines.in';
 
   const serviceSchemas = SVCS.map(svc => ({
     '@context': 'https://schema.org',

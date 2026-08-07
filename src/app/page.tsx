@@ -14,7 +14,7 @@ import { SERVICES, CONTACT, WA } from '@/lib/data';
 import { getCategories, getProducts } from '@/lib/queries';
 import { jsonLd } from '@/lib/jsonLd';
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketing.vercel.app';
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketingcombines.in';
 
 const faqSchema = {
   '@context': 'https://schema.org',

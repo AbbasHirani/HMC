@@ -5,7 +5,6 @@ import Footer from '@/components/Footer';
 import ProductClient from './ProductClient';
 import { findProductBySlug, getAllProductSlugs, getProducts, getMostEnquiredProducts } from '@/lib/queries';
 import { jsonLd } from '@/lib/jsonLd';
-import { ogImage } from '@/lib/img';
 
 export const revalidate = 60;
 
@@ -57,8 +56,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? p.seo.keywords.split(',').map(k => k.trim()).filter(Boolean)
     : autoKeywords;
 
-  // Raw product photo padded to 1200x630px on white background for WhatsApp large card preview
-  const ogImgUrl = ogImage(p.images?.[0]?.url);
+  // Use the product's own first image for both OG and Twitter cards.
+  const productImage = p.images?.[0]?.url
+    ? [{ url: p.images[0].url, alt: p.images[0].alt || p.name }]
+    : undefined;
 
   return {
     // Absolute: skip the "| Hirani Marketing Combines" template so carefully
@@ -70,25 +71,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: `${SITE}/product/${slug}`,
-      siteName: 'Hirani Marketing Combines',
-      images: [
-        {
-          url: ogImgUrl,
-          width: 1200,
-          height: 630,
-          alt: p.name,
-          type: 'image/jpeg',
-        },
-      ],
-      locale: 'en_IN',
+      url: `/product/${slug}`,
       type: 'website',
+      images: productImage,
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [ogImgUrl],
+      images: productImage?.map(i => i.url),
     },
   };
 }

@@ -25,6 +25,12 @@ export async function POST(req: NextRequest) {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `;
+  // brands gained description/seo after the table shape above was first
+  // written, so they have to be ALTERs — the CREATE above is a no-op on any
+  // database that already exists. Without these, POST /api/brands fails on a
+  // freshly migrated database because it inserts both columns.
+  await sql`ALTER TABLE brands ADD COLUMN IF NOT EXISTS description TEXT`;
+  await sql`ALTER TABLE brands ADD COLUMN IF NOT EXISTS seo JSONB DEFAULT '{}'::jsonb`;
   await sql`
     CREATE TABLE IF NOT EXISTS repair_jobs (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -5,11 +5,16 @@ import { useEffect } from 'react';
 import posthog from 'posthog-js';
 import { Analytics } from '@vercel/analytics/react';
 
+// Mirrors the guard in instrumentation-client.ts — posthog is never initialized
+// without a token, so calling into it here would just log errors on every nav.
+const POSTHOG_ENABLED = Boolean(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN);
+
 export default function AnalyticsWrapper() {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
 
   useEffect(() => {
+    if (!POSTHOG_ENABLED) return;
     if (isAdmin) {
       // Ensure session recording is stopped if they navigate to admin
       posthog.stopSessionRecording();

@@ -1,27 +1,48 @@
 Neon schema and setup
 =====================
 
-This folder contains the SQL schema for the HMC project to run on Neon (Postgres).
+SQL schema for the HMC project, running on Neon (Postgres).
 
-Files:
-- `neon_schema.sql` — schema for `categories`, `subcategories` and `products`.
+Files
+-----
 
-How to run
-----------
+- `neon_schema.sql` — the authoritative schema: all eight tables, their
+  later-added columns, and the indexes. Every statement is `IF NOT EXISTS`,
+  so it is safe to re-run against a live database.
 
-Option A — Neon Console (recommended):
-1. Open your Neon project dashboard.
-2. Open the SQL editor and paste the contents of `neon_schema.sql`.
-3. Run the script.
+Tables: `categories`, `subcategories`, `brands`, `products`, `use_cases`,
+`product_use_cases`, `repair_jobs`, `enquiries`.
 
-Option B — psql (local):
-1. Install `psql` (Postgres client) if not already installed.
-2. Run:
+Two ways to apply it
+--------------------
+
+**1. Neon console / psql** — for a new database, or to pick up new indexes.
 
 ```bash
 psql "<YOUR_DATABASE_URL>" -f sql/neon_schema.sql
 ```
 
-Replace `<YOUR_DATABASE_URL>` with your Neon connection string (the `DATABASE_URL` in `.env.local`).
+Or paste the file into the Neon SQL editor and run it. `<YOUR_DATABASE_URL>`
+is the `DATABASE_URL` from `.env.local`.
 
-After running the schema, your API endpoints will be able to read/write categories, subcategories and products.
+**2. The admin "Run migration" button** — `POST /api/admin/migrate`, for when
+you have no database console to hand. It applies the same tables and columns
+at runtime, and is admin-authenticated.
+
+Keeping the two in step
+-----------------------
+
+`neon_schema.sql` and `src/app/api/admin/migrate/route.ts` describe the same
+schema and must be updated together when you add a table or column. They are
+not identical in scope:
+
+- The migrate route creates tables and columns only. It does **not** create
+  the indexes — those live only in this file, so a database set up purely
+  through the button will be missing them.
+- Columns added after a table was first created must be written as
+  `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`, not folded into the
+  `CREATE TABLE`. The `CREATE TABLE IF NOT EXISTS` is a no-op on any database
+  that already has the table, so a column added inside it silently never
+  appears on existing databases. This is why `products.brand/seo/videos`,
+  `categories.seo`, `subcategories.seo` and `brands.description/seo` are all
+  separate `ALTER` statements.

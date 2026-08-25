@@ -13,7 +13,7 @@ export async function compressImageFile(
   let bitmap: ImageBitmap;
   try {
     bitmap = await createImageBitmap(file as Blob);
-  } catch (e) {
+  } catch {
     // Fallback: load via Image element
     bitmap = await new Promise<ImageBitmap>((resolve, reject) => {
       const url = URL.createObjectURL(file);
@@ -63,7 +63,8 @@ export async function compressImageFile(
   if (!ctx) throw new Error('Canvas not supported');
   ctx.drawImage(bitmap, 0, 0, targetW, targetH);
 
-  const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve as any, outType, quality));
+  const blob: Blob | null = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(b => resolve(b), outType, quality));
   if (!blob) throw new Error('Image compression failed');
   const name = file.name.replace(/\.[^/.]+$/, '') + (convertToWebp ? '.webp' : file.name.match(/\.[^.]+$/)?.[0] ?? '');
   return new File([blob], name, { type: blob.type });

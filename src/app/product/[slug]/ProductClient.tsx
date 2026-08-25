@@ -40,7 +40,10 @@ export default function ProductClient({ product: p, related = [], popular = [] }
   const [waLink, setWaLink] = useState(WA + encodeURIComponent(`${p.name} (${cn})`));
 
   useEffect(() => {
+    // window.location is only available after mount, so SSR renders the short
+    // link and hydration upgrades it to the full one.
     if (typeof window !== 'undefined') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWaLink(WA + encodeURIComponent(`${p.name} (${cn})\n\nLink: ${window.location.origin}/product/${p.slug}`));
     }
   }, [p.name, cn, p.slug]);

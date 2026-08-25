@@ -24,6 +24,8 @@ export default function ShowcaseCarousel({ categories }: Props) {
   const [cur, setCur] = useState(0);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
+  // Which slides have been shown at least once, so they stay mounted instead
+  // of remounting (and refetching their image) every cycle.
   const [visited, setVisited] = useState<Record<number, boolean>>({ 0: true });
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -73,6 +75,12 @@ export default function ShowcaseCarousel({ categories }: Props) {
   }, [paused, startTimer]);
 
   useEffect(() => {
+    // Deliberate setState-in-effect: this marks the slide that just became
+    // current as mounted-for-good. It costs one extra render the first time
+    // each slide is shown — at most slides.length times for the page's whole
+    // lifetime — and settles immediately after, since the guard makes it a
+    // no-op on every subsequent visit.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVisited(prev => (prev[cur] ? prev : { ...prev, [cur]: true }));
   }, [cur]);
 

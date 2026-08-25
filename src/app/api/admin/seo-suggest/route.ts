@@ -6,6 +6,11 @@ export const runtime = 'nodejs';
 const MODEL = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
 const API_KEY = process.env.GEMINI_API_KEY;
 
+/** A single Gemini content part: prompt text, or an inlined image. */
+type GeminiPart =
+  | { text: string }
+  | { inlineData: { mimeType: string; data: string } };
+
 interface SeoSuggestBody {
   name?: string;
   brand?: string;
@@ -103,7 +108,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Product name is required — fill it in first.' }, { status: 400 });
   }
 
-  const parts: any[] = [{ text: buildPrompt(body) }];
+  const parts: GeminiPart[] = [{ text: buildPrompt(body) }];
 
   if (body.images) {
     for (const img of body.images) {
@@ -121,7 +126,7 @@ export async function POST(req: NextRequest) {
               }
             });
           }
-        } catch (e) {
+        } catch {
           console.error("Failed to fetch image for AI:", img.data);
         }
       }

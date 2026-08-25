@@ -18,6 +18,12 @@ interface UseCaseOpt { _id: string; name: string; slug: string; }
 interface ImgEntry { url: string; publicId: string; alt?: string; }
 interface VidEntry { type: 'cloudinary' | 'youtube'; url: string; publicId?: string; }
 interface SpecRow { key: string; value: string; }
+/** Shape returned by POST /api/upload. */
+interface UploadResult { url: string; publicId: string; resourceType?: 'image' | 'video'; }
+/** One image as sent to the SEO suggestion endpoint. */
+type SeoImagePayload =
+  | { type: 'url'; data: string }
+  | { type: 'base64'; mime: string; data: string };
 interface SeoData { title?: string; description?: string; keywords?: string; }
 
 type ImgState =
@@ -109,7 +115,11 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
 
   useEffect(() => {
+    // The blob URL is an external handle that has to be revoked later (in
+    // handleCropSave / handleCropCancel), so it belongs in an effect rather
+    // than being derived during render.
     if (cropQueue.length > 0 && !cropImgSrc) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCropImgSrc(URL.createObjectURL(cropQueue[0]));
     }
   }, [cropQueue, cropImgSrc]);
@@ -165,9 +175,13 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
       try {
         const compressed = await compressImageFile(file, { maxWidth: compressMaxWidth, quality: compressQuality, convertToWebp });
         const compressedPreview = URL.createObjectURL(compressed);
-        setImages(prev => prev.map(it => it.id === tmpId ? { ...(it as any), compressed: { file: compressed, previewUrl: compressedPreview, size: compressed.size }, compressing: false } : it));
+        setImages(prev => prev.map(it =>
+          it.id === tmpId && it.type === 'new'
+            ? { ...it, compressed: { file: compressed, previewUrl: compressedPreview, size: compressed.size }, compressing: false }
+            : it));
       } catch {
-        setImages(prev => prev.map(it => it.id === tmpId ? { ...(it as any), compressing: false } : it));
+        setImages(prev => prev.map(it =>
+          it.id === tmpId && it.type === 'new' ? { ...it, compressing: false } : it));
       }
     })();
   }
@@ -241,13 +255,12 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
   }
 
   function removeImage(idx: number) {
-    const img = images[idx] as ImgState;
-    if ((img as any).type === 'existing') {
-      setDeletedPublicIds(prev => [...prev, (img as any).publicId]);
+    const img = images[idx];
+    if (img.type === 'existing') {
+      setDeletedPublicIds(prev => [...prev, img.publicId]);
     } else {
-      const ni = img as Extract<ImgState, { type: 'new' }>;
-      if (ni.previewUrl) URL.revokeObjectURL(ni.previewUrl);
-      if (ni.compressed?.previewUrl) URL.revokeObjectURL(ni.compressed.previewUrl);
+      if (img.previewUrl) URL.revokeObjectURL(img.previewUrl);
+      if (img.compressed?.previewUrl) URL.revokeObjectURL(img.compressed.previewUrl);
     }
     setImages(prev => prev.filter((_, i) => i !== idx));
   }
@@ -277,9 +290,12 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
   }
 
   function removeVideo(idx: number) {
-    const vid = videos[idx] as any;
+    const vid = videos[idx];
     if (vid.stateType === 'existing' && vid.type === 'cloudinary' && vid.publicId) {
-      setDeletedVideoPublicIds(prev => [...prev, vid.publicId]);
+      // Captured outside the updater — the narrowing on vid.publicId does not
+      // survive into the deferred callback.
+      const publicId = vid.publicId;
+      setDeletedVideoPublicIds(prev => [...prev, publicId]);
     }
     if (vid.stateType === 'new_upload' && vid.previewUrl) URL.revokeObjectURL(vid.previewUrl);
     setVideos(prev => prev.filter((_, i) => i !== idx));
@@ -303,11 +319,11 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
     if (!name.trim()) { setAiError('Fill in the product name first.'); return; }
     setAiBusy(true); setAiError('');
     try {
-      const imagesPayload = await Promise.all(images.map(async (img) => {
-        if ((img as any).type === 'existing') {
-          return { type: 'url', data: (img as any).url };
+      const imagesPayload = await Promise.all(images.map(async (img): Promise<SeoImagePayload> => {
+        if (img.type === 'existing') {
+          return { type: 'url', data: img.url };
         } else {
-          const ni = img as Extract<ImgState, { type: 'new' }>;
+          const ni = img;
           return new Promise<{ type: 'base64', mime: string, data: string }>((resolve) => {
             const reader = new FileReader();
             reader.onload = () => {
@@ -414,9 +430,9 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
     const finalImages: ImgEntry[] = [];
 
     async function uploadWithProgress(file: Blob | File, folderPath: string, publicId: string, onProgress: (p: number) => void) {
-      return new Promise<any>((resolve, reject) => {
+      return new Promise<UploadResult>((resolve, reject) => {
         const fd = new FormData();
-        const f = file instanceof File ? file : new File([file], `${publicId}.webp`, { type: (file as any).type || 'image/webp' });
+        const f = file instanceof File ? file : new File([file], `${publicId}.webp`, { type: file.type || 'image/webp' });
         fd.append('file', f, f.name);
         fd.append('folder', folderPath);
         fd.append('publicId', publicId);
@@ -439,16 +455,16 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
     }
 
     for (const img of images) {
-      const alt = (img as any).alt?.trim() || undefined;
-      if ((img as any).type === 'existing') {
-        finalImages.push({ url: (img as any).url, publicId: (img as any).publicId, alt });
+      const alt = img.alt?.trim() || undefined;
+      if (img.type === 'existing') {
+        finalImages.push({ url: img.url, publicId: img.publicId, alt });
       } else {
         const publicId = slugify(name || 'product') + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
-        const compressedFile = (img as any).compressed?.file as File | undefined;
-        const fileToUpload = compressedFile ?? (img as any).file;
+        const fileToUpload = img.compressed?.file ?? img.file;
         try {
           const result = await uploadWithProgress(fileToUpload, folder, publicId, (p) => {
-            setImages(prev => prev.map(it => it.id === (img as any).id ? { ...(it as any), uploadProgress: p } : it));
+            setImages(prev => prev.map(it =>
+              it.id === img.id && it.type === 'new' ? { ...it, uploadProgress: p } : it));
           });
           if (result?.url) finalImages.push({ url: result.url, publicId: result.publicId, alt });
         } catch (err) {
@@ -460,9 +476,13 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
     }
 
     const finalVideos: VidEntry[] = [];
-    for (const vid of videos as any[]) {
-      if (vid.stateType === 'existing' || vid.stateType === 'new_youtube') {
+    for (const vid of videos) {
+      if (vid.stateType === 'existing') {
         finalVideos.push({ type: vid.type, url: vid.url, publicId: vid.publicId });
+      } else if (vid.stateType === 'new_youtube') {
+        // No publicId on this variant — the previous combined branch read one
+        // that never existed and always sent undefined.
+        finalVideos.push({ type: 'youtube', url: vid.url });
       } else if (vid.stateType === 'new_upload') {
         const publicId = slugify(name || 'product') + '-vid-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
         try {
@@ -716,15 +736,15 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
             type="button"
             onClick={async () => {
               // Recompress all pending new images with current settings
-              const pending = images.filter((it: any) => it.type === 'new');
+              const pending = images.filter((it): it is Extract<ImgState, { type: 'new' }> => it.type === 'new');
               for (const it of pending) {
                     try {
-                      setImages(prev => prev.map(p => p.id === (it as any).id ? { ...(p as any), compressing: true } : p));
-                      const compressed = await compressImageFile((it as any).file, { maxWidth: compressMaxWidth, quality: compressQuality, convertToWebp });
+                      setImages(prev => prev.map(p => p.id === it.id && p.type === 'new' ? { ...p, compressing: true } : p));
+                      const compressed = await compressImageFile(it.file, { maxWidth: compressMaxWidth, quality: compressQuality, convertToWebp });
                       const preview = URL.createObjectURL(compressed);
-                      setImages(prev => prev.map(p => p.id === (it as any).id ? { ...(p as any), compressed: { file: compressed, previewUrl: preview, size: compressed.size }, compressing: false } : p));
+                      setImages(prev => prev.map(p => p.id === it.id && p.type === 'new' ? { ...p, compressed: { file: compressed, previewUrl: preview, size: compressed.size }, compressing: false } : p));
                     } catch {
-                      setImages(prev => prev.map(p => p.id === (it as any).id ? { ...(p as any), compressing: false } : p));
+                      setImages(prev => prev.map(p => p.id === it.id && p.type === 'new' ? { ...p, compressing: false } : p));
                     }
                   }
             }}
@@ -735,12 +755,12 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
         {images.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {images.map((img, i) => {
-              const isExisting = (img as any).type === 'existing';
-              const previewSrc = isExisting ? (img as any).url : ((img as any).compressed?.previewUrl ?? (img as any).previewUrl);
-              const originalSize = (img as any).originalSize as number | undefined;
-              const compressedSize = (img as any).compressed?.size as number | undefined;
-              const compressing = (img as any).compressing as boolean | undefined;
-              const uploadProgress = (img as any).uploadProgress as number | undefined;
+              const isExisting = img.type === 'existing';
+              const previewSrc = img.type === 'existing' ? img.url : (img.compressed?.previewUrl ?? img.previewUrl);
+              const originalSize   = img.type === 'new' ? img.originalSize     : undefined;
+              const compressedSize = img.type === 'new' ? img.compressed?.size : undefined;
+              const compressing    = img.type === 'new' ? img.compressing      : undefined;
+              const uploadProgress = img.type === 'new' ? img.uploadProgress   : undefined;
 
               function fmtBytes(b?: number) {
                 if (!b && b !== 0) return '';
@@ -770,10 +790,10 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 5 }}>
-                      Alt text (SEO) {!((img as any).alt || '').trim() && <span style={{ color: '#16a34a', textTransform: 'none', fontWeight: 600 }}>· auto</span>}
+                      Alt text (SEO) {!(img.alt || '').trim() && <span style={{ color: '#16a34a', textTransform: 'none', fontWeight: 600 }}>· auto</span>}
                     </label>
                     <input
-                      value={(img as any).alt}
+                      value={img.alt}
                       onChange={e => updateAlt(i, e.target.value)}
                       placeholder={autoAlt(i)}
                       style={{ width: '100%' }}
@@ -821,18 +841,21 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
 
         {videos.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {videos.map((vid: any, i) => {
-              const uploadProgress = vid.uploadProgress;
+            {videos.map((vid, i) => {
+              const uploadProgress = vid.stateType === 'new_upload' ? vid.uploadProgress : undefined;
+              // new_upload holds a local File; every other state carries a remote URL.
+              const previewSrc = vid.stateType === 'new_upload' ? vid.previewUrl : vid.url;
+              const caption    = vid.stateType === 'new_upload' ? vid.file.name  : vid.url;
               return (
                 <div key={vid.id ?? i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '10px 12px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, position: 'relative' }}>
                   <button className="img-del" type="button" onClick={() => removeVideo(i)} style={{ position: 'absolute', top: 6, right: 6, zIndex: 10 }}>×</button>
                   <div style={{ flexShrink: 0, width: 180, height: 100, background: '#000', borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
                     {vid.type === 'youtube' ? (
-                      <iframe width="180" height="100" src={vid.url.includes('watch?v=') ? vid.url.replace('watch?v=', 'embed/') : vid.url} frameBorder="0" allowFullScreen></iframe>
+                      <iframe width="180" height="100" src={previewSrc.includes('watch?v=') ? previewSrc.replace('watch?v=', 'embed/') : previewSrc} frameBorder="0" allowFullScreen></iframe>
                     ) : (
                       <>
                         <video 
-                          src={vid.stateType === 'existing' ? vid.url : vid.previewUrl} 
+                          src={previewSrc} 
                           width="180" 
                           height="100" 
                           style={{ objectFit: 'cover' }} 
@@ -856,7 +879,7 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
                       {vid.type === 'youtube' ? 'YouTube Video' : 'Uploaded Video'}
                     </div>
                     <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4, wordBreak: 'break-all' }}>
-                      {vid.type === 'youtube' ? vid.url : vid.stateType === 'existing' ? vid.url : vid.file?.name}
+                      {caption}
                     </div>
                     {uploadProgress !== undefined && uploadProgress > 0 && (
                       <div style={{ width: '100%', background: '#fff', border: '1px solid #e5e7eb', height: 8, borderRadius: 6, overflow: 'hidden', marginTop: 8 }}>
@@ -971,7 +994,7 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div style={{ background: '#fff', borderRadius: 12, padding: 24, maxWidth: '90vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', gap: 16 }}>
             <h3 style={{ margin: 0, fontSize: 18 }}>Crop Image (Free-form)</h3>
-            <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>Draw a box tightly around the product. It doesn't have to be a square! The website will automatically fit whatever shape you crop perfectly into the grid.</p>
+            <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>Draw a box tightly around the product. It doesn&apos;t have to be a square! The website will automatically fit whatever shape you crop perfectly into the grid.</p>
             <div style={{ overflow: 'auto', flex: 1, display: 'flex', justifyContent: 'center', background: '#f3f4f6', borderRadius: 8 }}>
               <ReactCrop
                 crop={crop}

@@ -39,7 +39,10 @@ export async function PUT(req: NextRequest, { params }: Params) {
     }
   }
   if (existing[0]?.videos && Array.isArray(existing[0].videos) && existing[0].videos.length) {
-    const newVideoIds = new Set((body.videos ?? []).filter((v: any) => v.type === 'cloudinary').map((v: any) => v.publicId));
+    const incomingVideos = (body.videos ?? []) as Array<{ type: string; publicId?: string }>;
+    const newVideoIds = new Set(
+      incomingVideos.filter(v => v.type === 'cloudinary').map(v => v.publicId)
+    );
     for (const vid of existing[0].videos as Array<{ type: string, publicId?: string }>) {
       if (vid.type === 'cloudinary' && vid.publicId && !newVideoIds.has(vid.publicId)) {
         await deleteFromCloudinary(vid.publicId, 'video');

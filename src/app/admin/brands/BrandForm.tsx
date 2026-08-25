@@ -52,7 +52,10 @@ export default function BrandForm({ mode, id, initial }: Props) {
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
 
   useEffect(() => {
+    // The blob URL is an external handle that has to be revoked later, so it
+    // belongs in an effect rather than being derived during render.
     if (cropQueue.length > 0 && !cropImgSrc) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCropImgSrc(URL.createObjectURL(cropQueue[0]));
     }
   }, [cropQueue, cropImgSrc]);
@@ -119,7 +122,12 @@ export default function BrandForm({ mode, id, initial }: Props) {
         const pr = await fetch(`/api/products?brandSlug=${initial.slug}`).catch(() => null);
         if (pr?.ok) {
           const data = await pr.json();
-          products = (Array.isArray(data) ? data : []).map((p: any) => ({
+          type ProductRow = {
+            name: string;
+            category_name?: string; category_slug?: string;
+            subcategory_name?: string; subcategory_slug?: string;
+          };
+          products = (Array.isArray(data) ? data : []).map((p: ProductRow) => ({
             name: p.name,
             category: p.category_name ?? p.category_slug ?? '',
             subcategory: p.subcategory_name ?? p.subcategory_slug ?? '',

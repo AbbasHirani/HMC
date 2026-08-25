@@ -132,12 +132,12 @@ export default function ChatAssistant() {
   }, []);
 
   // Dynamically adjust FAB position based on sticky CTA resting state
-  const [isStickyActive, setIsStickyActive] = useState(isProductPage);
+  // Only meaningful on a product page, so derive that rather than resetting
+  // the state from inside the effect.
+  const [stickyRaw, setIsStickyActive] = useState(isProductPage);
+  const isStickyActive = isProductPage && stickyRaw;
   useEffect(() => {
-    if (!isProductPage) {
-      setIsStickyActive(false);
-      return;
-    }
+    if (!isProductPage) return;
     const updateFab = () => {
       const sticky = document.querySelector('.pd-sticky');
       if (!sticky) return;

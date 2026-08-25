@@ -29,7 +29,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     WHERE id = ${id}
   `;
   const { revalidatePath, revalidateTag } = await import('next/cache');
-  revalidateTag('categories', {});
+  revalidateTag('categories', 'max');
   revalidatePath('/');
   revalidatePath('/catalogue');
   return NextResponse.json({ ok: true });
@@ -41,5 +41,9 @@ export async function DELETE(_: NextRequest, { params }: Params) {
   if (rows[0]?.image_public_id) await deleteFromCloudinary(rows[0].image_public_id as string);
   // subcategories cascade-delete via FK
   await sql`DELETE FROM categories WHERE id = ${id}`;
+  const { revalidatePath, revalidateTag } = await import('next/cache');
+  revalidateTag('categories', 'max');
+  revalidatePath('/');
+  revalidatePath('/catalogue');
   return NextResponse.json({ ok: true });
 }

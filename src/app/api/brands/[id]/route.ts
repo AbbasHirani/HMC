@@ -33,7 +33,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
   `;
 
   const { revalidatePath, revalidateTag } = await import('next/cache');
-  revalidateTag('brands', {});
+  revalidateTag('brands', 'max');
   revalidatePath('/');
   revalidatePath('/brands');
   revalidatePath(`/brand/${body.slug}`);
@@ -53,7 +53,7 @@ export async function DELETE(_: NextRequest, { params }: Params) {
   await sql`DELETE FROM brands WHERE id = ${id}`;
 
   const { revalidatePath, revalidateTag } = await import('next/cache');
-  revalidateTag('brands', {});
+  revalidateTag('brands', 'max');
   revalidatePath('/');
   revalidatePath('/brands');
   if (rows[0]?.slug) revalidatePath(`/brand/${rows[0].slug}`);

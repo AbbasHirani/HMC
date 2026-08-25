@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -16,11 +17,17 @@ export async function PUT(req: NextRequest, { params }: Params) {
       updated_at = NOW()
     WHERE id = ${id}
   `;
+  revalidateTag('categories', 'max');
+  revalidatePath('/');
+  revalidatePath('/catalogue');
   return NextResponse.json({ ok: true });
 }
 
 export async function DELETE(_: NextRequest, { params }: Params) {
   const { id } = await params;
   await sql`DELETE FROM subcategories WHERE id = ${id}`;
+  revalidateTag('categories', 'max');
+  revalidatePath('/');
+  revalidatePath('/catalogue');
   return NextResponse.json({ ok: true });
 }

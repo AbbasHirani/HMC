@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { revalidatePath, revalidateTag } = await import('next/cache');
-  revalidateTag('products', {});
+  revalidateTag('products', 'max');
   revalidatePath('/');
   revalidatePath('/catalogue');
   revalidatePath(`/product/${body.slug}`);

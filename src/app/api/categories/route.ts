@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { check, reqStr, optStr, optHttpUrl } from '@/lib/validate';
 
 export async function GET() {
@@ -31,5 +32,8 @@ export async function POST(req: NextRequest) {
     RETURNING *
   `;
   const r = rows[0];
+  revalidateTag('categories', 'max');
+  revalidatePath('/');
+  revalidatePath('/catalogue');
   return NextResponse.json({ ...r, _id: r.id }, { status: 201 });
 }

@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import ReactMarkdown from 'react-markdown';
 import type { Product } from '@/lib/data';
+import { cdn } from '@/lib/img';
 import { IconArrow } from './Icons';
 
 export default function ProductCard({ p, dark, priority }: { p: Product; dark?: boolean; priority?: boolean }) {
-  const mainImage = p.images?.[0]?.url;
+  const mainImage = cdn(p.images?.[0]?.url);
   return (
     <Link className="prod-card" href={`/product/${p.slug}`}>
       <div className="prod-thumb" style={{ position: 'relative', height: 184 }}>
@@ -33,7 +33,7 @@ export default function ProductCard({ p, dark, priority }: { p: Product; dark?: 
             {p.brandLogo
               ? (
                 <div style={{ height: 22, maxWidth: 70, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <img src={p.brandLogo} alt={p.brandName ?? p.brand ?? ''} loading="lazy" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', display: 'block' }} />
+                  <img src={cdn(p.brandLogo)} alt={p.brandName ?? p.brand ?? ''} loading="lazy" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', display: 'block' }} />
                 </div>
               )
               : <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--navy)', letterSpacing: '.04em', textTransform: 'uppercase' }}>{p.brandName ?? p.brand}</span>

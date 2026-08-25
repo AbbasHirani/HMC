@@ -1,12 +1,14 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CTABand from '@/components/CTABand';
 import CatalogueClient from '../CatalogueClient';
 import { getCategories, getProducts, getUseCaseFilters } from '@/lib/queries';
 import { jsonLd } from '@/lib/jsonLd';
+import { buildCategoryDescription, truncateAtWord } from '@/lib/seoContent';
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketingcombines.in';
 
@@ -21,16 +23,26 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category } = await params;
-  const categories = await getCategories().catch(() => []);
+  const [categories, catProducts] = await Promise.all([
+    getCategories().catch(() => []),
+    getProducts({ categorySlug: category }).catch(() => []),
+  ]);
   const catObj = categories.find(c => c.slug === category);
   if (!catObj) return { title: 'Category Not Found' };
 
-  // Use admin-configured SEO title/description; fall back to auto-generated values.
+  // Use admin-configured SEO title/description; fall back to a description
+  // generated from real stock (product count, brands, prices) rather than a
+  // fixed template, so pages with few products still read as unique content.
   const suffix = ' | Hirani Marketing Combines';
   const base = `${catObj.name} in Chennai`;
   const autoTitle = (base + suffix).length <= 60 ? base + suffix : base;
   const title = catObj.seo?.title || autoTitle;
-  const description = catObj.seo?.description || catObj.teaser || '';
+  const description = catObj.seo?.description || truncateAtWord(buildCategoryDescription({
+    name: catObj.name,
+    teaser: catObj.teaser,
+    subCount: catObj.subs.length,
+    products: catProducts,
+  }));
   const keywords = catObj.seo?.keywords || undefined;
 
   return {
@@ -64,7 +76,12 @@ export default async function CategoryPage({ params }: Props) {
   }
 
   const h1 = `${catObj.name} in Chennai`;
-  const desc = catObj.teaser || catObj.seo?.description || '';
+  const desc = catObj.seo?.description || buildCategoryDescription({
+    name: catObj.name,
+    teaser: catObj.teaser,
+    subCount: catObj.subs.length,
+    products: products.filter(p => p.cat === category),
+  });
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
@@ -83,7 +100,7 @@ export default async function CategoryPage({ params }: Props) {
       <section className="list-head">
         <div className="container">
           <nav className="crumb">
-            <a href="/">Home</a><span>/</span><a href="/catalogue">Products</a>
+            <Link href="/">Home</Link><span>/</span><Link href="/catalogue">Products</Link>
           </nav>
           <h1 style={{ fontSize: 'clamp(28px,3.4vw,40px)', marginTop: 8 }}>{h1}</h1>
           {desc && <p style={{ color: 'var(--slate)', fontSize: 16, marginTop: 8, maxWidth: 680 }}>{desc}</p>}

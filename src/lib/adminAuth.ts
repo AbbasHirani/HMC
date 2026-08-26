@@ -20,8 +20,10 @@ export async function hasValidAdminSession(req: NextRequest): Promise<boolean> {
   const token = req.cookies.get('hmc_admin')?.value;
   if (!token) return false;
   try {
-    await jwtVerify(token, getAdminSecret());
-    return true;
+    const { payload } = await jwtVerify(token, getAdminSecret());
+    // The login route sets this claim. Checking it means that if ADMIN_SECRET
+    // is ever reused to sign anything else, those tokens will not grant admin.
+    return payload.admin === true;
   } catch {
     return false;
   }

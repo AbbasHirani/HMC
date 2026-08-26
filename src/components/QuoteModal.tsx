@@ -14,6 +14,7 @@ export default function QuoteModal({ productName, productCat, productSlug, onClo
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [msg, setMsg] = useState('');
+  const [company, setCompany] = useState(''); // honeypot — must stay empty
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [success, setSuccess] = useState(false);
   const [sending, setSending] = useState(false);
@@ -50,6 +51,7 @@ export default function QuoteModal({ productName, productCat, productSlug, onClo
           phone: phone.trim() || undefined,
           email: email.trim(),
           message: msg.trim() || undefined,
+          company,
           source: 'quote',
         }),
       });
@@ -68,7 +70,7 @@ export default function QuoteModal({ productName, productCat, productSlug, onClo
 
   function handleClose() {
     onClose();
-    setTimeout(() => { setSuccess(false); setName(''); setPhone(''); setEmail(''); setMsg(''); setErrors({}); }, 300);
+    setTimeout(() => { setSuccess(false); setName(''); setPhone(''); setEmail(''); setMsg(''); setCompany(''); setErrors({}); }, 300);
   }
 
   return (
@@ -109,6 +111,20 @@ export default function QuoteModal({ productName, productCat, productSlug, onClo
             <div className="form-field">
               <label htmlFor="qEmail">Email address <span className="req-star">*</span></label>
               <input id="qEmail" type="email" placeholder="you@example.com" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} className={errors.email ? 'error' : ''} />
+            </div>
+
+            {/* Honeypot — invisible to people, tempting to bots. Anything
+                that arrives with this filled in is discarded server-side. */}
+            <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
+              <label htmlFor="qCompany">Company</label>
+              <input
+                id="qCompany"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={company}
+                onChange={e => setCompany(e.target.value)}
+              />
             </div>
 
             <div className="form-field">

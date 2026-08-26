@@ -4,10 +4,13 @@ import React from 'react';
 import { findProductBySlug } from '@/lib/queries';
 import { ProductPDF } from '@/lib/ProductPDF';
 
+// NOTE: the [id] segment is a product *slug* here, not a UUID — unlike the
+// sibling /api/products/[id] route, which takes the real id. ProductClient
+// links to /api/products/${p.slug}/pdf.
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+  const { id: slug } = await params;
 
-  const product = await findProductBySlug(id);
+  const product = await findProductBySlug(slug);
   if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

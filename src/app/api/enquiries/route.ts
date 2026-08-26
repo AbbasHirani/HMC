@@ -34,6 +34,13 @@ export async function POST(req: NextRequest) {
   });
   if (err) return NextResponse.json({ error: err }, { status: 400 });
 
+  // Honeypot: a hidden field no human can fill. Write nothing, but mirror the
+  // success response exactly — same status and same shape, id included — so a
+  // bot cannot tell its submissions are being dropped.
+  if (typeof body.company === 'string' && body.company.trim() !== '') {
+    return NextResponse.json({ ok: true, id: crypto.randomUUID() }, { status: 201 });
+  }
+
   const source = SOURCES.has(String(body.source)) ? String(body.source) : 'quote';
   // A quote request must carry at least a name — click logs (whatsapp/call) don't.
   if (source === 'quote' && !(typeof body.name === 'string' && body.name.trim())) {

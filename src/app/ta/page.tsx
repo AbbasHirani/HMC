@@ -54,6 +54,7 @@ export default async function TamilHomePage() {
     <>
       <SetDocLang lang="ta" />
       <Header active="home" lang="ta" />
+      <main>
 
       {/* HERO */}
       <section className="heroB">
@@ -268,6 +269,7 @@ export default async function TamilHomePage() {
         </div>
       </section>
 
+      </main>
       <Footer lang="ta" />
     </>
   );

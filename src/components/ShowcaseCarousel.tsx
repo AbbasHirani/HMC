@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 import Image from 'next/image';
 import type { Category } from '@/lib/data';
+import { cdn } from '@/lib/img';
 
 const FALLBACK_SLIDES = [
   { cat: 'Water Pumps',        name: 'Pressure Booster Pumps',   sub: 'Consistent pressure for buildings & pipelines',     priceLabel: 'Starting from', price: '₹5,800',   link: '/catalogue/water-pumps', image: '' },
@@ -39,7 +40,7 @@ export default function ShowcaseCarousel({ categories }: Props) {
         priceLabel: 'Available',
         price: 'Explore',
         link: `/catalogue/${c.slug}`,
-        image: c.imageUrl
+        image: cdn(c.imageUrl)
       }))
     : FALLBACK_SLIDES;
 
@@ -99,7 +100,7 @@ export default function ShowcaseCarousel({ categories }: Props) {
           const isVisited = visited[i] || i === cur;
           if (!isVisited) return null;
           return (
-            <Link key={i} className={`sc-slide${i === cur ? ' active' : ''}`} href={s.link}>
+            <Link key={i} className={`sc-slide${i === cur ? ' active' : ''}`} href={s.link} aria-label={s.name}>
               {s.image ? (
                 <div style={{ position: 'relative', width: '100%', height: '100%', borderBottom: '1px solid var(--line)', backgroundColor: '#fff' }}>
                   <Image src={s.image} alt={s.name} fill style={{ objectFit: 'contain' }} sizes="(max-width: 680px) 100vw, 50vw" priority={i === 0} />
@@ -115,7 +116,10 @@ export default function ShowcaseCarousel({ categories }: Props) {
           {slides.map((_, i) => (
             <button
               key={i}
+              type="button"
               className={`sc-dot${i === cur ? ' on' : ''}`}
+              aria-label={`Show ${slides[i].name}`}
+              aria-current={i === cur}
               onClick={e => { e.preventDefault(); goTo(i); if (!paused) startTimer(); }}
             />
           ))}
@@ -126,7 +130,7 @@ export default function ShowcaseCarousel({ categories }: Props) {
 
       <div className="cap">
         <div>
-          <h3>{slide.name}</h3>
+          <h2>{slide.name}</h2>
           <p>{slide.sub}</p>
         </div>
         <div className="price">

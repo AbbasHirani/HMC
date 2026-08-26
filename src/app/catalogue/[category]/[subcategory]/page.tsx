@@ -103,6 +103,7 @@ export default async function SubcategoryPage({ params }: Props) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <Header active="products" />
+      <main>
       <section className="list-head">
         <div className="container">
           <nav className="crumb">
@@ -129,6 +130,7 @@ export default async function SubcategoryPage({ params }: Props) {
         />
       </Suspense>
       <CTABand />
+      </main>
       <Footer />
     </>
   );

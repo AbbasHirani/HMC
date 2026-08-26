@@ -40,10 +40,12 @@ export default async function CataloguePage() {
   return (
     <>
       <Header active="products" />
+      <main>
       <Suspense fallback={<div style={{ padding: '80px 0', textAlign: 'center', color: 'var(--muted)' }}>Loading products…</div>}>
         <CatalogueClient categories={categories} products={products} useCases={ucFilters.options} />
       </Suspense>
       <CTABand />
+      </main>
       <Footer />
     </>
   );

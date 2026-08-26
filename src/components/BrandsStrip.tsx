@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { cdn } from '@/lib/img';
 import { getBrands } from '@/lib/queries';
 import { BRANDS as STATIC_BRANDS } from '@/lib/data';
 
@@ -29,7 +30,7 @@ export default async function BrandsStrip() {
         {topMarquee.map((b, i) => (
           <a className="brand-pill" key={`top-${b.slug}-${i}`} href={`/brand/${b.slug}`}>
             {b.logoUrl
-              ? <Image src={b.logoUrl} alt={b.name} width={160} height={60} style={{ objectFit: 'contain', height: 'auto' }} />
+              ? <Image src={cdn(b.logoUrl)} alt={b.name} width={160} height={60} style={{ objectFit: 'contain', height: 'auto' }} />
               : b.name}
           </a>
         ))}
@@ -40,7 +41,7 @@ export default async function BrandsStrip() {
         {bottomMarquee.map((b, i) => (
           <a className="brand-pill" key={`bot-${b.slug}-${i}`} href={`/brand/${b.slug}`}>
             {b.logoUrl
-              ? <Image src={b.logoUrl} alt={b.name} width={160} height={60} style={{ objectFit: 'contain', height: 'auto' }} />
+              ? <Image src={cdn(b.logoUrl)} alt={b.name} width={160} height={60} style={{ objectFit: 'contain', height: 'auto' }} />
               : b.name}
           </a>
         ))}

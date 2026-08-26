@@ -84,6 +84,7 @@ export default async function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />
       <Header active="home" />
+      <main>
 
       {/* HERO */}
       <section className="heroB">
@@ -366,6 +367,7 @@ export default async function HomePage() {
       </section>
 
       <CTABand />
+      </main>
       <Footer />
     </>
   );

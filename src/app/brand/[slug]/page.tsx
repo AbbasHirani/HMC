@@ -7,6 +7,7 @@ import ProductCard from '@/components/ProductCard';
 import Image from 'next/image';
 import { getBrands, getProducts } from '@/lib/queries';
 import { jsonLd } from '@/lib/jsonLd';
+import { cdn } from '@/lib/img';
 import Link from 'next/link';
 
 export const revalidate = 60;
@@ -84,6 +85,7 @@ export default async function BrandPage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(collectionSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <Header active="products" />
+      <main>
 
       <section className="list-head">
         <div className="container">
@@ -93,7 +95,7 @@ export default async function BrandPage({ params }: Props) {
             <b>{brand.name}</b>
           </nav>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 14 }}>
-            {brand.logoUrl && <Image src={brand.logoUrl} alt={brand.name} width={120} height={48} style={{ objectFit: 'contain' }} />}
+            {brand.logoUrl && <Image src={cdn(brand.logoUrl)} alt={brand.name} width={120} height={48} style={{ objectFit: 'contain' }} />}
             <h1 style={{ fontSize: 'clamp(28px,3.4vw,40px)' }}>{brand.name}</h1>
           </div>
           <p style={{ color: 'var(--slate)', fontSize: 16, marginTop: 10, maxWidth: 600 }}>
@@ -122,6 +124,7 @@ export default async function BrandPage({ params }: Props) {
       </section>
 
       <CTABand />
+      </main>
       <Footer />
     </>
   );

@@ -24,6 +24,7 @@ export default function Error({
   return (
     <>
       <Header />
+      <main>
 
       <section className="section" style={{ paddingTop: 64, paddingBottom: 56 }}>
         <div className="container" style={{ maxWidth: 760 }}>
@@ -70,6 +71,7 @@ export default function Error({
       </section>
 
       <CTABand />
+      </main>
     </>
   );
 }

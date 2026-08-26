@@ -41,6 +41,7 @@ export default async function BrandsPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <Header active="products" />
+      <main>
 
       <section className="list-head">
         <div className="container">
@@ -83,6 +84,7 @@ export default async function BrandsPage() {
       </section>
 
       <CTABand />
+      </main>
       <Footer />
     </>
   );

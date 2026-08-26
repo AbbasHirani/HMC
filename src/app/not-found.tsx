@@ -21,6 +21,7 @@ export default async function NotFound() {
   return (
     <>
       <Header />
+      <main>
 
       <section className="section" style={{ paddingTop: 64, paddingBottom: 48 }}>
         <div className="container" style={{ maxWidth: 760 }}>
@@ -80,6 +81,7 @@ export default async function NotFound() {
       )}
 
       <CTABand />
+      </main>
       <Footer />
     </>
   );

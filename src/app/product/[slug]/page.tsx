@@ -118,7 +118,9 @@ export default async function ProductPage({ params }: Props) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(productSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       <Header active="products" />
+      <main>
       <ProductClient product={product} related={related} popular={popular} />
+      </main>
       <Footer />
     </>
   );

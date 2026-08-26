@@ -52,7 +52,7 @@ export default async function Footer({ lang = 'en' }: { lang?: 'en' | 'ta' }) {
 
             {/* Col 2 — Products */}
             <div className="foot-col">
-              <h4>{t.products}</h4>
+              <h3>{t.products}</h3>
               {categories.map(c => (
                 <Link key={c.slug} href={`/catalogue/${c.slug}`}>{c.name}</Link>
               ))}
@@ -61,7 +61,7 @@ export default async function Footer({ lang = 'en' }: { lang?: 'en' | 'ta' }) {
 
             {/* Col 3 — Company */}
             <div className="foot-col">
-              <h4>{t.company}</h4>
+              <h3>{t.company}</h3>
               <Link href={t.homeHref}>{t.home}</Link>
               <Link href={t.servicesHref}>{t.services}</Link>
               <Link href={`${t.servicesHref}#about`}>{t.aboutUs}</Link>
@@ -70,7 +70,7 @@ export default async function Footer({ lang = 'en' }: { lang?: 'en' | 'ta' }) {
 
             {/* Col 4 — Contact */}
             <div className="foot-col foot-contact">
-              <h4>{t.contact}</h4>
+              <h3>{t.contact}</h3>
               <div className="foot-addr">
                 <div className="foot-addr-ic"><IconPhone /></div>
                 <div className="foot-addr-content">

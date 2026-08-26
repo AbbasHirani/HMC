@@ -21,8 +21,12 @@ const csp = [
   `media-src 'self' https://res.cloudinary.com`,
   `font-src 'self' https://fonts.gstatic.com`,
   `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
-  `connect-src 'self' https://us.i.posthog.com${isDev ? ' ws: wss:' : ''}`,
+  // posthog-js loads its runtime config and assets from us-assets.i.posthog.com,
+  // a different host from the ingest endpoint. Without it here the browser
+  // refuses both the config script and its fetch, and analytics silently
+  // never initialises.
+  `script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com${isDev ? " 'unsafe-eval'" : ''}`,
+  `connect-src 'self' https://us.i.posthog.com https://us-assets.i.posthog.com${isDev ? ' ws: wss:' : ''}`,
   `frame-src https://www.google.com https://maps.google.com https://www.youtube.com https://youtube.com`,
   `form-action 'self'`,
   `upgrade-insecure-requests`,

@@ -142,6 +142,7 @@ export default async function TamilServicesPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />
       <SetDocLang lang="ta" />
       <Header active="services" lang="ta" />
+      <main>
 
       {/* HERO */}
       <section className="svc-hero">
@@ -351,6 +352,7 @@ export default async function TamilServicesPage() {
         </div>
       </section>
 
+      </main>
       <Footer lang="ta" />
     </>
   );

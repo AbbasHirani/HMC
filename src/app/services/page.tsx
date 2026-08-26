@@ -208,6 +208,7 @@ export default async function ServicesPage() {
         <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(s) }} />
       ))}
       <Header active="services" />
+      <main>
 
       {/* HERO */}
       <section className="svc-hero">
@@ -426,6 +427,7 @@ export default async function ServicesPage() {
         </div>
       </section>
 
+      </main>
       <Footer />
     </>
   );

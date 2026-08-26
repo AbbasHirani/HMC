@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -11,6 +11,32 @@ import { BRANDS } from '@/lib/data';
 import { jsonLd } from '@/lib/jsonLd';
 
 interface UseCaseOpt { slug: string; name: string; }
+
+interface UrlFilters { cat: string | null; sub: string | null; brand: string | null; uc: string | null; }
+
+// useSearchParams() forces the whole Client Component tree up to the nearest
+// Suspense boundary to skip static rendering (Next bails to the fallback in
+// the prerendered HTML — see the useSearchParams docs). CatalogueClient is
+// statically generated (generateStaticParams), so calling that hook directly
+// in it meant the entire product grid — every category/subcategory/catalogue
+// page — shipped as an empty "Loading products…" shell with zero product
+// links in the HTML search engines actually see. Isolating the hook in this
+// inert (renders null) child means only this sync, not the grid, is gated.
+function UrlFilterSync({ onSync }: { onSync: (v: UrlFilters) => void }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    onSync({
+      cat: searchParams.get('cat'),
+      sub: searchParams.get('sub'),
+      brand: searchParams.get('brand'),
+      uc: searchParams.get('uc'),
+    });
+    // Intentionally mount-only: this reconciles state with whatever query
+    // string the page loaded with, once, after hydration.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
 
 interface Props {
   categories: Category[];
@@ -25,13 +51,12 @@ interface Props {
 }
 
 export default function CatalogueClient({ categories, products: allProducts, useCases = [], initialCat, initialSub, titleAs = 'h1' }: Props) {
-  const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [cat, setCat] = useState<string | null>(initialCat ?? searchParams.get('cat'));
-  const [sub, setSub] = useState<string | null>(initialSub ?? searchParams.get('sub'));
-  const [brand, setBrand] = useState<string | null>(searchParams.get('brand'));
-  const [uc, setUc] = useState<string | null>(searchParams.get('uc'));
+  const [cat, setCat] = useState<string | null>(initialCat ?? null);
+  const [sub, setSub] = useState<string | null>(initialSub ?? null);
+  const [brand, setBrand] = useState<string | null>(null);
+  const [uc, setUc] = useState<string | null>(null);
   const [q, setQ] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const activeFilterCount = [cat, sub, brand, uc].filter(Boolean).length;
@@ -54,6 +79,15 @@ export default function CatalogueClient({ categories, products: allProducts, use
     if (uc) params.set('uc', uc);
     router.replace(path + (params.toString() ? '?' + params.toString() : ''), { scroll: false });
   }, [cat, sub, brand, uc, router]);
+
+  // initialCat/initialSub (from the URL path on category/subcategory routes)
+  // take priority over query params — brand/uc are always query-only.
+  const handleUrlSync = ({ cat: c, sub: s, brand: b, uc: u }: UrlFilters) => {
+    if (!initialCat && c) setCat(c);
+    if (!initialSub && s) setSub(s);
+    if (b) setBrand(b);
+    if (u) setUc(u);
+  };
 
   const catObj = cat ? categories.find(c => c.slug === cat) : null;
   const subs: FlatSubCategory[] = catObj?.subs ?? [];
@@ -99,6 +133,9 @@ export default function CatalogueClient({ categories, products: allProducts, use
 
   return (
     <>
+      <Suspense fallback={null}>
+        <UrlFilterSync onSync={handleUrlSync} />
+      </Suspense>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(itemListSchema) }} />
       {titleAs !== 'h2' && (
         <section className="list-head">

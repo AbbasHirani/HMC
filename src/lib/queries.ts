@@ -183,7 +183,11 @@ function toProduct(row: Record<string, unknown>): Product {
     catName: row.category_name as string,
     desc: row.description as string,
     spec: row.description as string,
-    price: (row.price as number | null) ?? null,
+    // Postgres NUMERIC comes back from the driver as a *string*, so this cast
+    // was a lie: every consumer typed price as number but received "13200".
+    // That silently broke toLocaleString (no thousands separators) and any
+    // `typeof price === 'number'` guard. Convert once, here at the boundary.
+    price: row.price == null ? null : Number(row.price),
     tag: (row.tag as string | null) ?? null,
     featured: (row.featured as boolean) ?? false,
     images: (row.images as Array<{ url: string; publicId: string; alt?: string }>) ?? [],

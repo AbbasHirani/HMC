@@ -14,7 +14,8 @@ async function getProducts() {
       slug: p.slug as string,
       categoryName: p.category_name as string,
       subcategoryName: p.subcategory_name as string,
-      price: p.price as number | null,
+      // NUMERIC arrives as a string from the driver — see lib/queries.ts.
+      price: p.price == null ? null : Number(p.price),
       tag: p.tag as string | null,
       featured: p.featured as boolean,
       imageCount: Array.isArray(p.images) ? p.images.length : 0,

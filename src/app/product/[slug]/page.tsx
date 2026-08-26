@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import ProductClient from './ProductClient';
 import { findProductBySlug, getAllProductSlugs, getProducts, getMostEnquiredProducts } from '@/lib/queries';
 import { jsonLd } from '@/lib/jsonLd';
+import { buildProductSchema } from '@/lib/productSchema';
 
 export const revalidate = 60;
 
@@ -99,35 +100,7 @@ export default async function ProductPage({ params }: Props) {
     .then(list => list.filter(r => !relatedSlugs.has(r.slug)).slice(0, 4))
     .catch(() => []);
 
-  const productSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    '@id': `${SITE}/product/${slug}`,
-    name: product.name,
-    description: product.desc,
-    url: `${SITE}/product/${slug}`,
-    image: product.images?.map(img => img.url) ?? [],
-    brand: product.brandName
-      ? { '@type': 'Brand', name: product.brandName }
-      : undefined,
-    offers: {
-      '@type': 'Offer',
-      url: `${SITE}/product/${slug}`,
-      priceCurrency: 'INR',
-      price: product.price ?? undefined,
-      priceSpecification: product.price
-        ? undefined
-        : { '@type': 'UnitPriceSpecification', description: 'Price on request' },
-      availability: 'https://schema.org/InStock',
-      itemCondition: 'https://schema.org/NewCondition',
-      seller: {
-        '@type': 'Organization',
-        name: 'Hirani Marketing Combines',
-        url: SITE,
-      },
-    },
-    category: product.catName ?? product.cat,
-  };
+  const productSchema = buildProductSchema(product, SITE);
 
   const breadcrumbSchema = {
     '@context': 'https://schema.org',

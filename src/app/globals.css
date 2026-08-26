@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -24,8 +23,8 @@
   --shadow-lg: 0 30px 70px rgba(20,20,63,.13);
   --container: 1240px;
   --h: 74px;
-  --font-head: 'Sora', system-ui, sans-serif;
-  --font-body: 'Manrope', system-ui, sans-serif;
+  --font-head: var(--font-sora), system-ui, sans-serif;
+  --font-body: var(--font-manrope), system-ui, sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -120,7 +119,7 @@ ul { list-style: none; }
   background: repeating-linear-gradient(135deg, rgba(30,29,92,.05) 0 11px, rgba(30,29,92,.02) 11px 22px), linear-gradient(180deg,#f1f0f6,#e9e8f1);
   display: grid; place-items: center; color: var(--navy-500);
 }
-.ph::after { content: attr(data-label); font-family: 'Sora', monospace; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: rgba(30,29,92,.42); padding: 5px 11px; border: 1px dashed rgba(30,29,92,.22); border-radius: 4px; background: rgba(255,255,255,.5); text-align: center; line-height: 1.3; max-width: 80%; }
+.ph::after { content: attr(data-label); font-family: var(--font-sora), monospace; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: rgba(30,29,92,.42); padding: 5px 11px; border: 1px dashed rgba(30,29,92,.22); border-radius: 4px; background: rgba(255,255,255,.5); text-align: center; line-height: 1.3; max-width: 80%; }
 
 /* ---------- eyebrow / section heads ---------- */
 .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-head); font-weight: 700; font-size: 12.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--orange); }

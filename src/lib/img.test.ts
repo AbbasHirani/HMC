@@ -18,6 +18,15 @@ describe('cdn', () => {
     expect(cdn(`${UPLOAD}/w_400/v1/pump.jpg`)).toBe(`${UPLOAD}/f_auto,q_auto/w_400/v1/pump.jpg`);
   });
 
+  it('adds a w_<n>,c_limit cap when maxWidth is given', () => {
+    expect(cdn(`${UPLOAD}/v1/pump.jpg`, 800)).toBe(`${UPLOAD}/f_auto,q_auto,w_800,c_limit/v1/pump.jpg`);
+  });
+
+  it('is idempotent with maxWidth too — first call wins', () => {
+    const capped = cdn(`${UPLOAD}/v1/pump.jpg`, 800);
+    expect(cdn(capped, 1200)).toBe(capped);
+  });
+
   it('passes non-Cloudinary URLs through untouched', () => {
     expect(cdn('https://example.com/upload/pump.jpg')).toBe('https://example.com/upload/pump.jpg');
     expect(cdn('/local/pump.jpg')).toBe('/local/pump.jpg');

@@ -40,7 +40,7 @@ export default function ShowcaseCarousel({ categories }: Props) {
         priceLabel: 'Available',
         price: 'Explore',
         link: `/catalogue/${c.slug}`,
-        image: cdn(c.imageUrl)
+        image: cdn(c.imageUrl, 1200)
       }))
     : FALLBACK_SLIDES;
 

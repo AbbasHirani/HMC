@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV !== 'production';
 
 // Content-Security-Policy tuned to what the site actually loads:
-//  - Google Fonts (fonts.googleapis.com / fonts.gstatic.com)
+//  - Fonts are self-hosted via next/font, so no font CDN host is needed here.
 //  - Google Maps embed (frame-src)
 //  - Cloudinary images + videos (res.cloudinary.com)
 //  - YouTube embeds (frame-src)
@@ -19,8 +19,9 @@ const csp = [
   // media-src must explicitly allow Cloudinary so <video src> is not blocked by CSP.
   // Without this it falls back to default-src 'self' and the browser fires MediaError immediately.
   `media-src 'self' https://res.cloudinary.com`,
-  `font-src 'self' https://fonts.gstatic.com`,
-  `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
+  // Fonts are self-hosted via next/font (see layout.tsx) — no external font host needed.
+  `font-src 'self'`,
+  `style-src 'self' 'unsafe-inline'`,
   // posthog-js loads its runtime config and assets from us-assets.i.posthog.com,
   // a different host from the ingest endpoint. Without it here the browser
   // refuses both the config script and its fetch, and analytics silently

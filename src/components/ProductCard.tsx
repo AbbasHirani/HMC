@@ -5,7 +5,7 @@ import { cdn } from '@/lib/img';
 import { IconArrow } from './Icons';
 
 export default function ProductCard({ p, dark, priority }: { p: Product; dark?: boolean; priority?: boolean }) {
-  const mainImage = cdn(p.images?.[0]?.url);
+  const mainImage = cdn(p.images?.[0]?.url, 800);
   return (
     <Link className="prod-card" href={`/product/${p.slug}`}>
       <div className="prod-thumb" style={{ position: 'relative', height: 184 }}>

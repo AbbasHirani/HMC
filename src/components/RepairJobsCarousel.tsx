@@ -112,7 +112,7 @@ export default function RepairJobsCarousel({ jobs }: { jobs: Job[] }) {
               <div style={{ height: 210, background: 'var(--paper)', position: 'relative', overflow: 'hidden' }}>
                 {j.imageUrl ? (
                   <img
-                    src={cdn(j.imageUrl)}
+                    src={cdn(j.imageUrl, 800)}
                     alt={j.title}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.6s ease', transform: isActive ? 'scale(1.04)' : 'scale(1)' }}
                     draggable={false}

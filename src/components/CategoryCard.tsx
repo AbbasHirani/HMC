@@ -14,7 +14,7 @@ export default function CategoryCard({ cat }: { cat: Category }) {
         <div className="cat6-img-wrap" style={{ position: 'relative' }}>
           <div style={{ position: 'relative', width: '100%', height: '100%' }}>
             <Image
-              src={cdn(cat.imageUrl)}
+              src={cdn(cat.imageUrl, 800)}
               alt={cat.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"

@@ -1,8 +1,26 @@
 import type { Metadata } from 'next';
+import { Sora, Manrope } from 'next/font/google';
 import './globals.css';
 import { jsonLd } from '@/lib/jsonLd';
 import ClientChatAssistant from '@/components/ClientChatAssistant';
 import AnalyticsWrapper from '@/components/AnalyticsWrapper';
+
+// Self-hosted via next/font: no runtime request to fonts.googleapis.com, which
+// was a render-blocking @import in globals.css (two serial round trips before
+// first paint). The `variable` output feeds the existing --font-head/--font-body
+// custom properties, so nothing downstream has to change.
+const sora = Sora({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-sora',
+  display: 'swap',
+});
+const manrope = Manrope({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-manrope',
+  display: 'swap',
+});
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketingcombines.in';
 
@@ -130,7 +148,7 @@ const localBusinessSchema = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${sora.variable} ${manrope.variable}`}>
       <head>
         <link rel="icon" href="/logo-mark.png" />
         <link rel="apple-touch-icon" href="/logo-mark.png" />

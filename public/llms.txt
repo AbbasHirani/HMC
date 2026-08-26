@@ -1,6 +1,6 @@
 # Hirani Marketing Combines
 
-Hirani Marketing Combines is a water pump and industrial equipment supplier and repair workshop based in Parrys, Chennai, Tamil Nadu, India. In business since 2008 — 17+ years serving homes, businesses and industrial plants across Tamil Nadu.
+> Water pump and industrial equipment supplier and repair workshop in Parrys, Chennai, Tamil Nadu, India. In business since 2008 — 17+ years serving homes, businesses and industrial plants across Tamil Nadu.
 
 ## Products We Supply
 
@@ -47,8 +47,12 @@ Hours: Monday–Saturday, 9 am–6 pm
 
 ## Key Pages
 
-- Homepage: https://hiranimarketing.vercel.app/
-- Full product catalogue: https://hiranimarketing.vercel.app/catalogue
-- Services & repair: https://hiranimarketing.vercel.app/services
-- Brands: https://hiranimarketing.vercel.app/brands
-- Pricing & Service Terms: https://hiranimarketing.vercel.app/pricing.md
+- [Homepage](https://hiranimarketingcombines.in/)
+- [Full product catalogue](https://hiranimarketingcombines.in/catalogue)
+- [Services & repair](https://hiranimarketingcombines.in/services)
+- [Brands](https://hiranimarketingcombines.in/brands)
+- [Pricing & Service Terms](https://hiranimarketingcombines.in/pricing.md)
+
+## Optional
+
+- [Sitemap](https://hiranimarketingcombines.in/sitemap.xml)

@@ -9,17 +9,27 @@ import AnalyticsWrapper from '@/components/AnalyticsWrapper';
 // was a render-blocking @import in globals.css (two serial round trips before
 // first paint). The `variable` output feeds the existing --font-head/--font-body
 // custom properties, so nothing downstream has to change.
+//
+// display: 'optional' (not 'swap') deliberately: measured locally with a
+// Lighthouse layout-shifts audit under real network throttling, 'swap' caused
+// a 0.016 CLS hit on the showcase carousel from "Web font loaded" — the
+// fallback (system-ui) and Sora/Manrope don't share metrics, so swapping in
+// after first paint reflows wrapped headings. 'optional' uses the font only
+// if it's ready within ~100ms (already true once the self-hosted file is
+// browser-cached), otherwise keeps the fallback for that page load instead of
+// swapping mid-render — trading a possible fallback-font first paint for zero
+// layout shift.
 const sora = Sora({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
   variable: '--font-sora',
-  display: 'swap',
+  display: 'optional',
 });
 const manrope = Manrope({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
   variable: '--font-manrope',
-  display: 'swap',
+  display: 'optional',
 });
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketingcombines.in';

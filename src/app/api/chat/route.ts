@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { getCatalogContext } from '@/lib/chatContext';
 import { CONTACT } from '@/lib/data';
 import { rateLimit, clientIp } from '@/lib/rateLimit';
+import { createTagStripper } from '@/lib/streamTags';
 import { sql } from '@/lib/db';
 
 export const runtime = 'nodejs';
@@ -262,11 +263,9 @@ export async function POST(req: NextRequest) {
   // Re-stream Gemini's SSE as a plain text delta stream the client can append.
   // Hidden [[ENQUIRY:{...}]] and [[REPAIR:{...}]] tags are filtered out of the
   // visible stream and saved to the DB.
-  const TAG_START_ENQUIRY = '[[ENQUIRY:';
-  const TAG_START_REPAIR  = '[[REPAIR:';
-  const TAG_MAX = 700;
-  const capturedEnquiries: string[] = [];
-  const capturedRepairs: string[] = [];
+  // Tag filtering lives in lib/streamTags.ts so the chunk-boundary handling
+  // can be tested directly — see streamTags.test.ts.
+  const stripper = createTagStripper();
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -274,38 +273,8 @@ export async function POST(req: NextRequest) {
       const decoder = new TextDecoder();
       const encoder = new TextEncoder();
       let buffer = '';
-      let held = '';
 
       const flush = (s: string) => { if (s) controller.enqueue(encoder.encode(s)); };
-
-      const emit = (text: string) => {
-        held += text;
-        for (;;) {
-          const idx = held.indexOf('[[');
-          if (idx === -1) {
-            const keep = held.endsWith('[') ? 1 : 0;
-            flush(held.slice(0, held.length - keep));
-            held = held.slice(held.length - keep);
-            return;
-          }
-          flush(held.slice(0, idx));
-          held = held.slice(idx);
-          const end = held.indexOf(']]');
-          if (end === -1) {
-            if (held.length > TAG_MAX) { flush(held); held = ''; }
-            return;
-          }
-          const token = held.slice(0, end + 2);
-          held = held.slice(end + 2);
-          if (token.startsWith(TAG_START_ENQUIRY)) {
-            capturedEnquiries.push(token.slice(TAG_START_ENQUIRY.length, -2));
-          } else if (token.startsWith(TAG_START_REPAIR)) {
-            capturedRepairs.push(token.slice(TAG_START_REPAIR.length, -2));
-          } else {
-            flush(token);
-          }
-        }
-      };
 
       try {
         while (true) {
@@ -325,7 +294,7 @@ export async function POST(req: NextRequest) {
               const parts = json?.candidates?.[0]?.content?.parts;
               if (Array.isArray(parts)) {
                 for (const p of parts) {
-                  if (typeof p?.text === 'string' && p.text) emit(p.text);
+                  if (typeof p?.text === 'string' && p.text) flush(stripper.push(p.text));
                 }
               }
             } catch {
@@ -333,14 +302,14 @@ export async function POST(req: NextRequest) {
             }
           }
         }
-        if (held && !(held.startsWith('[[') && held.endsWith(']]'))) flush(held.trimEnd());
+        flush(stripper.finish());
       } catch (err) {
         console.error('Stream relay error', err);
       } finally {
         // ── Save ENQUIRY lead ──────────────────────────────────────────────
-        if (capturedEnquiries.length > 0) {
+        if (stripper.enquiries.length > 0) {
           try {
-            const lead = JSON.parse(capturedEnquiries[0]);
+            const lead = JSON.parse(stripper.enquiries[0]);
             const phone = String(lead.phone ?? '').trim();
             if (phone.replace(/\D/g, '').length >= 7) {
               await sql`
@@ -361,9 +330,9 @@ export async function POST(req: NextRequest) {
         }
 
         // ── Save REPAIR job ────────────────────────────────────────────────
-        if (capturedRepairs.length > 0) {
+        if (stripper.repairs.length > 0) {
           try {
-            const repair  = JSON.parse(capturedRepairs[0]);
+            const repair  = JSON.parse(stripper.repairs[0]);
             const phone   = String(repair.phone   ?? '').trim();
             const product = String(repair.product ?? '').trim();
             const problem = String(repair.problem ?? '').trim();

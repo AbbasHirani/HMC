@@ -63,7 +63,6 @@ export default function ImageZoom({ src, alt, height = '100%', allImages = [], a
           position: 'relative',
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
           alt={alt}
@@ -113,7 +112,6 @@ export default function ImageZoom({ src, alt, height = '100%', allImages = [], a
           )}
 
           {/* Main zoomed image */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
             alt={alt}
@@ -144,7 +142,6 @@ export default function ImageZoom({ src, alt, height = '100%', allImages = [], a
               onClick={e => e.stopPropagation()}
             >
               {allImages.map((img, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   key={i}
                   src={img.url}

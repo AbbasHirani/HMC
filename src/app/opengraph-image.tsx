@@ -7,7 +7,6 @@ export const contentType = 'image/png';
 
 const NAVY  = '#0f172a';
 const ORANGE = '#ea580c';
-const MUTED = '#94a3b8';
 const WHITE = '#ffffff';
 
 export default function Image() {

@@ -159,7 +159,6 @@ export default function ProductClient({ product: p, related = [], popular = [] }
                       {/* Shown only if iframe errors (embedding disabled by uploader) */}
                       <div className="yt-fallback" style={{ display: 'none', position: 'absolute', inset: 0, background: '#000', borderRadius: '12px', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
                         {activeMedia.thumbUrl && (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img src={activeMedia.thumbUrl} alt="Video" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4, borderRadius: '12px' }} />
                         )}
                         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
@@ -188,12 +187,10 @@ export default function ProductClient({ product: p, related = [], popular = [] }
                 {media.length > 0 ? media.map((item, i) => (
                   <div key={i} className={`thumb-ph${i === activeThumb ? ' active' : ''}`} onClick={() => setActiveThumb(i)}>
                     {item.type === 'image' ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img src={item.url} alt={item.alt || imgAlt(i)} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '4px' }} />
                     ) : (
                       <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000', borderRadius: '4px', overflow: 'hidden' }}>
                         {item.thumbUrl && (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img src={item.thumbUrl} alt="Video thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
                         )}
                         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>

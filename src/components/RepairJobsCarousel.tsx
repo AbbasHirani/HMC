@@ -48,7 +48,9 @@ export default function RepairJobsCarousel({ jobs }: { jobs: Job[] }) {
   function onPointerUp(e: React.PointerEvent) {
     if (dragStart.current === null) return;
     const dx = e.clientX - dragStart.current;
-    if (Math.abs(dx) > 40) dx < 0 ? next() : prev();
+    if (Math.abs(dx) > 40) {
+      if (dx < 0) next(); else prev();
+    }
     dragStart.current = null;
   }
 
@@ -109,7 +111,6 @@ export default function RepairJobsCarousel({ jobs }: { jobs: Job[] }) {
               {/* Image */}
               <div style={{ height: 210, background: 'var(--paper)', position: 'relative', overflow: 'hidden' }}>
                 {j.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={cdn(j.imageUrl)}
                     alt={j.title}

@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { compressImageFile } from '@/lib/imageCompress';
-import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
+import ReactCrop, { Crop, PixelCrop, centerCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 const TAGS = ['', 'Best seller', 'Popular'];
@@ -276,7 +276,6 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
         else if (ext === 'mov') mime = 'video/quicktime';
         file = new File([file], file.name, { type: mime });
       }
-      
       setVideos(prev => [...prev, {
         id: generateTmpId(), stateType: 'new_upload', type: 'cloudinary', file, previewUrl: URL.createObjectURL(file), uploadProgress: 0
       }]);
@@ -467,7 +466,7 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
               it.id === img.id && it.type === 'new' ? { ...it, uploadProgress: p } : it));
           });
           if (result?.url) finalImages.push({ url: result.url, publicId: result.publicId, alt });
-        } catch (err) {
+        } catch {
           setError('Image upload failed.');
           setSaving(false);
           return;
@@ -490,7 +489,7 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
             setVideos(prev => prev.map(it => it.id === vid.id ? { ...it, uploadProgress: p } : it));
           });
           if (result?.url) finalVideos.push({ type: 'cloudinary', url: result.url, publicId: result.publicId });
-        } catch (err) {
+        } catch {
           setError('Video upload failed.');
           setSaving(false);
           return;
@@ -827,7 +826,6 @@ export default function ProductForm({ mode, id, cats, allSubs, brands = [], useC
       {/* Videos */}
       <div className="adm-form-section">
         <h3>Product videos <span style={{ fontWeight: 400, fontSize: 11, color: '#9ca3af', textTransform: 'none' }}>(optional)</span></h3>
-        
         <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
           <button type="button" className="btn-adm btn-adm-ghost" onClick={() => videoFileRef.current?.click()}>
             Upload Video (MP4/WebM)

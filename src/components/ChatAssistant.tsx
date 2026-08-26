@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, Fragment } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { IconAssistant, IconClose, IconSend, IconSparkle } from './Icons';
+import { IconAssistant, IconClose, IconSend } from './Icons';
 
 interface Message { role: 'user' | 'assistant'; content: string }
 

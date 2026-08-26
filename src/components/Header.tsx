@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { CONTACT, WA } from '@/lib/data';
@@ -24,6 +24,7 @@ const TOGGLE_MAP: Record<string, { en: string; ta: string }> = {
 
 export default function Header({ active, lang = 'en' }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const t = NAV[lang];
   const isTa = lang === 'ta';
   const home = isTa ? '/ta' : '/';
@@ -31,6 +32,25 @@ export default function Header({ active, lang = 'en' }: Props) {
   const toggle = TOGGLE_MAP[active ?? 'home'] ?? TOGGLE_MAP.home;
   const toggleHref = isTa ? toggle.en : toggle.ta;
   const close = () => setMenuOpen(false);
+
+  // The open menu covers the page, so it needs the things an overlay owes a
+  // keyboard user: Escape to dismiss, no scrolling of the page underneath,
+  // and focus handed back to the button that opened it.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
+    window.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    // Captured now rather than read in the cleanup: we want the button as it
+    // was when the menu opened, and reading a ref during cleanup is unsafe.
+    const opener = toggleRef.current;
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+      opener?.focus();
+    };
+  }, [menuOpen]);
 
   return (
     <header className="site-header">
@@ -73,9 +93,11 @@ export default function Header({ active, lang = 'en' }: Props) {
               WhatsApp
             </a>
             <button
+              ref={toggleRef}
               className="menu-toggle"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
               onClick={() => setMenuOpen(o => !o)}
             >
               {menuOpen ? (
@@ -95,7 +117,7 @@ export default function Header({ active, lang = 'en' }: Props) {
       {menuOpen && (
         <>
           <div className="mobile-menu-backdrop" onClick={close} />
-          <div className="mobile-menu">
+          <div className="mobile-menu" id="mobile-menu">
             <Link href={home} className={active === 'home' ? 'active' : ''} onClick={close}>{t.home}</Link>
             <Link href="/catalogue" className={active === 'products' ? 'active' : ''} onClick={close}>{t.products}</Link>
             <Link href={`${home}#categories`} onClick={close}>{t.categories}</Link>

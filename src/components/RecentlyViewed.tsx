@@ -47,7 +47,6 @@ export default function RecentlyViewed({ excludeSlug }: { excludeSlug?: string }
             >
               <div style={{ height: 130, background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10 }}>
                 {item.image
-                  // eslint-disable-next-line @next/next/no-img-element
                   ? <img src={cdn(item.image)} alt={item.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} loading="lazy" />
                   : <span style={{ fontSize: 12, color: 'var(--muted)' }}>{item.name}</span>}
               </div>

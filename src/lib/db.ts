@@ -1,7 +1,6 @@
 import { neon, NeonQueryFunction } from '@neondatabase/serverless';
 
 declare global {
-  // eslint-disable-next-line no-var
   var _neonSql: NeonQueryFunction<false, false> | undefined;
 }
 

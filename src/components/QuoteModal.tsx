@@ -20,15 +20,43 @@ export default function QuoteModal({ productName, productCat, productSlug, onClo
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
   const nameRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Remember where focus came from so it can go back when the dialog closes;
+    // otherwise the user is dumped at the top of the document.
+    const opener = document.activeElement as HTMLElement | null;
     setTimeout(() => nameRef.current?.focus(), 80);
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+      opener?.focus?.();
+    };
   }, []);
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onClose(); return; }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+
+      // aria-modal only tells assistive tech the rest of the page is inert; it
+      // does not stop Tab walking out of the dialog. Cycle within it instead.
+      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
@@ -75,7 +103,7 @@ export default function QuoteModal({ productName, productCat, productSlug, onClo
 
   return (
     <div className="modal-overlay open" role="dialog" aria-modal="true" onClick={e => { if (e.target === e.currentTarget) handleClose(); }}>
-      <div className="modal">
+      <div className="modal" ref={dialogRef}>
         <div className="modal-head">
           <div className="mh-left">
             <div className="mh-ic"><IconDoc /></div>

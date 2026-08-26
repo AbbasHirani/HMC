@@ -9,12 +9,10 @@ import CTABand from '@/components/CTABand';
 import ProductCard from '@/components/ProductCard';
 import CategoryCard from '@/components/CategoryCard';
 import ShowcaseCarousel from '@/components/ShowcaseCarousel';
-import { IconCheck, IconWA, IconPhone, IconWrench } from '@/components/Icons';
+import { IconCheck, IconPhone, IconWrench } from '@/components/Icons';
 import { SERVICES, CONTACT, WA } from '@/lib/data';
 import { getCategories, getProducts } from '@/lib/queries';
 import { jsonLd } from '@/lib/jsonLd';
-
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://hiranimarketingcombines.in';
 
 const faqSchema = {
   '@context': 'https://schema.org',
@@ -253,7 +251,6 @@ export default async function HomePage() {
             </div>
           </div>
           </div>
-          
           <p style={{ fontFamily: 'var(--font-head)', fontWeight: 700, color: 'var(--muted)', fontSize: 12, letterSpacing: '.14em', textTransform: 'uppercase', margin: '54px 0 18px', textAlign: 'center' }}>
             Trusted brands we carry
           </p>

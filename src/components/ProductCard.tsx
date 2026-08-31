@@ -136,8 +136,6 @@ export default function ProductCard({ p, dark, priority }: { p: Product; dark?: 
     e.stopPropagation();
     setCurrentIndex(idx);
   };
-
->>>>>>> 6855339 (feat: add interactive product card image slideshow with center-screen auto-play on mobile)
   return (
     <Link
       ref={cardRef}
